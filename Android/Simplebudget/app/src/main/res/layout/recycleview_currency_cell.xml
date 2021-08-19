@@ -1,0 +1,40 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
+
+        <ImageView
+            android:id="@+id/currency_cell_selected_indicator_iv"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical"
+            android:visibility="invisible"
+            app:srcCompat="@drawable/ic_tick" />
+
+        <TextView
+            android:id="@+id/currency_cell_title_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="10dp" />
+
+    </LinearLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dip"
+        android:layout_alignParentBottom="true"
+        android:background="@color/divider" />
+
+</RelativeLayout>

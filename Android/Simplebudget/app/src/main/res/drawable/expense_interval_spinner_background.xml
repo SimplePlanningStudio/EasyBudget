@@ -1,0 +1,11 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="true"
+          android:drawable="@drawable/expense_interval_spinner_focused" /> <!-- pressed -->
+
+    <item android:state_focused="true"
+          android:drawable="@drawable/expense_interval_spinner_focused" /> <!-- focused -->
+
+    <item android:drawable="@drawable/expense_interval_spinner_normal" /> <!-- default -->
+
+</selector>

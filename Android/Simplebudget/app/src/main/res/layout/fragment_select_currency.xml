@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".view.selectcurrency.SelectCurrencyFragment">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/search_currency"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_margin="@dimen/_6sdp"
+        android:drawableStart="@drawable/ic_search"
+        android:hint="@string/type_currency"
+        android:imeOptions="actionDone"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLines="1"
+        android:padding="5dp"
+        android:paddingStart="@dimen/_15sdp"
+        android:textSize="@dimen/_14ssp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/select_currency_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

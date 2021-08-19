@@ -1,0 +1,360 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="app_name" translatable="false">Simple Budget</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_balance">Adjust current balance</string>
+    <string name="fab_add_expense"> Add expense/income</string>
+    <string name="fab_add_monthly_expense">Recurring expense/income</string>
+    <string name="title_activity_add_expense">Add expense</string>
+    <string name="title_activity_add_income">Add income</string>
+    <string name="title_activity_edit_expense">Edit expense</string>
+    <string name="title_activity_edit_income">Edit income</string>
+    <string name="title_activity_recurring_expense_add">Add recurring expense</string>
+    <string name="title_activity_recurring_income_add">Add recurring income</string>
+    <string name="title_activity_recurring_expense_edit">Edit recurring expense</string>
+    <string name="title_activity_recurring_income_edit">Edit recurring income</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_welcome">SimpleBudget</string>
+    <string name="title_activity_premium">Premium</string>
+    <string name="title_budget_report">Budget report</string>
+    <string name="cancel">Cancel</string>
+    <string name="undo">UNDO</string>
+    <string name="ok">OK</string>
+    <string name="amount">Amount ( %s )</string>
+    <string name="description">Description</string>
+    <string name="type">Type</string>
+    <string name="payment">Expense</string>
+    <string name="income">Income</string>
+    <string name="date">Date</string>
+    <string name="first_occurence">First instance</string>
+    <string name="no_expense_for_today">No income or expense found</string>
+
+    <string name="no_description_error">Enter a description</string>
+    <string name="no_amount_error">Enter an amount</string>
+    <string name="negative_amount_error">Amount should be greater than 0</string>
+    <string name="invalid_amount">Not a valid amount</string>
+    <string name="expense_add_before_init_date_dialog_title">Warning</string>
+    <string name="expense_add_before_init_date_dialog_description">Adding for old dates will affect your current balance.\n\nDo you want to continue?\n(You can change your balance in the menu, anytime.)</string>
+    <string name="expense_add_before_init_date_dialog_positive_cta">Confirm</string>
+    <string name="expense_add_before_init_date_dialog_negative_cta">Cancel</string>
+
+    <string name="dialog_edit_expense_title">How can I help you?</string>
+    <string name="dialog_edit_income_title">How can I help you?</string>
+    <string-array name="dialog_edit_expense_choices">
+        <item>Edit expense</item>
+        <item>Delete expense</item>
+    </string-array>
+    <string-array name="dialog_edit_income_choices">
+        <item>Edit income</item>
+        <item>Delete income</item>
+    </string-array>
+    <string name="dialog_edit_recurring_expense_title">Recurring expense: How can I help you?</string>
+    <string name="dialog_edit_recurring_income_title">Recurring income: How can I help you?</string>
+    <string-array name="dialog_edit_recurring_expense_choices">
+        <item>Edit this only</item>
+        <item>Edit this and all following</item>
+        <item>Delete this instance only</item>
+        <item>Delete all following</item>
+        <item>Delete all before</item>
+        <item>Delete all</item>
+    </string-array>
+    <string-array name="dialog_edit_recurring_income_choices">
+        <item>Edit this only</item>
+        <item>Edit this and all following</item>
+        <item>Delete this only</item>
+        <item>Delete all following</item>
+        <item>Delete all before</item>
+        <item>Delete all</item>
+    </string-array>
+    <string name="expense_delete_snackbar_text">Expense deleted</string>
+    <string name="income_delete_snackbar_text">Income deleted</string>
+
+    <string name="adjust_balance_title">Adjust current balance</string>
+    <string name="adjust_balance_message">Adjust how much you currently have on your account</string>
+    <string name="adjust_balance_expense_title">Balance</string>
+    <string name="adjust_balance_snackbar_text">Balance adjusted to %s</string>
+    <string name="account_balance_format">Balance on %s</string>
+    <string name="account_balance_date_format">MMM dd</string>
+    <string name="add_expense_date_format">MMM dd yyyy</string>
+    <string name="date_format_calender_reveal">E, dd MMM yyyy</string>
+    <string name="adjust_limit_warning_title">Change warning threshold for low balance</string>
+    <string name="adjust_limit_warning_message">Set the threshold value (must be > 0)</string>
+    <string name="adjust_limit_warning_error_title">Oops</string>
+    <string name="adjust_limit_warning_error_message">The value you entered is invalid. It must be a positive number, superior to 0</string>
+    <string name="adjust_balance_error_title">Oops</string>
+    <string name="adjust_balance_error_message">The value you entered is invalid.</string>
+
+    <string name="daily">DAILY</string>
+    <string name="monthly">MONTHLY</string>
+    <string name="weekly">WEEKLY</string>
+    <string name="bi_weekly">2 WEEKS</string>
+    <string name="ter_weekly">3 WEEKS</string>
+    <string name="four_weekly">4 WEEKS</string>
+    <string name="bi_monthly">2 MONTHS</string>
+    <string name="ter_monthly">3 MONTHS</string>
+    <string name="six_monthly">6 MONTHS</string>
+    <string name="yearly">YEARLY</string>
+    <string name="recurring_expense_add_loading_title">Loading</string>
+    <string name="recurring_expense_add_loading_message">Creating recurring expense…</string>
+    <string name="recurring_income_add_loading_message">Creating recurring income…</string>
+    <string name="recurring_expense_add_error_title">Oops</string>
+    <string name="recurring_expense_add_error_message">An error occurred.</string>
+    <string name="recurring_expense_delete_success_message">Recurring expense deleted with success</string>
+    <string name="recurring_expense_delete_loading_title">Deleting</string>
+    <string name="recurring_expense_delete_loading_message">Deleting recurring expense…</string>
+    <string name="recurring_expense_delete_error_title">Oops</string>
+    <string name="recurring_expense_delete_error_message">An error occurred.</string>
+    <string name="recurring_expense_restoring_loading_title">Canceling</string>
+    <string name="recurring_expense_restoring_loading_message">Restoring deleted recurring expense…</string>
+    <string name="recurring_expense_restored_success_message">Recurring expense restored with success</string>
+    <string name="recurring_expense_restore_error_title">Oops</string>
+    <string name="recurring_expense_restore_error_message">An error occurred.</string>
+    <string name="recurring_expense_delete_first_error_title">Oops</string>
+    <string name="recurring_expense_delete_first_error_message">There are no records before this one.</string>
+    <string name="expense_delete_error_title">Oops</string>
+    <string name="expense_delete_error_message">An error occurred.</string>
+
+    <string name="recurring_expense_interval">Interval</string>
+    <string name="recurring_interval_daily">Every day</string>
+    <string name="recurring_interval_weekly">Every week</string>
+    <string name="recurring_interval_bi_weekly">Every 2 weeks</string>
+    <string name="recurring_interval_ter_weekly">Every 3 weeks</string>
+    <string name="recurring_interval_four_weekly">Every 4 weeks</string>
+    <string name="recurring_interval_monthly">Every month</string>
+    <string name="recurring_interval_ter_monthly">Every 3 months</string>
+    <string name="recurring_interval_bi_monthly">Every 2 months</string>
+    <string name="recurring_interval_six_monthly">Every 6 months</string>
+    <string name="recurring_interval_yearly">Every year</string>
+
+    <string name="setting_category_general">General</string>
+    <string name="setting_category_app_title">App</string>
+    <string name="setting_category_rate_button_title">Rate the app?</string>
+    <string name="setting_category_rate_button_message">Let me know what you think</string>
+    <string name="setting_category_bug_report_send_button_title">Report a bug</string>
+    <string name="bug_report_email" translatable="false">wavetechstudio@gmail.com</string>
+    <string name="setting_category_bug_report_send_subject" translatable="false">SimpleBudget - Bug report</string>
+    <string name="setting_category_bug_report_send_text">\n\n---\n*Please do not remove this part*\nSimpleBudget id: %s</string>
+    <string name="setting_category_bug_report_send_error">Unable to find an app to send bug report email</string>
+    <string name="setting_category_general_title">General</string>
+    <string name="setting_category_currency_change_button_title">Change currency (%s)</string>
+    <string name="setting_category_currency_change_button_message">Select the currency you want to use</string>
+    <string name="setting_category_currency_change_dialog_title">Select your currency</string>
+    <string name="setting_category_limit_set_button_title">Low balance threshold (%s)</string>
+    <string name="setting_category_limit_set_button_message">Change the threshold at which you want to be warned about a low balance</string>
+    <string name="setting_category_start_day_of_week_title">Change start day of weeks</string>
+    <string name="setting_category_start_day_of_week_summary">Start day of week is (%s)</string>
+    <string name="setting_category_app_version_title" translatable="false">SimpleBudget %s</string>
+    <string name="setting_category_share_app_title">Share with friends</string>
+    <string name="setting_category_share_app_message">SimpleBudget is free, so why not sharing it with your friends!</string>
+    <string name="setting_category_dev_title" translatable="false">Dev</string>
+    <string name="setting_category_show_welcome_screen_button_title" translatable="false">Show welcome screen</string>
+    <string name="setting_category_show_premium" translatable="false">Show premium screen</string>
+    <string name="setting_category_premium_title">Premium</string>
+    <string name="setting_category_premium_status_title">You are premium!</string>
+    <string name="setting_category_premium_status_message">You have access to premium features without Ads.</string>
+    <string name="setting_category_premium_redeem_title">Promo code</string>
+    <string name="setting_category_premium_redeem_message">Redeem a promo code</string>
+    <string name="setting_category_notifications_update_title">Updates</string>
+    <string name="setting_category_notifications_update_message">Get notified of new features of the app. Won\'t spam you, I promise!</string>
+    <string name="setting_category_notifications_daily_title">Daily reminder</string>
+    <string name="setting_category_notifications_daily_message">Receive a notification at the end of the day if you didn\'t enter your expenses</string>
+    <string name="setting_category_not_premium_status_title">Remove Ads</string>
+    <string name="setting_category_not_premium_status_message">Lifetime access of all features without Ads</string>
+    <string name="setting_category_notifications_weekly_title">Weekly reports</string>
+    <string name="setting_category_notifications_monthly_message">Receive a notification when a new monthly report is complete</string>
+    <string name="setting_category_theme_title">Theme</string>
+    <string name="setting_theme_light">Light</string>
+    <string name="setting_theme_dark">Dark</string>
+    <string name="setting_theme_platform">System default</string>
+    <string name="setting_app_version">App version</string>
+
+    <string name="premium_popup_premium_title">You are premium!</string>
+    <string name="premium_popup_premium_message">You have access to premium features:\n\n- Monthly report: Get a sum-up of your expenses and incomes of the month\n- Daily reminder if you forgot to enter your expenses during the day\n- Dark Theme support\n- Data backup\n…and more premium features that will be added soon!</string>
+    <string name="premium_popup_not_premium_title">Become a premium user</string>
+    <string name="premium_popup_not_premium_message">Access all the premium features!</string>
+    <string name="premium_popup_not_premium_feature1_title">3. Daily reminder</string>
+    <string name="premium_popup_not_premium_feature1_message">Receive a notification at the end of the day if you didn\'t enter your expenses.</string>
+    <string name="premium_popup_not_premium_feature2_title">1. Monthly report</string>
+    <string name="premium_popup_not_premium_feature2_message">Get a sum-up of your expenses and incomes of the month and see how much you saved.</string>
+    <string name="premium_popup_not_premium_feature_more_dark_theme">4. Dark theme support!</string>
+    <string name="premium_popup_not_premium_feature_more_backup_title">2. Backup</string>
+    <string name="premium_popup_not_premium_feature_more_backup_message">Automatic backup of your data in the cloud! No need to worry about losing your budget anymore.</string>
+    <string name="premium_popup_not_premium_feature_more_title">… and more premium features that will be added soon!</string>
+    <string name="premium_popup_not_premium_cta">Buy</string>
+    <string name="premium_popup_become_title">Become a premium user</string>
+    <string name="premium_popup_become_message">It seems that you like using SimpleBudget!\nWould you like to take it to next level and discover premium features?</string>
+    <string name="premium_popup_become_cta">Discover</string>
+    <string name="premium_popup_become_not_now">Not now</string>
+    <string name="premium_popup_become_not_ask_again">Don\'t ask me again</string>
+
+    <string name="iab_purchase_success_title">Thank you</string>
+    <string name="iab_purchase_success_message">Thank you so much for your support! You can now enjoy the premium features.</string>
+    <string name="iab_purchase_wait_title">Purchasing</string>
+    <string name="iab_purchase_wait_message">Please wait</string>
+    <string name="iab_purchase_error_title">Oops</string>
+    <string name="iab_purchase_error_message">An error occurred, try again later or contact me if the problem persists.\n(%s)</string>
+
+    <string name="voucher_redeem_dialog_title">Promo code</string>
+    <string name="voucher_redeem_dialog_message">Enter your promo code</string>
+    <string name="voucher_redeem_dialog_cta">Redeem</string>
+    <string name="voucher_redeem_error_dialog_title">Oops</string>
+    <string name="voucher_redeem_error_code_invalid_dialog_message">Your promo code is invalid.</string>
+
+    <string name="rating_popup_question_title">What do you think of SimpleBudget?</string>
+    <string name="rating_popup_question_message">If you want to request a new feature or having any suggestions to improve the app I would really appreciate your feedback.</string>
+    <string name="rating_popup_question_cta_negative">I don\'t like it</string>
+    <string name="rating_popup_question_cta_positive">I like it</string>
+    <string name="rating_popup_negative_title">:(</string>
+    <string name="rating_popup_negative_message">I\'m sad to hear that. Would you mind sending me your feedback?</string>
+    <string name="rating_popup_negative_cta_negative">No thanks</string>
+    <string name="rating_popup_negative_cta_positive">Sure</string>
+    <string name="rating_popup_positive_title">:)</string>
+    <string name="rating_popup_positive_message">I\'m glad you enjoy using SimpleBudget. Would you mind giving it a positive review on the PlayStore?</string>
+    <string name="rating_popup_positive_cta_negative">No thanks</string>
+    <string name="rating_popup_positive_cta_positive">Sure</string>
+    <string name="rating_feedback_send_error">Unable to find an app to send feedback email.</string>
+    <string name="rating_feedback_email" translatable="false">wavetechstudio@gmail.com</string>
+    <string name="rating_feedback_send_subject" translatable="false">SimpleBudget - Feedback</string>
+    <string name="rating_feedback_send_text"></string>
+    <string name="rating_popup_question_cta_dont_ask_again">Don\'t ask me again</string>
+
+    <string name="onboarding_screen_1_title">Welcome to SimpleBudget</string>
+    <string name="onboarding_screen_1_message">Track daily and recurring expenses or income.</string>
+    <string name="onboarding_screen_1_message2">Ready?</string>
+    <string name="onboarding_screen_1_cta">Yes!</string>
+
+    <string name="onboarding_screen_2_title">Let\'s choose currency!</string>
+    <string name="onboarding_screen_2_message">Step 1: What currency do you use?</string>
+    <string name="onboarding_screen_2_cta">Go with %s</string>
+
+    <string name="onboarding_screen_3_title">Let\'s add available balance</string>
+    <string name="onboarding_screen_3_message">Step 2: How much balance do you currently have?</string>
+    <string name="onboarding_screen_3_cta">Start with %s</string>
+
+    <string name="onboarding_screen_4_title">All set!</string>
+    <string name="onboarding_screen_4_message">(That was easy, huh?)</string>
+    <string name="onboarding_screen_4_message2">What do you have to do next?</string>
+    <string name="onboarding_screen_4_message3_1" translatable="false">Add your recurring expenses and incomes (salary, rent, bills…)</string>
+    <string name="onboarding_screen_4_message4">Thank you for using SimpleBudget, and welcome :)</string>
+    <string name="onboarding_screen_4_cta">Let\'s go!</string>
+
+    <string name="app_invite_message">You should try SimpleBudget: An incredibly easy to use app to manage your budget!</string>
+    <!-- 100 chars or less -->
+
+    <string name="monthly_report_button_title">Monthly report</string>
+    <string name="monthly_report_month_title_format">MMMM yyyy</string>
+    <string name="expenses">Expenses</string>
+    <string name="revenues">Revenues</string>
+    <string name="expenses_total">Expenses total</string>
+    <string name="revenues_total">Revenues total</string>
+    <string name="balance">Balance</string>
+    <string name="monthly_report_no_entries_placeholder">Nothing for this month.</string>
+    <string name="monthly_report_hint">You can access monthly reports from here!</string>
+    <string name="adjust_balance_hint">You can adjust balance from here!</string>
+
+    <string name="backup_settings_activity_title">Backup</string>
+    <string name="backup_settings_cloud_backup">SimpleBudget cloud backup</string>
+    <string name="backup_settings_not_authenticated_description">SimpleBudget cloud backup is available for free at no additional cost.\nTo enable cloud backup, login with your Google account</string>
+    <string name="backup_settings_not_authenticated_description_2">Your Google account will be used to identify your backup. Later, you\'ll be able to restore your data anytime.\n\nYour account will not be used for anything else.</string>
+    <string name="backup_settings_not_authenticated_privacy_title">SimpleBudget takes your privacy seriously</string>
+    <string name="backup_settings_not_authenticated_privacy_message">By authenticating with your Google account, you accept that your SimpleBudget data will be uploaded to the cloud so that it can be available for you to backup anytime.\n\nYour SimpleBudget data will never be used or sell to anyone.\n\nDo you want to continue?</string>
+    <string name="backup_settings_not_authenticated_privacy_positive_cta">Accept</string>
+    <string name="backup_settings_not_authenticated_privacy_negative_cta">Cancel</string>
+    <string name="backup_settings_backups_activated">Cloud backup activated</string>
+    <string name="backup_settings_backups_deactivated">Cloud backup deactivated</string>
+    <string name="backup_settings_authenticate_cta">Sign-in with Google</string>
+    <string name="backup_settings_your_google_account">Your Google account</string>
+    <string name="backup_settings_cloud_backup_status">Cloud backup: %s</string>
+    <string name="backup_settings_cloud_backup_status_activated">enabled</string>
+    <string name="backup_settings_cloud_backup_status_disabled">deactivated</string>
+    <string name="backup_settings_logout_cta">Logout</string>
+    <string name="backup_activated_description">Your data will be automatically saved to cloud every week. If you lost your app or data, you can do backup with one click.</string>
+    <string name="backup_last_update_date">Last backup: %s</string>
+    <string name="backup_last_update_date_never">Never</string>
+    <string name="backup_now_cta">Backup now</string>
+    <string name="backup_restore_description">Restore backup data</string>
+    <string name="backup_restore_explanation">By restoring your data, your current data will be replaced with the one is backed up. Please note, this cannot be undone! </string>
+    <string name="backup_restore_cta">Restore data from last backup</string>
+    <string name="backup_now_error_title">Unable to backup</string>
+    <string name="backup_now_error_message">Backup not completed due to an error. You can check your connexion and try again or let the app retry automatically later.</string>
+    <string name="backup_already_exist_title">Previous backup found</string>
+    <string name="backup_already_exist_message">A previous SimpleBudget backup from %s has been found on your account.\n\nWould you like to restore it now?\n\n(You can still do it later, before next backup)</string>
+    <string name="backup_already_exist_positive_cta">Restore</string>
+    <string name="backup_already_exist_negative_cta">Ignore</string>
+    <string name="backup_restore_error_title">Error restoring data</string>
+    <string name="backup_restore_error_message">An error occurred while restoring data. Please check your connexion and try again later.</string>
+    <string name="backup_restore_confirmation_title">Restore backup</string>
+    <string name="backup_restore_confirmation_message">Are you sure you want to restore data from %s backup?\n\nIt will replace your current data in an irreversible way!\n\nThe app will restart after the process.</string>
+    <string name="backup_restore_confirmation_positive_cta">Restore</string>
+    <string name="backup_restore_confirmation_negative_cta">Cancel</string>
+    <string name="backup_wipe_data_title">Delete cloud backup</string>
+    <string name="backup_wipe_data_description">You can delete your all cloud data instantly!</string>
+    <string name="backup_wipe_data_cta">Delete backup</string>
+    <string name="backup_wipe_data_confirmation_title">Delete cloud backup</string>
+    <string name="backup_wipe_data_confirmation_message">Are you sure you want to delete all your backup data from the cloud?\n\nThis operation is irreversible and you\'ll lose access to your backup data (Current local app data won\'t be affected).</string>
+    <string name="backup_wipe_data_confirmation_positive_cta">Delete</string>
+    <string name="backup_wipe_data_confirmation_negative_cta">Cancel</string>
+    <string name="backup_wipe_data_error_title">Unable to delete cloud backup</string>
+    <string name="backup_wipe_data_error_message">An error occurred while deleting your backup data. Please check your connexion and try again later.</string>
+
+
+    <!-- Keys, not for translations. -->
+    <string name="setting_category_bug_report_send_button_key" translatable="false">send_bug_report</string>
+    <string name="setting_category_show_welcome_screen_button_key" translatable="false">show_welcome_screen</string>
+    <string name="setting_category_limit_set_button_key" translatable="false">limit_set</string>
+    <string name="setting_category_currency_change_button_key" translatable="false">change_currency</string>
+    <string name="setting_category_dev_key" translatable="false">dev_category</string>
+    <string name="setting_category_rate_button_key" translatable="false">rate</string>
+    <string name="setting_category_app_version_key" translatable="false">app_version</string>
+    <string name="setting_category_share_app_key" translatable="false">share_app</string>
+    <string name="setting_category_premium_key" translatable="false">category_premium</string>
+    <string name="setting_category_not_premium_key" translatable="false">category_not_premium</string>
+    <string name="setting_category_premium_status_key" translatable="false">premium</string>
+    <string name="setting_category_premium_redeem_key" translatable="false">redeem</string>
+    <string name="setting_category_notifications_update_key" translatable="false">update_notifs</string>
+    <string name="setting_category_notifications_daily_key" translatable="false">daily_notifs</string>
+    <string name="setting_category_notifications_monthly_key" translatable="false">monthly_notifs</string>
+    <string name="setting_category_app_theme_key" translatable="false">app_theme</string>
+    <string name="setting_category_not_premium_status_key" translatable="false">not_premium</string>
+    <string name="setting_category_dev_show_premium_key" translatable="false">show_premium</string>
+    <string name="setting_category_start_day_of_week_key" translatable="false">start_day_of_week</string>
+    <string name="setting_enable_app_protection_key" translatable="false">enable_app_protection</string>
+    <string name="setting_app_version_key" translatable="false">app_version</string>
+    <string name="setting_enable_app_protection_off">Enable app password protection</string>
+    <string name="setting_enable_app_protection_general">App password protection</string>
+    <string name="setting_category_backup" translatable="false">backup</string>
+    <string name="enter_amount">Enter amount</string>
+    <string name="share">Share</string>
+    <string name="type_currency">Search currency</string>
+    <string name="proceed">Proceed</string>
+    <string name="next">Next</string>
+    <string name="release_history">Release History</string>
+
+    <string name="setting_app_open_source_key" translatable="false">app_open_source</string>
+    <string name="setting_app_open_source_title" translatable="false">Open source (Apache License, Version 2.0)</string>
+    <string name="text_open_source" translatable="false">Open source</string>
+    <string name="setting_app_open_source_summary" translatable="false">This app is based on <b>EasyBudget app</b> originally developed by <b>Benoit LETONDOR</b>, Click here for more details.</string>
+    <string name="setting_app_open_source_details" translatable="false">This app is open source and based on <b>EasyBudget app</b> originally developed by\n<b>Benoit LETONDOR</b>\neasybudget@benoitletondor.com</string>
+    <string name="text_copyright" translatable="false">Copyright Disclaimer</string>
+    <string name="text_download_easy_budget_on_play_store" translatable="false">You can download <b>EasyBudget app</b> on the PlayStore</string>
+    <string name="text_easy_budget_link" translatable="false">https://play.google.com/store/apps/details?id=com.benoitletondor.easybudgetapp</string>
+
+    <string name="text_easy_budget_source" translatable="false"><b>EasyBudget app</b> source can be found here.</string>
+    <string name="text_easy_budget_source_link" translatable="false">https://github.com/benoitletondor/EasyBudget</string>
+
+    <string name="text_simple_budget_source" translatable="false"><b>Simple Budget app</b> source can be found here.</string>
+    <string name="text_simple_budget_source_link" translatable="false">https://github.com/WaheedNazir/EasyBudget</string>
+
+    <string-array name="themes">
+        <item>@string/setting_theme_light</item>
+        <item>@string/setting_theme_dark</item>
+        <item>@string/setting_theme_platform</item>
+    </string-array>
+
+    <string-array name="themesData">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+</resources>

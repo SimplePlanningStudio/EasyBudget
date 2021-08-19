@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".view.settings.releaseHistory.ReleaseHistoryTimelineActivity">
+
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/ToolbarTheme" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+    <com.simplebudget.helper.stickytimelineview.TimeLineRecyclerView
+        android:id="@+id/vertical_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/appBar"
+        app:isSticky="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:timeLineColor="#2196F3"
+        app:timeLineDotColor="#2196F3"
+        app:timeLineDotRadius="4dp"
+        app:timeLineDotStrokeColor="#ffffff"
+        app:timeLineDotStrokeSize="2dp"
+        app:timeLineMode="vertical"
+        app:timeLineWidth="4dp" />
+
+
+</RelativeLayout>

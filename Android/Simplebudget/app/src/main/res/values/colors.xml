@@ -1,0 +1,78 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="easy_budget_green">#061849</color>
+    <color name="easy_budget_green_night">#3753A1</color>
+    <color name="easy_budget_green_dark">#061849</color>
+    <color name="easy_budget_green_light">#D08BAAFF</color>
+    <color name="white">#FFF</color>
+    <color name="transparent">#00FFFFFF</color>
+    <color name="easy_budget_dark_background">#191e1d</color>
+    <color name="easy_budget_dark_status_bar">#222928</color>
+
+    <color name="window_background">@color/primary</color>
+    <color name="calendar_background">@color/window_background</color>
+    <color name="primary">@color/easy_budget_green</color>
+    <color name="primary_dark">@color/easy_budget_green_dark</color>
+    <color name="primary_light">@color/easy_budget_green_light</color>
+    <color name="secondary">#2196F3</color>
+    <color name="secondary_dark">#1976D2</color>
+    <color name="secondary_light">#69a9e9</color>
+    <color name="accent">#8E99F6</color>
+    <color name="accent_ripple">@color/primary_light</color>
+    <color name="primary_text">#FFFFFF</color>
+    <color name="secondary_text">#F8F8F8</color>
+    <color name="placeholder_text">#b5b5b5</color>
+    <color name="divider">#eeeeee</color>
+    <color name="budget_line_background_color">#f2f2f2</color>
+    <color name="home_fab_button_color">@color/accent</color>
+    <color name="home_fab_button_color_pressed">#00695C</color>
+    <color name="fab_add_expense">#F44336</color>
+    <color name="fab_add_expense_pressed">#EF5350</color>
+    <color name="fab_add_monthly_expense">@color/secondary</color>
+    <color name="fab_add_monthly_expense_pressed">@color/secondary_light</color>
+    <color name="main_fab_action_color">@color/white</color>
+
+    <color name="calendar_cell_selected">@color/primary_light</color>
+    <color name="calendar_cell_disabled_text_color">#eeeeee</color>
+    <color name="budget_green">#4CAF50</color>
+    <color name="budget_green_out">#7ed281</color>
+    <color name="budget_orange">#FF9800</color>
+    <color name="budget_red">#F44336</color>
+    <color name="budget_red_out">#f17970</color>
+    <color name="recurring_icon_color">#4D4D4D</color>
+
+    <color name="snackbar_action_undo">#4caf50</color>
+    <color name="premium_background">@color/easy_budget_green</color>
+
+    <color name="monthly_report_hint_background">#FFFFFF</color>
+
+    <color name="status_bar_color">@color/easy_budget_green</color>
+    <color name="action_bar_background">@color/status_bar_color</color>
+    <color name="action_bar_text_color">@color/white</color>
+    <color name="calendar_header_background">@color/window_background</color>
+    <color name="calendar_month_button_background_color">@color/white</color>
+    <color name="calendar_month_button_color_disabled">@color/easy_budget_green_light</color>
+    <color name="calendar_month_button_color">@color/accent</color>
+    <color name="calendar_header_month_color">@color/accent</color>
+    <color name="calendar_today_background_color">@color/white</color>
+    <color name="calendar_today_stroke_color">@color/easy_budget_green_dark</color>
+    <color name="calendar_cell_background">@color/window_background</color>
+    <color name="expense_edit_field_accent_color">@color/accent</color>
+    <color name="expense_edit_field_accent_color_dark">@color/white</color>
+    <color name="expense_edit_field_text_color_dark">@color/white</color>
+    <color name="expense_edit_title_text_color_dark">@color/white</color>
+    <color name="expense_edit_title_text_color">@color/primary_text</color>
+    <color name="monthly_report_categories_title">@color/primary_text</color>
+    <color name="monthly_report_categories_value">@color/accent</color>
+    <color name="monthly_report_date_color">@color/primary</color>
+
+
+    <color name="colorDefaultBackground">#F9F9F9</color>
+    <color name="colorDefaultTitle">#414fca</color>
+    <color name="colorDefaultSubTitle">#d16767</color>
+    <color name="colorDefaultLine">#51ae45</color>
+    <color name="colorDefaultCircle">#51ae45</color>
+    <color name="colorDefaultStroke">#F9F9F9</color>
+
+    <color name="colorBlack">#000000</color>
+    <color name="colorBlackLight">#605E5E</color>
+</resources>

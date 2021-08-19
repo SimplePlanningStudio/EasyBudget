@@ -1,0 +1,326 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary"
+    tools:context=".view.main.MainActivity">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/ToolbarTheme" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <RelativeLayout
+            android:id="@+id/reveal_calendar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_below="@+id/appbar"
+            android:background="@color/accent"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            tools:ignore="UnusedAttribute">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_20sdp"
+                    android:text="Today:"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_12ssp"
+                    android:textStyle="bold"
+                    tools:ignore="RelativeOverlap" />
+
+                <TextView
+                    android:id="@+id/todaysDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_6sdp"
+                    android:textColor="@color/primary"
+                    android:textSize="@dimen/_12ssp"
+                    tools:ignore="RelativeOverlap" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/arrowDown"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/_10sdp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_arrow_down"
+                android:textSize="@dimen/_18ssp" />
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/calendarView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/reveal_calendar"
+            android:layout_marginBottom="@dimen/_minus20sdp"
+            android:background="@color/primary"
+            android:visibility="visible" />
+
+        <RelativeLayout
+            android:id="@+id/budgetLineContainer"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_125sdp"
+            android:layout_below="@+id/calendarView"
+            android:background="@drawable/bg_available_balance">
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchHideBalance"
+                style="@style/SwitchCompatStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:layout_marginTop="@dimen/_26sdp"
+                android:layout_marginEnd="@dimen/_26sdp"
+                android:checked="true"
+                tools:ignore="RtlHardcoded" />
+
+            <com.airbnb.lottie.LottieAnimationView
+                android:layout_width="@dimen/_100sdp"
+                android:layout_height="@dimen/_100sdp"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"
+                app:lottie_rawRes="@raw/splash_wallet_animation" />
+
+            <TextView
+                android:id="@+id/budgetLine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="@dimen/_26sdp"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_14ssp"
+                tools:ignore="RelativeOverlap" />
+
+            <TextView
+                android:id="@+id/budgetLineAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/budgetLine"
+                android:layout_centerHorizontal="true"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_16ssp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/emptyExpensesRecyclerViewPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/budgetLineContainer"
+            android:layout_marginTop="@dimen/_minus40sdp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="visible"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:alpha="0.6"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_wallet" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:text="@string/no_expense_for_today"
+                android:textColor="@color/secondary_text"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/expensesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/llAddAmountContainer"
+            android:layout_below="@+id/emptyExpensesRecyclerViewPlaceholder"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginTop="@dimen/_minus40sdp"
+            android:scrollbars="vertical" />
+
+        <LinearLayout
+            android:id="@+id/llAddAmountContainer"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_above="@+id/ad_view_container"
+            android:layout_marginBottom="@dimen/_4sdp"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:padding="@dimen/_2sdp"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/fab_new_recurring_expense"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="@dimen/_2sdp"
+                android:layout_weight="1"
+                android:background="@color/caldroid_lighter_gray"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_add_recurring"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:text="@string/fab_add_monthly_expense"
+                android:textAllCaps="false"
+                android:textColor="@color/caldroid_black"
+                android:textSize="@dimen/_10ssp"
+                tools:ignore="UnusedAttribute" />
+
+            <Button
+                android:id="@+id/fab_new_expense"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/_2sdp"
+                android:layout_weight="1"
+                android:background="@color/caldroid_lighter_gray"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_add"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:text="@string/fab_add_expense"
+                android:textAllCaps="false"
+                android:textColor="@color/caldroid_black"
+                android:textSize="@dimen/_10ssp"
+                tools:ignore="UnusedAttribute" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/ad_view_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:visibility="invisible" />
+
+        <RelativeLayout
+            android:id="@+id/intro_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/appbar"
+            android:alpha="0.9"
+            android:background="@color/caldroid_black"
+            android:visibility="gone" />
+    </RelativeLayout>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:id="@+id/monthly_report_hint"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="145dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="end"
+            android:background="@drawable/triangle_drawable" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/monthly_report_hint_background"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="@string/monthly_report_hint"
+                android:textColor="@android:color/black"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/monthly_report_hint_button"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/ok"
+                android:theme="@style/BlueButton" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/adjust_balance_hint"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="90dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="end"
+            android:background="@drawable/triangle_drawable" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/monthly_report_hint_background"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="@string/adjust_balance_hint"
+                android:textColor="@android:color/black"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/adjust_balance_hint_button"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/ok"
+                android:theme="@style/BlueButton" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>

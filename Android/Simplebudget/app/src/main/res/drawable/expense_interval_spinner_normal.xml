@@ -1,0 +1,15 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+       android:shape="rectangle">
+
+    <item >
+        <shape android:shape="rectangle">
+            <solid android:color="@color/expense_edit_field_accent_color_dark"/>
+        </shape>
+    </item>
+
+    <item android:bottom="1dip">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/action_bar_background"/>
+        </shape>
+    </item>
+</layer-list>

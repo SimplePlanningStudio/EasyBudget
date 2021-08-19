@@ -1,0 +1,19 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.welcome.WelcomeActivity">
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/welcome_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <me.relex.circleindicator.CircleIndicator
+        android:id="@+id/welcome_view_pager_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="10dp" />
+
+</FrameLayout>

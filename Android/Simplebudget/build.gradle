@@ -1,0 +1,25 @@
+buildscript {
+    ext.kotlin_version = '1.4.32'
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.2.1'
+        classpath 'com.google.gms:google-services:4.3.5'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.5.2'
+    }
+}
+
+allprojects {
+    repositories {
+        maven { url "https://maven.google.com" }
+        maven { url "https://jitpack.io" }
+        google()
+        jcenter()
+        mavenCentral()
+    }
+}

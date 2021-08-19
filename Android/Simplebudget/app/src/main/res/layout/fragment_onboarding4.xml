@@ -1,0 +1,116 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ic_stars_background"
+    android:padding="@dimen/_16sdp"
+    tools:context=".view.welcome.Onboarding3Fragment">
+
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:gravity="center_horizontal"
+        android:text="@string/onboarding_screen_4_title"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_18ssp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/onboarding_screen_4_message"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_13ssp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title" />
+
+
+    <ImageView
+        android:id="@+id/ic_tick"
+        android:layout_width="@dimen/_120sdp"
+        android:layout_height="@dimen/_120sdp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/desc"
+        app:srcCompat="@drawable/ic_all_set_tick" />
+
+    <TextView
+        android:id="@+id/titl1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:gravity="center_horizontal"
+        android:text="@string/onboarding_screen_4_message2"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_18ssp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ic_tick"
+        app:srcCompat="@drawable/ic_done_white_48dp" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:padding="10dp"
+        app:cardBackgroundColor="#192F7E"
+        app:cardCornerRadius="6dp"
+        app:cardElevation="6dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/titl1">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/_10sdp"
+            android:text="@string/onboarding_screen_4_message3_1"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/_12ssp" />
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_15sdp"
+        android:gravity="center"
+        android:text="@string/onboarding_screen_4_message4"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_12ssp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/card1" />
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/onboarding_screen4_next_button"
+        style="@style/BlueButton"
+        android:layout_width="@dimen/_99sdp"
+        android:layout_height="@dimen/_32sdp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="@dimen/_20sdp"
+        android:background="@drawable/ic_small_button"
+        android:backgroundTint="@color/accent"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="@string/onboarding_screen_4_cta"
+        android:textAllCaps="false"
+        android:textSize="@dimen/_12ssp"
+        app:backgroundTint="@color/accent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

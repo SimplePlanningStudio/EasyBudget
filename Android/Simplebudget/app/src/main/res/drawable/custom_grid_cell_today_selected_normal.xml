@@ -1,0 +1,13 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="oval">
+            <stroke
+                android:width="3dp"
+                android:color="@color/white" />
+
+            <solid android:color="@color/calendar_cell_selected" />
+        </shape>
+    </item>
+
+</layer-list>

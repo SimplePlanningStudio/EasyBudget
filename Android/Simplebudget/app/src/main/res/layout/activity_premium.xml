@@ -1,0 +1,121 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/premium_background"
+    android:clipChildren="false"
+    tools:context=".view.premium.PremiumActivity">
+
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/animationView"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_100sdp"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="@dimen/_20sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/go_premium_now" />
+
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/animationView"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:text="@string/setting_category_not_premium_status_title"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_26ssp" />
+
+    <TextView
+        android:id="@+id/tv_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvTitle"
+        android:gravity="center"
+        android:maxLines="2"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:text="@string/setting_category_not_premium_status_message"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_18ssp" />
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/animationViewNoAds"
+        android:layout_width="@dimen/_100sdp"
+        android:layout_height="@dimen/_100sdp"
+        android:layout_below="@+id/tv_description"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/_30sdp"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/no_ads" />
+
+    <me.relex.circleindicator.CircleIndicator
+        android:id="@+id/premium_view_pager_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="70dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="15dp"
+        android:clipChildren="false"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/premium_not_now_button"
+            style="@style/BlueButton"
+            android:layout_width="@dimen/_99sdp"
+            android:layout_height="@dimen/_31sdp"
+            android:layout_marginEnd="@dimen/_4sdp"
+            android:background="@drawable/ic_small_button"
+            android:backgroundTint="@color/caldroid_gray"
+            android:maxLines="1"
+            android:text="Not now"
+            android:textAllCaps="false"
+            android:textColor="@color/caldroid_black"
+            android:textSize="@dimen/_12ssp"
+            app:backgroundTint="@color/caldroid_gray"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/premium_cta_button"
+            style="@style/BlueButton"
+            android:layout_width="@dimen/_99sdp"
+            android:layout_height="@dimen/_31sdp"
+            android:layout_marginStart="@dimen/_4sdp"
+            android:background="@drawable/ic_small_button"
+            android:backgroundTint="@color/accent"
+            android:maxLines="1"
+            android:text="Buy"
+            android:textAllCaps="false"
+            android:textSize="@dimen/_12ssp"
+            app:backgroundTint="@color/accent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </LinearLayout>
+
+</RelativeLayout>

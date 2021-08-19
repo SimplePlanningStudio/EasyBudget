@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.settings.backup.BackupSettingsActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/ToolbarTheme" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/ad_view_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appbar">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:id="@+id/backup_settings_cloud_storage_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/backup_settings_cloud_backup"
+                android:textColor="@color/caldroid_black"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/backup_settings_cloud_storage_not_authenticated_state"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_title">
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_not_authenticated_description"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backup_settings_not_authenticated_description"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="15sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/backup_settings_cloud_storage_authenticate_button"
+                    style="@style/GreenButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/backup_settings_authenticate_cta"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_not_authenticated_description" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_not_authenticated_description_2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/backup_settings_not_authenticated_description_2"
+                    android:textColor="@color/recurring_icon_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_authenticate_button" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/backup_settings_cloud_storage_authenticating_state"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_title">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/backup_settings_cloud_storage_not_activated_state"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_title">
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_email_description"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:text="@string/backup_settings_your_google_account"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_email"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="15sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_email_description" />
+
+                <Button
+                    android:id="@+id/backup_settings_cloud_storage_logout_button"
+                    style="@style/LightGreenButton.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/backup_settings_logout_cta"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_email" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_backup_switch_description"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@+id/backup_settings_cloud_storage_backup_switch"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_logout_button" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/backup_settings_cloud_storage_backup_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="15dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/backup_settings_cloud_storage_backup_switch_description" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_activated_description"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/backup_activated_description"
+                    android:textColor="@color/recurring_icon_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_backup_switch_description" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_last_update"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="16sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_activated_description" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/backup_settings_cloud_backup_cta"
+                    style="@style/GreenButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/backup_now_cta"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_last_update" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_restore_description"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/backup_restore_description"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_backup_cta" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_restore_explanation"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/backup_restore_explanation"
+                    android:textColor="@color/recurring_icon_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_restore_description" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/backup_settings_cloud_restore_cta"
+                    style="@style/GreenButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/backup_restore_cta"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_restore_explanation" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_delete_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="40dp"
+                    android:text="@string/backup_wipe_data_title"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_restore_cta" />
+
+                <TextView
+                    android:id="@+id/backup_settings_cloud_storage_delete_explanation"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/backup_wipe_data_description"
+                    android:textColor="@color/recurring_icon_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_delete_title" />
+
+                <Button
+                    android:id="@+id/backup_settings_cloud_delete_cta"
+                    style="@style/RedButton.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/backup_wipe_data_cta"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_delete_explanation" />
+
+                <ProgressBar
+                    android:id="@+id/backup_settings_cloud_backup_loading_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:indeterminate="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_restore_cta" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+    <FrameLayout
+        android:id="@+id/ad_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

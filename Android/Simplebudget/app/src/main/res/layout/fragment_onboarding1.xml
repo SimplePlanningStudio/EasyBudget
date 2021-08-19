@@ -1,0 +1,79 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ic_stars_background"
+    android:padding="@dimen/_16sdp"
+    tools:context=".view.welcome.Onboarding1Fragment">
+
+    <TextView
+        android:id="@+id/tv_welcome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:gravity="center_horizontal"
+        android:text="@string/onboarding_screen_1_title"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_18ssp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_2sdp"
+        android:gravity="center_horizontal"
+        android:text="@string/onboarding_screen_1_message"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/_13ssp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_welcome" />
+
+    <TextView
+        android:id="@+id/tv_ready"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:gravity="center_horizontal"
+        android:text="@string/onboarding_screen_1_message2"
+        android:textColor="#ED9F39"
+        android:textSize="@dimen/_20ssp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_description" />
+
+    <ImageView
+        android:id="@+id/bg_coins"
+        android:layout_width="@dimen/_120sdp"
+        android:layout_height="@dimen/_260sdp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/_30sdp"
+        android:background="@drawable/ic_coins_art"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toTopOf="@+id/onboarding_screen1_next_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/onboarding_screen1_next_button"
+        style="@style/BlueButton"
+        android:layout_width="@dimen/_99sdp"
+        android:layout_height="@dimen/_32sdp"
+        android:layout_marginBottom="@dimen/_24sdp"
+        android:background="@drawable/ic_small_button"
+        android:backgroundTint="@color/accent"
+        android:maxLines="1"
+        android:text="@string/onboarding_screen_1_cta"
+        android:textAllCaps="false"
+        android:textSize="@dimen/_12ssp"
+        app:backgroundTint="@color/accent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

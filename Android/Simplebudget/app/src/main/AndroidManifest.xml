@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.simplebudget">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <application
+        android:name=".SimpleBudget"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="false"
+        android:theme="@style/AppTheme"
+        tools:ignore="UnusedAttribute">
+
+        <!-- Disable advertising ID and SSAID for GA & FCM -->
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="firebase_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_ssaid_collection_enabled"
+            android:value="false" /> <!-- Fabric.io -->
+
+        <activity
+            android:name="com.simplebudget.view.main.MainActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".view.premium.PremiumActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_premium"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.simplebudget.view.splash.SplashActivity"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="easybudget" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.simplebudget.view.report.base.MonthlyReportBaseActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_budget_report"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.simplebudget.view.expenseedit.ExpenseEditActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_add_expense"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustNothing" />
+        <activity
+            android:name="com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_recurring_expense_add"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustNothing" />
+        <activity
+            android:name="com.simplebudget.view.settings.SettingsActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_settings"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".view.settings.openSource.OpenSourceDisclaimerActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/text_copyright"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.simplebudget.view.welcome.WelcomeActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_welcome"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name="com.simplebudget.view.settings.backup.BackupSettingsActivity"
+            android:label="@string/backup_settings_activity_title" />
+
+        <activity
+            android:name=".view.settings.releaseHistory.ReleaseHistoryTimelineActivity"
+            android:label="@string/release_history"
+            android:screenOrientation="portrait" />
+
+        <!-- Push -->
+        <service
+            android:name="com.simplebudget.push.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Notif services -->
+        <receiver android:name="com.simplebudget.notif.AppUpdateBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
+     See README(https://goo.gl/l4GJaQ) for more. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_push" />
+        <!-- Set color used with incoming notification messages. This is used when no color is set for the incoming
+             notification message. See README(https://goo.gl/6BKBk7) for more. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/accent" />
+
+        <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/ads_sdk_id" />
+    </application>
+
+</manifest>

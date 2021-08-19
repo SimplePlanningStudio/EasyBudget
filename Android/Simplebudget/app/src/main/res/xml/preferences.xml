@@ -1,0 +1,61 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/setting_category_general">
+        <Preference
+            app:key="@string/setting_category_currency_change_button_key"
+            app:summary="@string/setting_category_currency_change_button_message" />
+
+        <Preference
+            app:key="@string/setting_category_limit_set_button_key"
+            app:summary="@string/setting_category_limit_set_button_message"
+            app:title="@string/setting_category_limit_set_button_title" />
+
+        <Preference
+            app:key="@string/setting_category_start_day_of_week_key"
+            app:summary="@string/setting_category_start_day_of_week_summary"
+            app:title="@string/setting_category_start_day_of_week_title" />
+
+        <Preference
+            app:key="@string/setting_enable_app_protection_key"
+            app:title="@string/setting_enable_app_protection_general" />
+
+        <Preference
+            app:key="@string/setting_category_backup"
+            app:title="@string/backup_settings_activity_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/setting_category_premium_title">
+
+        <Preference
+            app:key="@string/setting_category_premium_key"
+            app:summary="@string/setting_category_not_premium_status_message"
+            app:title="@string/setting_category_not_premium_status_title" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/setting_category_app_title">
+
+        <Preference
+            app:key="@string/setting_category_rate_button_key"
+            app:summary="@string/setting_category_rate_button_message"
+            app:title="@string/setting_category_rate_button_title" />
+
+        <Preference
+            app:key="@string/setting_category_share_app_key"
+            app:summary="@string/setting_category_share_app_message"
+            app:title="@string/setting_category_share_app_title" />
+
+        <Preference
+            app:key="@string/setting_app_version_key"
+            app:summary="@string/setting_app_version"
+            app:title="@string/setting_app_version" />
+
+        <Preference
+            app:key="@string/setting_app_open_source_key"
+            app:summary="@string/setting_app_open_source_summary"
+            app:title="@string/text_open_source" />
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>
