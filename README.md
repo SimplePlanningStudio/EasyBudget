@@ -29,7 +29,7 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 
 ### For any query related to SimpleBudget
  
- You can coordinate [Waheed](mailto:mwaheednazir8@gmail.com)
+ You can coordinate [Waheed (mwaheednazir8@gmail.com)](mailto:mwaheednazir8@gmail.com)
 
 ### Copyright
 
