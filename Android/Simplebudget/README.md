@@ -10,10 +10,10 @@ You can download EasyBudget on the PlayStore: [https://play.google.com/store/app
 
 You can download Simple Budget on the PlayStore: [https://play.google.com/store/apps/details?id=gplx.simple.budgetapp](https://play.google.com/store/apps/details?id=gplx.simple.budgetapp)
 
-### Some of the implementations that are different from EasyBudget
+### Some of the implementations done in this codebase (SimpleBudget)
 
 - Revised design, Day theme only
-- Firebase push notifications
+- Firebase push notifications, In app messaging, Analytics
 - App security password feature
 - Balance privacy on dashboard
 - Currency searching
