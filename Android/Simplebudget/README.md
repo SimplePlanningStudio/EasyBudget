@@ -1,4 +1,4 @@
-# Simple Budget us based on EasyBudget
+# SimpleBudget is based on EasyBudget
 
 Simple Budget app is open source and the idea is based on **EasyBudget app** originally developed by **Benoit LETONDOR** [easybudget@benoitletondor.com](mailto:easybudget@benoitletondor.com)
 
