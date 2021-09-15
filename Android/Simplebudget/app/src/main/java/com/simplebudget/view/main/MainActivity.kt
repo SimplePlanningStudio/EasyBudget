@@ -15,6 +15,7 @@
  */
 package com.simplebudget.view.main
 
+import android.app.Activity
 import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.BroadcastReceiver
@@ -22,10 +23,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -33,7 +37,6 @@ import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -43,10 +46,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.inappmessaging.FirebaseInAppMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
-import com.simplemobiletools.commons.dialogs.SecurityDialog
-import com.simplemobiletools.commons.helpers.WAS_PROTECTION_HANDLED
 import com.simplebudget.R
 import com.simplebudget.helper.*
+import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpenseDeleteType
 import com.simplebudget.prefs.*
@@ -56,6 +58,7 @@ import com.simplebudget.view.main.calendar.CalendarFragment
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
+import com.simplebudget.view.security.SecurityActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
@@ -85,53 +88,61 @@ class MainActivity : BaseActivity() {
     private val appPreferences: AppPreferences by inject()
     private var adView: AdView? = null
     private var isUserPremium = false
-    private var mIsPasswordProtectionPending = false
-    private var mWasProtectionHandled = false
+    private var expenseOfSelectedDay: Double = 0.0
 
 // ------------------------------------------>
 
-    private fun handleAppPasswordProtection(callback: (success: Boolean) -> Unit) {
+    /**
+     * Launch Security Activity
+     */
+    private fun handleAppPasswordProtection() {
         if (appPreferences.isAppPasswordProtectionOn()) {
-            SecurityDialog(this, appPreferences.appPasswordHash(), appPreferences.appProtectionType())
-            { hash, type, success ->
-                callback(success)
-            }
-        } else {
-            callback(true)
+            framelayoutOpaque.visibility = View.VISIBLE
+            val intent = Intent(this, SecurityActivity::class.java)
+                .putExtra("HASH", appPreferences.appPasswordHash())
+                .putExtra("TAB_INDEX", appPreferences.appProtectionType())
+                .putExtra(
+                    SecurityActivity.REQUEST_CODE_SECURITY_TYPE,
+                    SecurityActivity.VERIFICATION
+                )
+            securityActivityLauncher.launch(intent)
         }
     }
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        mWasProtectionHandled = savedInstanceState.getBoolean(WAS_PROTECTION_HANDLED, false)
-    }
+    /**
+     * Start activity for result
+     */
+    var securityActivityLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_CANCELED) {
+                finish()
+            } else {
+                framelayoutOpaque.visibility = View.GONE
+            }
+        }
 
-
+    /**
+     *
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.setBackgroundDrawable(
+            ColorDrawable(Color.TRANSPARENT)
+        )
+        this.window
+            .setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+
         setContentView(R.layout.activity_main)
 
         setSupportActionBar(toolbar)
-
-        mIsPasswordProtectionPending = appPreferences.isAppPasswordProtectionOn()
-
-        if (savedInstanceState == null) {
-            handleAppPasswordProtection {
-                mWasProtectionHandled = it
-
-                if (it) {
-                    // Password is successfully verified
-                    mIsPasswordProtectionPending = false
-                } else {
-                    finish()
-                }
-            }
-        }
-
+        handleAppPasswordProtection()
         initCalendarFragment(savedInstanceState)
         initRecyclerView()
         calendarRevealAnimation()
-
 
         /*
            Init firebase in app messaging click
@@ -465,6 +476,47 @@ class MainActivity : BaseActivity() {
 
         viewModel.selectedDateChangeLiveData.observe(this, { (date, balance, expenses) ->
             refreshAllForDate(date, balance, expenses)
+
+            var expensesAmount = 0.0
+            Runnable {
+                for (expense in expenses) {
+                    if (!expense.isRevenue()) {
+                        expensesAmount += expense.amount
+                    }
+                }
+            }.run()
+
+            val format = SimpleDateFormat(
+                resources.getString(R.string.account_balance_date_format),
+                Locale.getDefault()
+            )
+
+            var formatted =
+                resources.getString(R.string.account_expense_format, format.format(date))
+
+            if (formatted.endsWith(".:")) {
+                formatted = formatted.substring(
+                    0,
+                    formatted.length - 2
+                ) + "" // Remove . at the end of the month (ex: nov.: -> nov:)
+            } else if (formatted.endsWith(". :")) {
+                formatted = formatted.substring(
+                    0,
+                    formatted.length - 3
+                ) + "" // Remove . at the end of the month (ex: nov. : -> nov :)
+            }
+            expenseLine.text = formatted
+            switchHideBalance.isChecked = appPreferences.getDisplayBalance()
+
+            expenseOfSelectedDay = expensesAmount
+
+            if (appPreferences.getDisplayBalance()) {
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, expensesAmount)
+                expenseLineAmount.text =
+                    CurrencyHelper.getFormattedCurrencyString(appPreferences, expenseOfSelectedDay)
+            } else {
+                expenseLineAmount.text = BALANCE_PLACE_HOLDER
+            }
         })
 
         // Routing towards weekly report if weekly report notification received
@@ -489,8 +541,7 @@ class MainActivity : BaseActivity() {
             reveal_calendar.setOnClickListener {
                 revealHideCalendar()
             }
-            budgetLine.setOnClickListener { reveal_calendar.callOnClick() }
-            budgetLineAmount.setOnClickListener { reveal_calendar.callOnClick() }
+            llBalances.setOnClickListener { reveal_calendar.callOnClick() }
         } catch (e: Exception) {
         }
     }
@@ -691,9 +742,13 @@ class MainActivity : BaseActivity() {
         switchHideBalance.isChecked = appPreferences.getDisplayBalance()
 
         if (appPreferences.getDisplayBalance()) {
-            budgetLineAmount.text = CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
+            budgetLineAmount.text =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
+            expenseLineAmount.text =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, expenseOfSelectedDay)
         } else {
             budgetLineAmount.text = BALANCE_PLACE_HOLDER
+            expenseLineAmount.text = BALANCE_PLACE_HOLDER
         }
 
         switchHideBalance.setOnCheckedChangeListener { _, isChecked ->
@@ -701,9 +756,12 @@ class MainActivity : BaseActivity() {
                 appPreferences.setDisplayBalance(true)
                 budgetLineAmount.text =
                     CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
+                expenseLineAmount.text =
+                    CurrencyHelper.getFormattedCurrencyString(appPreferences, expenseOfSelectedDay)
             } else {
                 appPreferences.setDisplayBalance(false)
                 budgetLineAmount.text = BALANCE_PLACE_HOLDER
+                expenseLineAmount.text = BALANCE_PLACE_HOLDER
             }
             expensesViewAdapter?.notifyDataSetChanged()
         }
@@ -816,7 +874,10 @@ class MainActivity : BaseActivity() {
             args.putInt(CaldroidFragment.YEAR, cal.get(Calendar.YEAR))
             args.putBoolean(CaldroidFragment.ENABLE_SWIPE, true)
             args.putBoolean(CaldroidFragment.SIX_WEEKS_IN_CALENDAR, false)
-            args.putInt(CaldroidFragment.START_DAY_OF_WEEK, appPreferences.getCaldroidFirstDayOfWeek())
+            args.putInt(
+                CaldroidFragment.START_DAY_OF_WEEK,
+                appPreferences.getCaldroidFirstDayOfWeek()
+            )
             args.putBoolean(CaldroidFragment.ENABLE_CLICK_ON_DISABLED_DATES, false)
             args.putInt(CaldroidFragment.THEME_RESOURCE, R.style.caldroid_style)
 

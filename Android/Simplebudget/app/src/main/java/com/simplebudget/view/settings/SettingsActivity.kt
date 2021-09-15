@@ -15,8 +15,11 @@
  */
 package com.simplebudget.view.settings
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -26,7 +29,11 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 import com.simplebudget.R
 import com.simplebudget.helper.BaseActivity
+import com.simplebudget.helper.SHOW_PIN
+import com.simplebudget.prefs.*
+import com.simplebudget.view.security.SecurityActivity
 import kotlinx.android.synthetic.main.activity_settings.*
+import org.koin.android.ext.android.inject
 
 /**
  * Activity that displays settings using the [PreferencesFragment]
@@ -37,7 +44,13 @@ class SettingsActivity : BaseActivity() {
 
     private var mInterstitialAd: InterstitialAd? = null
     private var mAdIsLoading = false
+    private val appPreferences: AppPreferences by inject()
+    private lateinit var preferencesFragment: PreferencesFragment
 
+
+    /**
+     *
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -45,6 +58,9 @@ class SettingsActivity : BaseActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        preferencesFragment =
+            supportFragmentManager.findFragmentById(R.id.preferencesFragment) as PreferencesFragment
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -62,7 +78,7 @@ class SettingsActivity : BaseActivity() {
     /**
      * showInterstitial
      */
-     fun showInterstitial() {
+    fun showInterstitial() {
         // Show the ad if it's ready. Otherwise toast and restart the game.
         if (mInterstitialAd != null) {
             mInterstitialAd?.show(this)
@@ -75,7 +91,7 @@ class SettingsActivity : BaseActivity() {
     /**
      * loadInterstitial
      */
-     fun loadInterstitial() {
+    fun loadInterstitial() {
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             this,
@@ -121,5 +137,45 @@ class SettingsActivity : BaseActivity() {
          */
         const val SHOW_BACKUP_INTENT_KEY = "showBackup"
     }
+
+
+    /**
+     * Launch Security Activity
+     */
+    fun handleAppPasswordProtection() {
+        val intent = Intent(this, SecurityActivity::class.java)
+            .putExtra("HASH", appPreferences.appPasswordHash())
+            .putExtra("TAB_INDEX", appPreferences.appProtectionType())
+            .putExtra(SecurityActivity.REQUEST_CODE_SECURITY_TYPE, SecurityActivity.SET_PIN)
+        securityActivityLauncher.launch(intent)
+    }
+
+    /**
+     * Start activity for result
+     */
+    var securityActivityLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_CANCELED) {
+
+                preferencesFragment.updateAppPasswordProtectionLabel()
+
+            } else if (result.resultCode == Activity.RESULT_OK) {
+
+                val hasPasswordProtection = appPreferences.isAppPasswordProtectionOn()
+                appPreferences.setAppPasswordProtectionOn(!hasPasswordProtection)
+                appPreferences.setAppPasswordHash(
+                    (if (hasPasswordProtection) "" else result?.data?.getStringExtra(
+                        "HASH"
+                    ) ?: "")
+                )
+                appPreferences.setHiddenProtectionType(SHOW_PIN)
+
+                if (!hasPasswordProtection) {
+                    preferencesFragment.displayPasswordProtectionDisclaimer()
+                }
+
+                preferencesFragment.updateAppPasswordProtectionLabel()
+            }
+        }
 
 }

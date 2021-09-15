@@ -41,7 +41,7 @@ data class Expense(val id: Long?,
 
     private constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,
-        parcel.readString()!!,
+        parcel.readString()?:"",
         parcel.readDouble(),
         Date(parcel.readLong()),
         parcel.readParcelable(RecurringExpense::class.java.classLoader)

@@ -25,117 +25,178 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <RelativeLayout
+        <androidx.cardview.widget.CardView
             android:id="@+id/reveal_calendar"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_30sdp"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/appbar"
-            android:background="@color/accent"
+            android:layout_margin="@dimen/_6sdp"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            tools:ignore="UnusedAttribute">
+            app:cardBackgroundColor="@color/accent"
+            app:cardElevation="@dimen/_6sdp">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_30sdp"
+                tools:ignore="UnusedAttribute">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_20sdp"
-                    android:text="Today:"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_12ssp"
-                    android:textStyle="bold"
-                    tools:ignore="RelativeOverlap" />
+                    android:layout_centerVertical="true">
 
-                <TextView
-                    android:id="@+id/todaysDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_6sdp"
-                    android:textColor="@color/primary"
-                    android:textSize="@dimen/_12ssp"
-                    tools:ignore="RelativeOverlap" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:text="Today:"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_12ssp"
+                        android:textStyle="bold"
+                        tools:ignore="RelativeOverlap" />
 
-            <ImageView
-                android:id="@+id/arrowDown"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:contentDescription="@string/app_name"
-                android:src="@drawable/ic_arrow_down"
-                android:textSize="@dimen/_18ssp" />
-        </RelativeLayout>
+                    <TextView
+                        android:id="@+id/todaysDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_6sdp"
+                        android:textColor="@color/primary"
+                        android:textSize="@dimen/_12ssp"
+                        tools:ignore="RelativeOverlap" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/arrowDown"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_arrow_down"
+                    android:textSize="@dimen/_18ssp" />
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
 
         <FrameLayout
             android:id="@+id/calendarView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/reveal_calendar"
-            android:layout_marginBottom="@dimen/_minus20sdp"
             android:background="@color/primary"
             android:visibility="visible" />
 
-        <RelativeLayout
+        <androidx.cardview.widget.CardView
             android:id="@+id/budgetLineContainer"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_125sdp"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/calendarView"
-            android:background="@drawable/bg_available_balance">
+            android:layout_margin="@dimen/_6sdp"
+            app:cardElevation="@dimen/_6sdp">
 
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/switchHideBalance"
-                style="@style/SwitchCompatStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_marginStart="@dimen/_4sdp"
-                android:layout_marginTop="@dimen/_26sdp"
-                android:layout_marginEnd="@dimen/_26sdp"
-                android:checked="true"
-                tools:ignore="RtlHardcoded" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_56sdp"
+                android:background="@color/white"
+                android:gravity="center">
 
-            <com.airbnb.lottie.LottieAnimationView
-                android:layout_width="@dimen/_100sdp"
-                android:layout_height="@dimen/_100sdp"
-                app:lottie_autoPlay="true"
-                app:lottie_loop="true"
-                app:lottie_rawRes="@raw/splash_wallet_animation" />
+                <LinearLayout
+                    android:id="@+id/llBalances"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal"
+                    android:weightSum="4">
 
-            <TextView
-                android:id="@+id/budgetLine"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="@dimen/_26sdp"
-                android:textColor="@color/white"
-                android:textSize="@dimen/_14ssp"
-                tools:ignore="RelativeOverlap" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1.7"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/budgetLineAmount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/budgetLine"
-                android:layout_centerHorizontal="true"
-                android:textColor="@color/white"
-                android:textSize="@dimen/_16ssp"
-                android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/budgetLine"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/budget_green"
+                            android:textSize="@dimen/_12ssp"
+                            tools:ignore="RelativeOverlap" />
 
-        </RelativeLayout>
+                        <TextView
+                            android:id="@+id/budgetLineAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/colorBlack"
+                            android:textSize="@dimen/_10ssp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.6"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="@dimen/_2sdp"
+                            android:layout_height="@dimen/_10sdp"
+                            android:background="@color/divider_grey" />
+
+                        <TextView
+                            android:layout_width="@dimen/_2sdp"
+                            android:layout_height="@dimen/_10sdp"
+                            android:layout_marginTop="@dimen/_4sdp"
+                            android:background="@color/divider_grey" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchHideBalance"
+                            style="@style/SwitchCompatStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_2sdp"
+                            android:checked="true"
+                            tools:ignore="RtlHardcoded" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1.7"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/expenseLine"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/budget_red"
+                            android:textSize="@dimen/_12ssp"
+                            tools:ignore="RelativeOverlap" />
+
+                        <TextView
+                            android:id="@+id/expenseLineAmount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/colorBlack"
+                            android:textSize="@dimen/_10ssp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+        </androidx.cardview.widget.CardView>
 
         <LinearLayout
             android:id="@+id/emptyExpensesRecyclerViewPlaceholder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/budgetLineContainer"
-            android:layout_marginTop="@dimen/_minus40sdp"
             android:gravity="center"
             android:orientation="horizontal"
             android:visibility="visible"
@@ -164,8 +225,8 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/llAddAmountContainer"
             android:layout_below="@+id/emptyExpensesRecyclerViewPlaceholder"
-            android:layout_marginHorizontal="10dp"
-            android:layout_marginTop="@dimen/_minus40sdp"
+            android:layout_marginHorizontal="@dimen/_6sdp"
+            android:layout_marginTop="@dimen/_4sdp"
             android:scrollbars="vertical" />
 
         <LinearLayout
@@ -323,4 +384,19 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/framelayoutOpaque"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.6"
+        android:background="@color/colorBlack"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="@dimen/_80sdp"
+            android:layout_height="@dimen/_80sdp"
+            android:layout_gravity="center" />
+
+    </FrameLayout>
 </FrameLayout>

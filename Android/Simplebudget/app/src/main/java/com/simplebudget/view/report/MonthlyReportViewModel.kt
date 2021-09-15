@@ -38,6 +38,7 @@ class MonthlyReportViewModel(private val db: DB) : ViewModel() {
             val expensesForMonth = withContext(Dispatchers.Default) {
                 db.getExpensesForMonth(month)
             }
+
             if( expensesForMonth.isEmpty() ) {
                 monthlyReportDataLiveData.value = MonthlyReportData.Empty
                 return@launch

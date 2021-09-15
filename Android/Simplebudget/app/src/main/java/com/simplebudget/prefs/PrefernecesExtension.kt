@@ -16,7 +16,7 @@
 package com.simplebudget.prefs
 
 import com.roomorama.caldroid.CaldroidFragment
-import com.simplemobiletools.commons.helpers.*
+import com.simplebudget.helper.*
 import java.util.*
 
 private const val DEFAULT_LOW_MONEY_WARNING_AMOUNT = 100

@@ -75,4 +75,21 @@
 
     <color name="colorBlack">#000000</color>
     <color name="colorBlackLight">#605E5E</color>
+
+
+    <color name="pressed_item_foreground">#08000000</color>
+    <color name="activated_item_foreground">#44888888</color>
+    <color name="divider_grey">#88808080</color>
+    <color name="gradient_grey_start">#CC000000</color>
+    <color name="dark_grey">#FF333333</color>
+    <color name="hint_white">#99FFFFFF</color>
+    <color name="hint_black">#66000000</color>
+    <!-- SwitchCompat -->
+    <color name="thumb_deactivated">#FFECECEC</color>
+    <color name="track_deactivated">#FFB2B2B2</color>
+
+    <!-- Radiobutton -->
+    <color name="radiobutton_disabled">#FF757575</color>
+
+    <color name="tac_num_pad_background_color">#F4F4F4</color>
 </resources>

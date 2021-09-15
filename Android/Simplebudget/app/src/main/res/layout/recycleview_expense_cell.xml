@@ -2,9 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="@dimen/_50sdp"
-    android:layout_marginStart="10dp"
     android:layout_marginTop="4dp"
-    android:layout_marginEnd="10dp"
     android:layout_marginBottom="4dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
@@ -25,6 +23,7 @@
             android:layout_height="@dimen/_20sdp"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="5dp"
+            android:contentDescription="@string/app_name"
             android:padding="4dp" />
 
         <LinearLayout
@@ -69,6 +68,7 @@
                 android:layout_width="@dimen/_20sdp"
                 android:layout_height="@dimen/_20sdp"
                 android:layout_marginBottom="1dp"
+                android:contentDescription="@string/app_name"
                 app:srcCompat="@drawable/ic_autorenew_grey_26dp" />
 
             <TextView

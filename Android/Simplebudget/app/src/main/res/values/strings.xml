@@ -75,6 +75,7 @@
     <string name="adjust_balance_expense_title">Balance</string>
     <string name="adjust_balance_snackbar_text">Balance adjusted to %s</string>
     <string name="account_balance_format">Balance on %s</string>
+    <string name="account_expense_format">Expense on %s</string>
     <string name="account_balance_date_format">MMM dd</string>
     <string name="add_expense_date_format">MMM dd yyyy</string>
     <string name="date_format_calender_reveal">E, dd MMM yyyy</string>
@@ -357,4 +358,57 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+
+
+    <!-- Confirmation dialog -->
+    <string name="proceed_with_deletion">Are you sure you want to proceed with the deletion?</string>
+    <string name="do_not_show_again">Do not show again</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="maybe">Maybe</string>
+
+    <plurals name="delete_warning">
+        <item quantity="one">WARNING: You are deleting %d folder</item>
+        <item quantity="other">WARNING: You are deleting %d folders</item>
+    </plurals>
+
+    <!-- Password protection -->
+    <string name="pin">PIN</string>
+    <string name="enter_pin">Enter Your PIN</string>
+    <string name="please_enter_pin">Please enter a PIN</string>
+    <string name="wrong_pin">Wrong PIN</string>
+    <string name="repeat_pin">Repeat PIN</string>
+    <string name="pattern">Pattern</string>
+    <string name="insert_pattern">Insert pattern</string>
+    <string name="wrong_pattern">Wrong pattern</string>
+    <string name="repeat_pattern">Repeat pattern</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="add_fingerprint">Add fingerprint</string>
+    <string name="place_finger">Please place your finger on the fingerprint sensor</string>
+    <string name="authentication_failed">Authentication failed</string>
+    <string name="authentication_blocked">Authentication blocked, please try again in a moment</string>
+    <string name="no_fingerprints_registered">You have no fingerprints registered, please add some in the Settings of your device</string>
+    <string name="go_to_settings">Go to Settings</string>
+    <string name="protection_setup_successfully">Password setup successfully. Please reinstall the app in case you forget it.</string>
+    <string name="fingerprint_setup_successfully">Protection setup successfully. Please reinstall the app in case of problems with reseting it.</string>
+    <string name="lock_folder">Lock folder</string>
+    <string name="unlock_folder">Unlock folder</string>
+    <string name="lock_folder_notice">This protection works in this app only, it is not supposed to replace a real systemwide folder encryption.</string>
+
+    <!-- Description of our developer profile on Google Play, it can have max 140 characters -->
+    <string name="pin_protection">PIN Protection</string>
+
+    <string name="number_1">1</string>
+    <string name="number_2">2</string>
+    <string name="number_3">3</string>
+    <string name="number_4">4</string>
+    <string name="number_5">5</string>
+    <string name="number_6">6</string>
+    <string name="number_7">7</string>
+    <string name="number_8">8</string>
+    <string name="number_9">9</string>
+    <string name="number_00">00</string>
+    <string name="number_0">0</string>
+    <string name="done">Done</string>
+    <string name="back">Back</string>
 </resources>

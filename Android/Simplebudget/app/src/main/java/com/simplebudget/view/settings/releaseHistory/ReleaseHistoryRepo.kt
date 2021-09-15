@@ -9,6 +9,10 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 1.0.9
+            releaseList.add(ReleaseHistory("Version", "1.0.9", "Expense displayed on dashboard."))
+            releaseList.add(ReleaseHistory("Version", "1.0.9", "App security user interface redesigned."))
+
             // 1.0.8
             releaseList.add(ReleaseHistory("Version", "1.0.8", "App password protection option added."))
             releaseList.add(ReleaseHistory("Version", "1.0.8", "Change start day of weeks functionality added."))
@@ -22,7 +26,6 @@ class ReleaseHistoryRepo {
             releaseList.add(ReleaseHistory("Version", "1.0.7", "Option added to start week from Sunday or Monday."))
             releaseList.add(ReleaseHistory("Version", "1.0.7", "Currency search functionality added."))
             releaseList.add(ReleaseHistory("Version", "1.0.7", "Performance and design enhancements"))
-
 
             return releaseList
         }

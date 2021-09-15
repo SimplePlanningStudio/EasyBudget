@@ -56,19 +56,34 @@ interface ExpenseDao {
     suspend fun getAllExpenseForRecurringExpense(recurringExpenseId: Long): List<ExpenseEntity>
 
     @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId AND date > :fromDate")
-    suspend fun deleteAllExpenseForRecurringExpenseFromDate(recurringExpenseId: Long, fromDate: Date)
+    suspend fun deleteAllExpenseForRecurringExpenseFromDate(
+        recurringExpenseId: Long,
+        fromDate: Date
+    )
 
     @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date > :fromDate")
-    suspend fun getAllExpensesForRecurringExpenseFromDate(recurringExpenseId: Long, fromDate: Date): List<ExpenseEntity>
+    suspend fun getAllExpensesForRecurringExpenseFromDate(
+        recurringExpenseId: Long,
+        fromDate: Date
+    ): List<ExpenseEntity>
 
     @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate")
-    suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(recurringExpenseId: Long, beforeDate: Date)
+    suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(
+        recurringExpenseId: Long,
+        beforeDate: Date
+    )
 
     @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate")
-    suspend fun getAllExpensesForRecurringExpenseBeforeDate(recurringExpenseId: Long, beforeDate: Date): List<ExpenseEntity>
+    suspend fun getAllExpensesForRecurringExpenseBeforeDate(
+        recurringExpenseId: Long,
+        beforeDate: Date
+    ): List<ExpenseEntity>
 
     @Query("SELECT count(*) FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate LIMIT 1")
-    suspend fun hasExpensesForRecurringExpenseBeforeDate(recurringExpenseId: Long, beforeDate: Date): Int
+    suspend fun hasExpensesForRecurringExpenseBeforeDate(
+        recurringExpenseId: Long,
+        beforeDate: Date
+    ): Int
 
     @Query("SELECT * FROM monthlyexpense WHERE _expense_id = :recurringExpenseId LIMIT 1")
     suspend fun findRecurringExpenseForId(recurringExpenseId: Long): RecurringExpenseEntity?

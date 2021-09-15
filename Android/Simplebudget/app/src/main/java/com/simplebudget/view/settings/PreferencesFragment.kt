@@ -32,12 +32,11 @@ import androidx.preference.PreferenceFragmentCompat
 import com.simplebudget.iab.Iab
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.roomorama.caldroid.CaldroidFragment
-import com.simplemobiletools.commons.dialogs.SecurityDialog
-import com.simplemobiletools.commons.helpers.SHOW_PIN
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.Logger
+import com.simplebudget.helper.SHOW_PIN
 import com.simplebudget.helper.getUserCurrency
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
@@ -149,26 +148,8 @@ class PreferencesFragment : PreferenceFragmentCompat() {
 
                 if (!iab.isUserPremium()) (activity as SettingsActivity).loadInterstitial()
 
-                val tabToShow =
-                    if (appPreferences.isAppPasswordProtectionOn()) appPreferences.hiddenProtectionType() else SHOW_PIN
-                SecurityDialog(
-                    requireActivity(),
-                    appPreferences.appPasswordHash(),
-                    tabToShow
-                ) { hash, type, success ->
-                    if (success) {
-                        val hasPasswordProtection = appPreferences.isAppPasswordProtectionOn()
-                        enableAppPasswordProtection?.summary =
-                            String.format("%s", if (!hasPasswordProtection) "ON" else "OFF")
-                        appPreferences.setAppPasswordProtectionOn(!hasPasswordProtection)
-                        appPreferences.setAppPasswordHash((if (hasPasswordProtection) "" else hash))
-                        appPreferences.setHiddenProtectionType(type)
+                (activity as SettingsActivity).handleAppPasswordProtection()
 
-                        if (!hasPasswordProtection) {
-                            displayPasswordProtectionDisclaimer()
-                        }
-                    }
-                }
                 true
             }
 
@@ -480,5 +461,15 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             .setPositiveButton("Got it!") { _, _ ->
             }
         builder.create().show()
+    }
+
+    /**
+     *
+     */
+    fun updateAppPasswordProtectionLabel() {
+        val enableAppPasswordProtection =
+            findPreference<Preference>(getString(R.string.setting_enable_app_protection_key))
+        enableAppPasswordProtection?.summary =
+            String.format("%s", if (appPreferences.isAppPasswordProtectionOn()) "ON" else "OFF")
     }
 }

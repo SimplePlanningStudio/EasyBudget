@@ -1,1 +1,1 @@
-include ':app', ':caldroid', ':commons'
+include ':app', ':caldroid'

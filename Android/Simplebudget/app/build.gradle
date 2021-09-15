@@ -16,8 +16,8 @@ android {
         applicationId "gplx.simple.budgetapp"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 9
-        versionName "1.0.8"
+        versionCode 10
+        versionName "1.0.9"
         vectorDrawables.useSupportLibrary = true
         flavorDimensions "default"
     }
@@ -114,8 +114,6 @@ dependencies {
     //Firebase In app messaging
     implementation 'com.google.firebase:firebase-inappmessaging-display-ktx:20.0.0'
 
-    //Commons utils for app lock
-    implementation project(':commons')
 }
 
 apply plugin: 'com.google.gms.google-services'

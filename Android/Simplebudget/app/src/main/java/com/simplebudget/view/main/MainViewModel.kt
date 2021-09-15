@@ -101,6 +101,9 @@ class MainViewModel(
 
                 expenseDeletionSuccessEventStream.value =
                     ExpenseDeletionSuccessData(expense, getBalanceForDay(selectedDate))
+
+                refreshDataForDate(selectedDate)
+                
             } catch (t: Throwable) {
                 expenseDeletionErrorEventStream.value = expense
             }
@@ -377,9 +380,16 @@ class MainViewModel(
             val (balance, expenses) = withContext(Dispatchers.Default) {
                 Pair(getBalanceForDay(date), db.getExpensesForDay(date))
             }
-
-            selectedDateChangeLiveData.value = SelectedDateExpensesData(date, balance, expenses)
+            selectedDateChangeLiveData.value =
+                SelectedDateExpensesData(date, balance, expenses)
         }
+    }
+
+    private suspend fun getExpenseForDay(date: Date): Double {
+        var balance = 0.0 // Just to keep a positive number if balance == 0
+        balance -= db.getBalanceForDay(date)
+
+        return balance
     }
 
     private suspend fun getBalanceForDay(date: Date): Double {
@@ -418,6 +428,7 @@ data class SelectedDateExpensesData(
 )
 
 data class ExpenseDeletionSuccessData(val deletedExpense: Expense, val newDayBalance: Double)
+
 data class BalanceAdjustedData(
     val balanceExpense: Expense,
     val diffWithOldBalance: Double,

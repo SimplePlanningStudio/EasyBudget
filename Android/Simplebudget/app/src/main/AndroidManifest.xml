@@ -103,6 +103,11 @@
             android:label="@string/release_history"
             android:screenOrientation="portrait" />
 
+        <activity
+            android:name=".view.security.SecurityActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Transparent" />
+
         <!-- Push -->
         <service
             android:name="com.simplebudget.push.MyFirebaseMessagingService"
