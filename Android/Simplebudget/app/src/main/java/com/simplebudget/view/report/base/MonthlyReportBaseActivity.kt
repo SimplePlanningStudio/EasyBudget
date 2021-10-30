@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.simplebudget.R
 import com.simplebudget.helper.BaseActivity
 import com.simplebudget.helper.getMonthTitle
@@ -42,6 +43,10 @@ class MonthlyReportBaseActivity : BaseActivity(), ViewPager.OnPageChangeListener
 
     private var ignoreNextPageSelectedEvent: Boolean = false
 
+
+    /**
+     *
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_monthly_report)
@@ -50,7 +55,7 @@ class MonthlyReportBaseActivity : BaseActivity(), ViewPager.OnPageChangeListener
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        if( savedInstanceState == null ) {
+        if (savedInstanceState == null) {
             viewModel.loadData(intent.getBooleanExtra(FROM_NOTIFICATION_EXTRA, false))
         }
 
@@ -75,21 +80,23 @@ class MonthlyReportBaseActivity : BaseActivity(), ViewPager.OnPageChangeListener
             monthly_report_content.visibility = View.VISIBLE
         })
 
-        viewModel.selectedPositionLiveData.observe(this, Observer { (position, date, isLatestMonth) ->
-            if( !ignoreNextPageSelectedEvent ) {
-                monthly_report_view_pager.setCurrentItem(position, true)
-            }
+        viewModel.selectedPositionLiveData.observe(
+            this,
+            Observer { (position, date, isLatestMonth) ->
+                if (!ignoreNextPageSelectedEvent) {
+                    monthly_report_view_pager.setCurrentItem(position, true)
+                }
 
-            ignoreNextPageSelectedEvent = false
+                ignoreNextPageSelectedEvent = false
 
-            monthly_report_month_title_tv.text = date.getMonthTitle(this)
+                monthly_report_month_title_tv.text = date.getMonthTitle(this)
 
-            // Last and first available month
-            val isFirstMonth = position == 0
+                // Last and first available month
+                val isFirstMonth = position == 0
 
-            monthly_report_next_month_button.isEnabled = !isLatestMonth
-            monthly_report_previous_month_button.isEnabled = !isFirstMonth
-        })
+                monthly_report_next_month_button.isEnabled = !isLatestMonth
+                monthly_report_previous_month_button.isEnabled = !isFirstMonth
+            })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -108,7 +115,8 @@ class MonthlyReportBaseActivity : BaseActivity(), ViewPager.OnPageChangeListener
      */
     private fun configureViewPager(dates: List<Date>) {
         monthly_report_view_pager.offscreenPageLimit = 0
-        monthly_report_view_pager.adapter = object : FragmentPagerAdapter(supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+        monthly_report_view_pager.adapter = object :
+            FragmentPagerAdapter(supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
             override fun getItem(position: Int): Fragment {
                 return MonthlyReportFragment.newInstance(dates[position])
             }

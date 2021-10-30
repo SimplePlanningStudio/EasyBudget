@@ -31,6 +31,11 @@
             app:summary="@string/setting_category_not_premium_status_message"
             app:title="@string/setting_category_not_premium_status_title" />
 
+        <Preference
+            app:key="@string/setting_category_premium_redeem_key"
+            app:title="@string/setting_category_premium_redeem_title"
+            app:summary="@string/setting_category_premium_redeem_message" />
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_app_title">

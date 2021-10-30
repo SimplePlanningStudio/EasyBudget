@@ -9,6 +9,13 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="com.android.vending.BILLING" />
 
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
     <application
         android:name=".SimpleBudget"
         android:allowBackup="false"
@@ -28,7 +35,8 @@
             android:value="false" />
         <meta-data
             android:name="google_analytics_ssaid_collection_enabled"
-            android:value="false" /> <!-- Fabric.io -->
+            android:value="false" />
+        <!-- Fabric.io -->
 
         <activity
             android:name="com.simplebudget.view.main.MainActivity"
@@ -62,6 +70,12 @@
         </activity>
         <activity
             android:name="com.simplebudget.view.report.base.MonthlyReportBaseActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_budget_report"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.simplebudget.view.report.PDFReportActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:label="@string/title_budget_report"
             android:screenOrientation="portrait" />
@@ -139,6 +153,16 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/ads_sdk_id" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/fileprovider" />
+        </provider>
     </application>
 
 </manifest>

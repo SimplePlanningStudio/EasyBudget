@@ -16,8 +16,8 @@ android {
         applicationId "gplx.simple.budgetapp"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 10
-        versionName "1.0.9"
+        versionCode 11
+        versionName "1.1.0"
         vectorDrawables.useSupportLibrary = true
         flavorDimensions "default"
     }
@@ -51,30 +51,32 @@ android {
 }
 
 dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation 'androidx.appcompat:appcompat:1.3.1'
     implementation 'androidx.core:core-ktx:1.6.0'
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
     implementation 'androidx.preference:preference-ktx:1.1.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
     implementation 'androidx.work:work-runtime-ktx:2.5.0'
     implementation 'androidx.work:work-gcm:2.5.0'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3'
 
-    implementation 'com.google.firebase:firebase-core:19.0.0'
+    implementation 'com.google.firebase:firebase-core:19.0.2'
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
     implementation 'com.google.firebase:firebase-storage:20.0.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.2.1'
+    implementation 'com.google.firebase:firebase-crashlytics:18.2.3'
     implementation 'com.firebaseui:firebase-ui-auth:6.2.0'
 
     implementation 'com.google.firebase:firebase-messaging-ktx:22.0.0'
-    implementation 'com.google.firebase:firebase-analytics-ktx:19.0.0'
+    implementation 'com.google.firebase:firebase-analytics-ktx:19.0.2'
 
     implementation project(':caldroid')
     implementation 'com.getbase:floatingactionbutton:1.10.1'
@@ -101,7 +103,7 @@ dependencies {
     implementation "com.airbnb.android:lottie:$lottieVersion"
 
     //Google Ads
-    implementation 'com.google.android.gms:play-services-ads:20.2.0'
+    implementation 'com.google.android.gms:play-services-ads:20.4.0'
 
     def lifecycle_version = "2.0.0"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
@@ -112,8 +114,10 @@ dependencies {
     implementation 'com.android.billingclient:billing:3.0.3'
 
     //Firebase In app messaging
-    implementation 'com.google.firebase:firebase-inappmessaging-display-ktx:20.0.0'
+    implementation 'com.google.firebase:firebase-inappmessaging-display-ktx:20.1.0'
 
+    // EZ Permission
+    implementation 'com.androidisland.ezpermission:ezpermission:0.1.4'
 }
 
 apply plugin: 'com.google.gms.google-services'

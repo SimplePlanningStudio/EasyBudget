@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
@@ -36,7 +37,7 @@ import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.Logger
-import com.simplebudget.helper.SHOW_PIN
+import com.simplebudget.helper.RedeemPromo
 import com.simplebudget.helper.getUserCurrency
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
@@ -47,6 +48,7 @@ import com.simplebudget.view.settings.backup.BackupSettingsActivity
 import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
 import com.simplebudget.view.settings.releaseHistory.ReleaseHistoryTimelineActivity
 import org.koin.android.ext.android.inject
+import java.net.URLEncoder
 
 /**
  * Fragment to display preferences
@@ -332,7 +334,16 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             activity?.intent?.putExtra(SHOW_BACKUP_INTENT_KEY, false)
             startActivity(Intent(context, BackupSettingsActivity::class.java))
         }
+
+
+        // Redeem promo code pref
+        findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                RedeemPromo.openPromoCodeDialog(activity)
+                false
+            }
     }
+
 
     /**
      *
@@ -400,8 +411,11 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         if (isPremium) {
             pref.title = getString(R.string.setting_category_premium_status_title)
             pref.summary = getString(R.string.setting_category_premium_status_message)
-
+            findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.isVisible =
+                false
         } else {
+            findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.isVisible =
+                true
             pref.title = getString(R.string.setting_category_not_premium_status_title)
             pref.summary = getString(R.string.setting_category_not_premium_status_message)
             pref.onPreferenceClickListener =

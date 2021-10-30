@@ -21,6 +21,7 @@ import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.os.Build
+import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -264,6 +265,22 @@ object Keyboard {
             imm?.hideSoftInputFromWindow(view.windowToken, 0)
         } catch (e: Exception) {
             Logger.error("Error while hiding keyboard", e)
+        }
+    }
+}
+
+
+object MultiClick {
+    fun avoid(view: View) {
+        try {
+            view.isClickable = false
+            Handler().postDelayed({
+                view.isClickable = true
+            }, 1000)
+
+        } catch (c: Exception) {
+            view.isClickable = true
+            c.printStackTrace()
         }
     }
 }

@@ -24,6 +24,7 @@ import com.simplebudget.iab.PremiumPurchaseFlowResult
 import com.simplebudget.SimpleBudget
 import com.simplebudget.R
 import com.simplebudget.helper.BaseActivity
+import com.simplebudget.helper.RedeemPromo
 import kotlinx.android.synthetic.main.activity_premium.*
 import org.koin.android.viewmodel.ext.android.viewModel
 
@@ -51,6 +52,10 @@ class PremiumActivity : BaseActivity() {
             viewModel.onBuyPremiumClicked(this)
         }
 
+        tv_promo_code.setOnClickListener {
+            RedeemPromo.openPromoCodeDialog(this)
+        }
+
         var loadingProgressDialog: ProgressDialog? = null
         viewModel.premiumFlowErrorEventStream.observe(this, Observer { status ->
             when (status) {
@@ -73,7 +78,7 @@ class PremiumActivity : BaseActivity() {
             }
         })
 
-        viewModel.premiumFlowStatusLiveData.observe(this, Observer { status ->
+        viewModel.premiumFlowStatusLiveData.observe(this, { status ->
             when (status) {
                 PremiumFlowStatus.NOT_STARTED -> {
                     loadingProgressDialog?.dismiss()
