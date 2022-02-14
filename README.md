@@ -16,15 +16,13 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - Firebase push notifications
 - App security password feature
 - Balance privacy on dashboard
-- Currency searching
 - Starting weeks from any weekday
 - App open, Banner and Interstitial Ads
 - Version history timelines
-
-### Important (In order to run)
-
-- Add your firebase google-services.json file into app folder
-- Get and replace your ads id's for banner, Interstitial and App Open Ads from Admob
+- Categories for expenses / incomes
+- Exporting/Downloading a PDF / Excel reports
+- In app reviews
+- Currency searching enhancement
 
 
 ### For any query related to SimpleBudget
@@ -33,6 +31,7 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 
 ### Copyright
 
-    Source code is availables under the Apache 2 licence.
+    Copyright (C) 2022 Waheed Nazir. The name "SimpleBudget", the app idea and assets (images, names, wordings etc...) are all under copyright.
+    Sources are availables under the Apache 2 licence (See LICENSE for details) and contributions will be warmely welcomed! Feel free to contribute :)
     
     
