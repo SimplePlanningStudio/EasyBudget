@@ -23,6 +23,7 @@ import com.simplebudget.db.DB
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.SingleLiveEvent
 import com.simplebudget.model.Expense
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpense
 import com.simplebudget.model.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
@@ -66,7 +67,8 @@ class RecurringExpenseEditViewModel(
         existingExpenseEventStream.value = if (expense != null) ExistingExpenseData(
             expense.title,
             expense.amount,
-            expense.associatedRecurringExpense!!.type
+            expense.associatedRecurringExpense!!.type,
+            expense.associatedRecurringExpense.category
         ) else null
     }
 
@@ -74,7 +76,10 @@ class RecurringExpenseEditViewModel(
         editTypeLiveData.value = ExpenseEditType(isRevenue, editedExpense != null)
     }
 
-    fun onSave(value: Double, description: String, recurringExpenseType: RecurringExpenseType) {
+    fun onSave(
+        value: Double, description: String, recurringExpenseType: RecurringExpenseType,
+        expenseCategoryType: ExpenseCategoryType
+    ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
@@ -83,18 +88,35 @@ class RecurringExpenseEditViewModel(
             return
         }
 
-        doSaveExpense(value, description, recurringExpenseType, editedExpense, isRevenue, date)
+        doSaveExpense(
+            value,
+            description,
+            recurringExpenseType,
+            editedExpense,
+            isRevenue,
+            date,
+            expenseCategoryType
+        )
     }
 
     fun onAddExpenseBeforeInitDateConfirmed(
         value: Double,
         description: String,
-        recurringExpenseType: RecurringExpenseType
+        recurringExpenseType: RecurringExpenseType,
+        expenseCategoryType: ExpenseCategoryType
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
-        doSaveExpense(value, description, recurringExpenseType, editedExpense, isRevenue, date)
+        doSaveExpense(
+            value,
+            description,
+            recurringExpenseType,
+            editedExpense,
+            isRevenue,
+            date,
+            expenseCategoryType
+        )
     }
 
     fun onAddExpenseBeforeInitDateCancelled() {
@@ -107,7 +129,8 @@ class RecurringExpenseEditViewModel(
         recurringExpenseType: RecurringExpenseType,
         editedExpense: Expense?,
         isRevenue: Boolean,
-        date: Date
+        date: Date,
+        expenseCategoryType: ExpenseCategoryType
     ) {
         savingIsRevenueEventStream.value = isRevenue
 
@@ -120,7 +143,8 @@ class RecurringExpenseEditViewModel(
                                 description,
                                 if (isRevenue) -value else value,
                                 date,
-                                recurringExpenseType
+                                recurringExpenseType,
+                                expenseCategoryType
                             )
                         )
                     } catch (t: Throwable) {
@@ -131,7 +155,12 @@ class RecurringExpenseEditViewModel(
                         return@withContext false
                     }
 
-                    if (!flattenExpensesForRecurringExpense(insertedExpense, date)) {
+                    if (!flattenExpensesForRecurringExpense(
+                            insertedExpense,
+                            date,
+                            expenseCategoryType
+                        )
+                    ) {
                         Logger.error(
                             false,
                             "Error while flattening expenses for recurring expense: flattenExpensesForRecurringExpense returned false"
@@ -154,7 +183,8 @@ class RecurringExpenseEditViewModel(
                             type = recurringExpenseType,
                             recurringDate = date,
                             title = description,
-                            amount = if (isRevenue) -value else value
+                            amount = if (isRevenue) -value else value,
+                            category = expenseCategoryType
                         )
                         db.persistRecurringExpense(newRecurringExpense)
                     } catch (t: Throwable) {
@@ -165,7 +195,12 @@ class RecurringExpenseEditViewModel(
                         return@withContext false
                     }
 
-                    if (!flattenExpensesForRecurringExpense(recurringExpense, date)) {
+                    if (!flattenExpensesForRecurringExpense(
+                            recurringExpense,
+                            date,
+                            expenseCategoryType
+                        )
+                    ) {
                         Logger.error(
                             false,
                             "Error while flattening expenses for recurring expense edit: flattenExpensesForRecurringExpense returned false"
@@ -187,7 +222,8 @@ class RecurringExpenseEditViewModel(
 
     private suspend fun flattenExpensesForRecurringExpense(
         expense: RecurringExpense,
-        date: Date
+        date: Date,
+        expenseCategoryType: ExpenseCategoryType
     ): Boolean {
         val cal = Calendar.getInstance()
         cal.time = date
@@ -197,7 +233,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 5 years of expenses
                 for (i in 0 until 365 * 5) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -213,7 +257,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -230,7 +282,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -247,7 +307,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -264,7 +332,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -281,7 +357,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 10 years of expenses
                 for (i in 0 until 12 * 10) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -298,7 +382,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 25 years of expenses
                 for (i in 0 until 4 * 25) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -315,7 +407,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 25 years of expenses
                 for (i in 0 until 4 * 25) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -332,7 +432,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 25 years of expenses
                 for (i in 0 until 2 * 25) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -349,7 +457,15 @@ class RecurringExpenseEditViewModel(
                 // Add up to 100 years of expenses
                 for (i in 0 until 100) {
                     try {
-                        db.persistExpense(Expense(expense.title, expense.amount, cal.time, expense))
+                        db.persistExpense(
+                            Expense(
+                                expense.title,
+                                expense.amount,
+                                cal.time,
+                                expense,
+                                expenseCategoryType
+                            )
+                        )
                     } catch (t: Throwable) {
                         Logger.error(
                             false,
@@ -360,6 +476,8 @@ class RecurringExpenseEditViewModel(
 
                     cal.add(Calendar.YEAR, 1)
                 }
+            }
+            else -> {
             }
         }
 
@@ -386,5 +504,6 @@ data class ExpenseEditType(val isRevenue: Boolean, val editing: Boolean)
 data class ExistingExpenseData(
     val title: String,
     val amount: Double,
-    val type: RecurringExpenseType
+    val type: RecurringExpenseType,
+    val categoryType: ExpenseCategoryType
 )

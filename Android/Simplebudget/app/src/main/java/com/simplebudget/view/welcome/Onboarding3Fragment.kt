@@ -8,6 +8,7 @@ import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
 import com.simplebudget.helper.*
 import com.simplebudget.model.Expense
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import kotlinx.android.synthetic.main.fragment_onboarding3.*
 import kotlinx.coroutines.*
@@ -30,15 +31,17 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
             val valueString = onboarding_screen3_initial_amount_et.text.toString()
 
             return try {
-                if ("" == valueString || "-" == valueString) 0.0 else java.lang.Double.valueOf(valueString)
+                if ("" == valueString || "-" == valueString) 0.0 else java.lang.Double.valueOf(
+                    valueString
+                )
             } catch (e: Exception) {
                 val context = context ?: return 0.0
 
                 AlertDialog.Builder(context)
-                        .setTitle(R.string.adjust_balance_error_title)
-                        .setMessage(R.string.adjust_balance_error_message)
-                        .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-                        .show()
+                    .setTitle(R.string.adjust_balance_error_title)
+                    .setMessage(R.string.adjust_balance_error_message)
+                    .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
+                    .show()
 
                 Logger.warning("An error occurred during initial amount parsing: $valueString", e)
                 return 0.0
@@ -47,7 +50,14 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
         }
 
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    /**
+     *
+     */
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_onboarding3, container, false)
     }
 
@@ -74,7 +84,12 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
                     if (newBalance != currentBalance) {
                         val diff = newBalance - currentBalance
 
-                        val expense = Expense(resources.getString(R.string.adjust_balance_expense_title), -diff, Date())
+                        val expense = Expense(
+                            resources.getString(R.string.adjust_balance_expense_title),
+                            -diff,
+                            Date(),
+                            ExpenseCategoryType.BALANCE
+                        )
                         db.persistExpense(expense)
                     }
                 }
@@ -86,21 +101,30 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
         }
     }
 
+    /**
+     *
+     */
     override fun onDestroy() {
         cancel()
-
         super.onDestroy()
     }
 
+    /**
+     *
+     */
     override fun onResume() {
         super.onResume()
-
         setCurrency()
     }
 
-// -------------------------------------->
-
+    /**
+     *
+     */
     private fun setCurrency() {
-        onboarding_screen3_initial_amount_money_tv?.text = String.format("%s - %s", appPreferences.getUserCurrency().symbol, appPreferences.getUserCurrency().displayName)
+        onboarding_screen3_initial_amount_money_tv?.text = String.format(
+            "%s - %s",
+            appPreferences.getUserCurrency().symbol,
+            appPreferences.getUserCurrency().displayName
+        )
     }
 }

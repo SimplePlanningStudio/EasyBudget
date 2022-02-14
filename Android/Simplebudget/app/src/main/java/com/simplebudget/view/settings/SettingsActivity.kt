@@ -63,14 +63,15 @@ class SettingsActivity : BaseActivity() {
             supportFragmentManager.findFragmentById(R.id.preferencesFragment) as PreferencesFragment
     }
 
+    /**
+     *
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
-
         if (id == android.R.id.home) {
             finish()
             return true
         }
-
         return super.onOptionsItemSelected(item)
     }
 

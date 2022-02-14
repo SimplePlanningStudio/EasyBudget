@@ -19,36 +19,46 @@ import android.os.Parcel
 import android.os.Parcelable
 import java.util.*
 
-data class Expense(val id: Long?,
-                   val title: String,
-                   val amount: Double,
-                   val date: Date,
-                   val associatedRecurringExpense: RecurringExpense?) : Parcelable {
+data class Expense(
+    val id: Long?,
+    val title: String,
+    val amount: Double,
+    val date: Date,
+    val associatedRecurringExpense: RecurringExpense?,
+    val category: ExpenseCategoryType
+) : Parcelable {
 
-    constructor(title: String,
-                amount: Double,
-                date: Date) : this(null, title, amount, date, null)
+    constructor(
+        title: String,
+        amount: Double,
+        date: Date, category: ExpenseCategoryType
+    ) : this(null, title, amount, date, null, category)
 
-    constructor(id: Long,
-                title: String,
-                amount: Double,
-                date: Date) : this(id, title, amount, date, null)
+    constructor(
+        id: Long,
+        title: String,
+        amount: Double,
+        date: Date, category: ExpenseCategoryType
+    ) : this(id, title, amount, date, null, category)
 
-    constructor(title: String,
-                amount: Double,
-                date: Date,
-                associatedRecurringExpense: RecurringExpense) : this(null, title, amount, date, associatedRecurringExpense)
+    constructor(
+        title: String,
+        amount: Double,
+        date: Date,
+        associatedRecurringExpense: RecurringExpense, category: ExpenseCategoryType
+    ) : this(null, title, amount, date, associatedRecurringExpense, category)
 
     private constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,
-        parcel.readString()?:"",
+        parcel.readString() ?: "",
         parcel.readDouble(),
         Date(parcel.readLong()),
-        parcel.readParcelable(RecurringExpense::class.java.classLoader)
+        parcel.readParcelable(RecurringExpense::class.java.classLoader),
+        ExpenseCategoryType.values()[parcel.readInt()]
     )
 
     init {
-        if( title.isEmpty() ) {
+        if (title.isEmpty()) {
             throw IllegalArgumentException("title is empty")
         }
     }
@@ -63,6 +73,7 @@ data class Expense(val id: Long?,
         parcel.writeDouble(amount)
         parcel.writeLong(date.time)
         parcel.writeParcelable(associatedRecurringExpense, flags)
+        parcel.writeInt(category.ordinal)
     }
 
     override fun describeContents(): Int = 0

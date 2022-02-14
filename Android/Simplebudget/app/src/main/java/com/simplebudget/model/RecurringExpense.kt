@@ -17,28 +17,36 @@ package com.simplebudget.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.room.ColumnInfo
 import java.util.*
 
-data class RecurringExpense(val id: Long?,
-                            val title: String,
-                            val amount: Double,
-                            val recurringDate: Date,
-                            val modified: Boolean,
-                            val type: RecurringExpenseType) : Parcelable {
-    
+data class RecurringExpense(
+    val id: Long?,
+    val title: String,
+    val amount: Double,
+    val recurringDate: Date,
+    val modified: Boolean,
+    val type: RecurringExpenseType,
+    val category: ExpenseCategoryType
+) : Parcelable {
+
     private constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,
-        parcel.readString()!!,
+        parcel.readString()?:"",
         parcel.readDouble(),
         Date(parcel.readLong()),
         parcel.readByte() != 0.toByte(),
-        RecurringExpenseType.values()[parcel.readInt()]
+        RecurringExpenseType.values()[parcel.readInt()],
+        ExpenseCategoryType.values()[parcel.readInt()]
     )
 
-    constructor(title: String,
-                originalAmount: Double,
-                recurringDate: Date,
-                type: RecurringExpenseType) : this(null, title, originalAmount, recurringDate, false, type)
+    constructor(
+        title: String,
+        originalAmount: Double,
+        recurringDate: Date,
+        type: RecurringExpenseType,
+        category: ExpenseCategoryType
+    ) : this(null, title, originalAmount, recurringDate, false, type, category)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeValue(id)
@@ -47,6 +55,7 @@ data class RecurringExpense(val id: Long?,
         parcel.writeLong(recurringDate.time)
         parcel.writeByte(if (modified) 1 else 0)
         parcel.writeInt(type.ordinal)
+        parcel.writeInt(category.ordinal)
     }
 
     override fun describeContents(): Int = 0

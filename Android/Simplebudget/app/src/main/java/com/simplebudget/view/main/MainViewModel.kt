@@ -22,6 +22,7 @@ import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
 import com.simplebudget.model.Expense
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpense
 import com.simplebudget.model.RecurringExpenseDeleteType
 import kotlinx.coroutines.Dispatchers
@@ -103,7 +104,7 @@ class MainViewModel(
                     ExpenseDeletionSuccessData(expense, getBalanceForDay(selectedDate))
 
                 refreshDataForDate(selectedDate)
-                
+
             } catch (t: Throwable) {
                 expenseDeletionErrorEventStream.value = expense
             }
@@ -328,7 +329,14 @@ class MainViewModel(
                         BalanceAdjustedData(newExpense, diff, newBalance)
                 } else { // If no adjust balance yet, create a new one
                     val persistedExpense = withContext(Dispatchers.Default) {
-                        db.persistExpense(Expense(balanceExpenseTitle, -diff, Date()))
+                        db.persistExpense(
+                            Expense(
+                                balanceExpenseTitle,
+                                -diff,
+                                Date(),
+                                ExpenseCategoryType.BALANCE
+                            )
+                        )
                     }
 
                     currentBalanceEditedEventStream.value =

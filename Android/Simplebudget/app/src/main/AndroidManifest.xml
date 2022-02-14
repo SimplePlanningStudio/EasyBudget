@@ -52,6 +52,12 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".view.premium.PremiumSuccessActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_premium"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name="com.simplebudget.view.splash.SplashActivity"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -119,7 +125,6 @@
 
         <activity
             android:name=".view.security.SecurityActivity"
-            android:screenOrientation="portrait"
             android:theme="@style/Transparent" />
 
         <!-- Push -->

@@ -22,6 +22,7 @@ import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
 import com.simplebudget.model.Expense
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.getInitTimestamp
 import kotlinx.coroutines.Dispatchers
@@ -57,14 +58,14 @@ class ExpenseEditViewModel(
             ExpenseEditType(expense?.isRevenue() ?: false, expense != null)
 
         existingExpenseEventStream.value =
-            if (expense != null) ExistingExpenseData(expense.title, expense.amount) else null
+            if (expense != null) ExistingExpenseData(expense.title, expense.amount, expense.category) else null
     }
 
     fun onExpenseRevenueValueChanged(isRevenue: Boolean) {
         editTypeLiveData.value = ExpenseEditType(isRevenue, expense != null)
     }
 
-    fun onSave(value: Double, description: String) {
+    fun onSave(value: Double, description: String, expenseCategoryType: ExpenseCategoryType) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
@@ -73,28 +74,44 @@ class ExpenseEditViewModel(
             return
         }
 
-        doSaveExpense(value, description, isRevenue, date)
+        doSaveExpense(value, description, isRevenue, date, expenseCategoryType)
     }
 
-    fun onAddExpenseBeforeInitDateConfirmed(value: Double, description: String) {
+    fun onAddExpenseBeforeInitDateConfirmed(
+        value: Double,
+        description: String,
+        expenseCategoryType: ExpenseCategoryType
+    ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
-        doSaveExpense(value, description, isRevenue, date)
+        doSaveExpense(value, description, isRevenue, date, expenseCategoryType)
     }
 
     fun onAddExpenseBeforeInitDateCancelled() {
         // No-op
     }
 
-    private fun doSaveExpense(value: Double, description: String, isRevenue: Boolean, date: Date) {
+    private fun doSaveExpense(
+        value: Double,
+        description: String,
+        isRevenue: Boolean,
+        date: Date,
+        expenseCategoryType: ExpenseCategoryType
+    ) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 val expense = expense?.copy(
                     title = description,
                     amount = if (isRevenue) -value else value,
-                    date = date
-                ) ?: Expense(description, if (isRevenue) -value else value, date)
+                    date = date,
+                    category = expenseCategoryType
+                ) ?: Expense(
+                    description,
+                    if (isRevenue) -value else value,
+                    date,
+                    expenseCategoryType
+                )
 
                 db.persistExpense(expense)
             }
@@ -122,4 +139,4 @@ class ExpenseEditViewModel(
 
 data class ExpenseEditType(val isRevenue: Boolean, val editing: Boolean)
 
-data class ExistingExpenseData(val title: String, val amount: Double)
+data class ExistingExpenseData(val title: String, val amount: Double,val categoryType: ExpenseCategoryType)

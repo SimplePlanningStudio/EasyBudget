@@ -18,24 +18,29 @@ package com.simplebudget.db.impl.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpense
 import com.simplebudget.model.RecurringExpenseType
 import java.util.*
 
 @Entity(tableName = "monthlyexpense")
-class RecurringExpenseEntity(@PrimaryKey
-                             @ColumnInfo(name = "_expense_id")
-                             val id: Long?,
-                             @ColumnInfo(name = "title")
-                             val title: String,
-                             @ColumnInfo(name = "amount")
-                             val originalAmount: Long,
-                             @ColumnInfo(name = "recurringDate")
-                             val recurringDate: Date,
-                             @ColumnInfo(name = "modified")
-                             val modified: Boolean,
-                             @ColumnInfo(name = "type")
-                             val type: String) {
+class RecurringExpenseEntity(
+    @PrimaryKey
+    @ColumnInfo(name = "_expense_id")
+    val id: Long?,
+    @ColumnInfo(name = "title")
+    val title: String,
+    @ColumnInfo(name = "amount")
+    val originalAmount: Long,
+    @ColumnInfo(name = "recurringDate")
+    val recurringDate: Date,
+    @ColumnInfo(name = "modified")
+    val modified: Boolean,
+    @ColumnInfo(name = "type")
+    val type: String,
+    @ColumnInfo(name = "category")
+    val category: String
+) {
 
     fun toRecurringExpense() = RecurringExpense(
         id,
@@ -43,6 +48,7 @@ class RecurringExpenseEntity(@PrimaryKey
         originalAmount / 100.0,
         recurringDate,
         modified,
-        RecurringExpenseType.valueOf(type)
+        RecurringExpenseType.valueOf(type),
+        ExpenseCategoryType.valueOf(category)
     )
 }

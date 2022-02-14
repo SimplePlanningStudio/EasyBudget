@@ -108,7 +108,7 @@ class MonthlyReportFragment : Fragment() {
         val balanceTextView =
             thisView.findViewById<TextView>(R.id.monthly_report_fragment_balance_tv)
 
-        viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner, { result ->
+        viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
             progressBar.visibility = View.GONE
             content.visibility = View.VISIBLE
 
@@ -162,7 +162,7 @@ class MonthlyReportFragment : Fragment() {
                     )
                 }
             }
-        })
+        }
 
         viewModel.loadDataForMonth(date)
 
@@ -180,7 +180,7 @@ class MonthlyReportFragment : Fragment() {
         /*
           Observe export status
          */
-        viewModel.observeExportStatus.observe(viewLifecycleOwner, { result ->
+        viewModel.observeExportStatus.observe(viewLifecycleOwner) { result ->
             //Get data list update it to UI, notify scroll down
             result?.let {
                 if (it.message.isNotEmpty())
@@ -189,7 +189,22 @@ class MonthlyReportFragment : Fragment() {
                     shareCsvFile(file)
                 }
             }
-        })
+        }
+        /*
+          Observe HTML/PDF report generation
+         */
+        viewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { html ->
+            html?.let {
+                if (html.isEmpty()) {
+                    requireActivity().toast("Something went wrong in pdf generation try again.")
+                } else {
+                    startActivity(
+                        Intent(requireActivity(), PDFReportActivity::class.java)
+                            .putExtra(PDFReportActivity.INTENT_CODE_PDF_CONTENTS, html)
+                    )
+                }
+            }
+        }
 
         /**
          * Banner ads
@@ -424,7 +439,7 @@ class MonthlyReportFragment : Fragment() {
             .setTitle(String.format("Budget report of %s", monthFormat.format(date)))
             .setItems(weeks) { dialog, which ->
                 if (which == 0) {
-                    exportOrPrintPdf()
+                    viewModel.generateHtml(appPreferences.getUserCurrency(), date)
                 } else {
                     exportExcel()
                 }
@@ -511,18 +526,5 @@ class MonthlyReportFragment : Fragment() {
                 dialog.cancel()
             }
         builder.create().show()*/
-    }
-
-    /**
-     * Launch PDFReportActivity
-     */
-    private fun exportOrPrintPdf() {
-        startActivity(
-            Intent(requireActivity(), PDFReportActivity::class.java)
-                .putExtra(
-                    PDFReportActivity.INTENT_CODE_PDF_CONTENTS,
-                    (viewModel.generateHtml(appPreferences.getUserCurrency(), date))
-                )
-        )
     }
 }

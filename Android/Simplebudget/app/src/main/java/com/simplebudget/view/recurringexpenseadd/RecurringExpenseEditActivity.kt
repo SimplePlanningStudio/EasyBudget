@@ -38,10 +38,21 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.helper.*
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.DatePickerDialogFragment
+import kotlinx.android.synthetic.main.activity_expense_edit.*
 import kotlinx.android.synthetic.main.activity_recurring_expense_add.*
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.amount_edittext
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.amount_inputlayout
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.categories_spinner
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.date_button
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.description_edittext
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.expense_type_switch
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.expense_type_tv
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.save_expense_fab
+import kotlinx.android.synthetic.main.activity_recurring_expense_add.toolbar
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
@@ -49,16 +60,17 @@ import java.util.*
 import kotlin.math.abs
 
 class RecurringExpenseEditActivity : BaseActivity() {
+
     private val appPreferences: AppPreferences by inject()
     private val viewModel: RecurringExpenseEditViewModel by viewModel()
-
     private lateinit var receiver: BroadcastReceiver
 
-
-// ------------------------------------------->
-
+    // ------------------------------------------->
     private var adView: AdView? = null
 
+    /**
+     *
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recurring_expense_add)
@@ -67,7 +79,6 @@ class RecurringExpenseEditActivity : BaseActivity() {
 
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
 
         // Register receiver
         val filter = IntentFilter()
@@ -86,8 +97,8 @@ class RecurringExpenseEditActivity : BaseActivity() {
 
         if (savedInstanceState == null) {
             viewModel.initWithDateAndExpense(
-                    Date(intent.getLongExtra("dateStart", 0)),
-                    intent.getParcelableExtra("expense")
+                Date(intent.getLongExtra("dateStart", 0)),
+                intent.getParcelableExtra("expense")
             )
         }
 
@@ -99,7 +110,6 @@ class RecurringExpenseEditActivity : BaseActivity() {
                 loadAndDisplayBannerAds()
             }
         })
-
 
         setUpButtons()
         setResult(Activity.RESULT_CANCELED)
@@ -123,12 +133,18 @@ class RecurringExpenseEditActivity : BaseActivity() {
         viewModel.existingExpenseEventStream.observe(this, { existingValues ->
             if (existingValues != null) {
                 setUpTextFields(
-                        existingValues.title,
-                        existingValues.amount,
-                        type = existingValues.type
+                    existingValues.title,
+                    existingValues.amount,
+                    type = existingValues.type,
+                    categoryType = existingValues.categoryType
                 )
             } else {
-                setUpTextFields(description = null, amount = null, type = null)
+                setUpTextFields(
+                    description = null,
+                    amount = null,
+                    type = null,
+                    ExpenseCategoryType.MISCELLANEOUS
+                )
             }
         })
 
@@ -163,30 +179,34 @@ class RecurringExpenseEditActivity : BaseActivity() {
             progressDialog = null
 
             AlertDialog.Builder(this)
-                    .setTitle(R.string.recurring_expense_add_error_title)
-                    .setMessage(getString(R.string.recurring_expense_add_error_message))
-                    .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-                    .show()
+                .setTitle(R.string.recurring_expense_add_error_title)
+                .setMessage(getString(R.string.recurring_expense_add_error_message))
+                .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
+                .show()
         })
 
         viewModel.expenseAddBeforeInitDateEventStream.observe(this, {
             AlertDialog.Builder(this)
-                    .setTitle(R.string.expense_add_before_init_date_dialog_title)
-                    .setMessage(R.string.expense_add_before_init_date_dialog_description)
-                    .setPositiveButton(R.string.expense_add_before_init_date_dialog_positive_cta) { _, _ ->
-                        viewModel.onAddExpenseBeforeInitDateConfirmed(
-                                getCurrentAmount(),
-                                description_edittext.text.toString(),
-                                getRecurringTypeFromSpinnerSelection(expense_type_spinner.selectedItemPosition)
-                        )
-                    }
-                    .setNegativeButton(R.string.expense_add_before_init_date_dialog_negative_cta) { _, _ ->
-                        viewModel.onAddExpenseBeforeInitDateCancelled()
-                    }
-                    .show()
+                .setTitle(R.string.expense_add_before_init_date_dialog_title)
+                .setMessage(R.string.expense_add_before_init_date_dialog_description)
+                .setPositiveButton(R.string.expense_add_before_init_date_dialog_positive_cta) { _, _ ->
+                    viewModel.onAddExpenseBeforeInitDateConfirmed(
+                        getCurrentAmount(),
+                        description_edittext.text.toString(),
+                        getRecurringTypeFromSpinnerSelection(expense_type_spinner.selectedItemPosition),
+                        CategoryTypeFromSpinnerSelection.get(categories_spinner.selectedItemPosition)
+                    )
+                }
+                .setNegativeButton(R.string.expense_add_before_init_date_dialog_negative_cta) { _, _ ->
+                    viewModel.onAddExpenseBeforeInitDateCancelled()
+                }
+                .show()
         })
     }
 
+    /**
+     *
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
@@ -197,8 +217,6 @@ class RecurringExpenseEditActivity : BaseActivity() {
 
         return super.onOptionsItemSelected(item)
     }
-
-// ----------------------------------->
 
     /**
      * Validate user inputs
@@ -231,7 +249,6 @@ class RecurringExpenseEditActivity : BaseActivity() {
             }
 
         }
-
         return ok
     }
 
@@ -250,9 +267,10 @@ class RecurringExpenseEditActivity : BaseActivity() {
         save_expense_fab.setOnClickListener {
             if (validateInputs()) {
                 viewModel.onSave(
-                        getCurrentAmount(),
-                        description_edittext.text.toString(),
-                        getRecurringTypeFromSpinnerSelection(expense_type_spinner.selectedItemPosition)
+                    getCurrentAmount(),
+                    description_edittext.text.toString(),
+                    getRecurringTypeFromSpinnerSelection(expense_type_spinner.selectedItemPosition),
+                    CategoryTypeFromSpinnerSelection.get(categories_spinner.selectedItemPosition)
                 )
             }
         }
@@ -291,24 +309,25 @@ class RecurringExpenseEditActivity : BaseActivity() {
      * Set up text field focus behavior
      */
     private fun setUpTextFields(
-            description: String?,
-            amount: Double?,
-            type: RecurringExpenseType?
+        description: String?,
+        amount: Double?,
+        type: RecurringExpenseType?,
+        categoryType: ExpenseCategoryType
     ) {
         amount_inputlayout.hint =
-                resources.getString(R.string.amount, appPreferences.getUserCurrency().symbol)
+            resources.getString(R.string.amount, appPreferences.getUserCurrency().symbol)
 
         val recurringTypesString = arrayOf(
-                getString(R.string.recurring_interval_daily),
-                getString(R.string.recurring_interval_weekly),
-                getString(R.string.recurring_interval_bi_weekly),
-                getString(R.string.recurring_interval_ter_weekly),
-                getString(R.string.recurring_interval_four_weekly),
-                getString(R.string.recurring_interval_monthly),
-                getString(R.string.recurring_interval_bi_monthly),
-                getString(R.string.recurring_interval_ter_monthly),
-                getString(R.string.recurring_interval_six_monthly),
-                getString(R.string.recurring_interval_yearly)
+            getString(R.string.recurring_interval_daily),
+            getString(R.string.recurring_interval_weekly),
+            getString(R.string.recurring_interval_bi_weekly),
+            getString(R.string.recurring_interval_ter_weekly),
+            getString(R.string.recurring_interval_four_weekly),
+            getString(R.string.recurring_interval_monthly),
+            getString(R.string.recurring_interval_bi_monthly),
+            getString(R.string.recurring_interval_ter_monthly),
+            getString(R.string.recurring_interval_six_monthly),
+            getString(R.string.recurring_interval_yearly)
         )
 
         val adapter = ArrayAdapter(this, R.layout.spinner_item, recurringTypesString)
@@ -324,8 +343,8 @@ class RecurringExpenseEditActivity : BaseActivity() {
         if (description != null) {
             description_edittext.setText(description)
             description_edittext.setSelection(
-                    description_edittext.text?.length
-                            ?: 0
+                description_edittext.text?.length
+                    ?: 0
             ) // Put focus at the end of the text
         }
 
@@ -334,6 +353,18 @@ class RecurringExpenseEditActivity : BaseActivity() {
         if (amount != null) {
             amount_edittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
         }
+
+        val adapterCategory =
+            ArrayAdapter(
+                this,
+                R.layout.spinner_item_categories,
+                resources.getStringArray(R.array.categories)
+            )
+        adapterCategory.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categories_spinner.adapter = adapterCategory
+
+        //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
+        categories_spinner.setSelection(GetPositionOfCategoryTypeForSpinner.get(categoryType))
     }
 
     /**
@@ -372,7 +403,6 @@ class RecurringExpenseEditActivity : BaseActivity() {
             RecurringExpenseType.YEARLY -> 9
             else -> 0
         }
-
         expense_type_spinner.setSelection(selectionIndex, false)
     }
 
@@ -381,8 +411,8 @@ class RecurringExpenseEditActivity : BaseActivity() {
      */
     private fun setUpDateButton(date: Date) {
         val formatter = SimpleDateFormat(
-                resources.getString(R.string.add_expense_date_format),
-                Locale.getDefault()
+            resources.getString(R.string.add_expense_date_format),
+            Locale.getDefault()
         )
         date_button.text = formatter.format(date)
 
@@ -417,7 +447,7 @@ class RecurringExpenseEditActivity : BaseActivity() {
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             adContainerView.addView(adView)
             val actualAdRequest = AdRequest.Builder()
-                    .build()
+                .build()
             adView?.adSize = adSize
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {

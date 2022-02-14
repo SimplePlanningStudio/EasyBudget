@@ -96,6 +96,7 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
         val expense = expenses[i]
 
         viewHolder.expenseTitleTextView.text = expense.title
+        viewHolder.categoryTypeTextview.text = expense.category.name
         if (appPreferences.getDisplayBalance()) {
             viewHolder.expenseAmountTextView.text = CurrencyHelper.getFormattedCurrencyString(appPreferences, -expense.amount)
         } else {
@@ -223,6 +224,7 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
         val expenseAmountTextView: TextView = view.findViewById(R.id.expense_amount)
         val recurringIndicator: ViewGroup = view.findViewById(R.id.recurring_indicator)
         val recurringIndicatorTextview: TextView = view.findViewById(R.id.recurring_indicator_textview)
+        val categoryTypeTextview: TextView = view.findViewById(R.id.category_type)
         val positiveIndicator: ImageView = view.findViewById(R.id.positive_indicator)
     }
 }

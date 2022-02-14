@@ -20,12 +20,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
@@ -35,20 +35,18 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
-import com.simplebudget.helper.CurrencyHelper
-import com.simplebudget.helper.Logger
-import com.simplebudget.helper.RedeemPromo
-import com.simplebudget.helper.getUserCurrency
+import com.simplebudget.helper.*
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
 import com.simplebudget.view.premium.PremiumActivity
+import com.simplebudget.view.premium.PremiumSuccessActivity
+import com.simplebudget.view.report.base.MonthlyReportBaseActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
 import com.simplebudget.view.settings.backup.BackupSettingsActivity
 import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
 import com.simplebudget.view.settings.releaseHistory.ReleaseHistoryTimelineActivity
 import org.koin.android.ext.android.inject
-import java.net.URLEncoder
 
 /**
  * Fragment to display preferences
@@ -100,7 +98,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_category_rate_button_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 activity?.let { activity ->
-                    RatingPopup(activity, appPreferences).show(true)
+                    RatingPopup(activity, appPreferences).show(true, true)
                 }
                 false
             }
@@ -147,14 +145,23 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             String.format("%s", if (appPreferences.isAppPasswordProtectionOn()) "ON" else "OFF")
         enableAppPasswordProtection?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-
                 if (!iab.isUserPremium()) (activity as SettingsActivity).loadInterstitial()
-
                 (activity as SettingsActivity).handleAppPasswordProtection()
-
                 true
             }
 
+        /*
+         * Monthly Reports
+         */
+        val monthlyReports =
+            findPreference<Preference>(getString(R.string.setting_monthly_reports_key))
+        monthlyReports?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                val startIntent = Intent(requireActivity(), MonthlyReportBaseActivity::class.java)
+                startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, false)
+                ActivityCompat.startActivity(requireActivity(), startIntent, null)
+                true
+            }
 
         /*
          * Backup
@@ -184,6 +191,15 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                     Logger.error("An error occurred during sharing app activity start", e)
                 }
 
+                false
+            }
+
+        /*
+         * Feedback of app
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_category_feedback_app_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                context?.let { context -> Feedback.askForFeedback(context) }
                 false
             }
 
@@ -413,6 +429,14 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             pref.summary = getString(R.string.setting_category_premium_status_message)
             findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.isVisible =
                 false
+            pref.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener {
+                    startActivity(
+                        Intent(requireActivity(), PremiumSuccessActivity::class.java)
+                            .putExtra(PremiumSuccessActivity.REQUEST_CODE_IS_BACK_ENABLED, true)
+                    )
+                    false
+                }
         } else {
             findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.isVisible =
                 true

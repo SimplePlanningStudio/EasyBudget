@@ -14,11 +14,18 @@
             app:key="@string/setting_category_start_day_of_week_key"
             app:summary="@string/setting_category_start_day_of_week_summary"
             app:title="@string/setting_category_start_day_of_week_title" />
+    </PreferenceCategory>
 
-        <Preference
-            app:key="@string/setting_enable_app_protection_key"
-            app:title="@string/setting_enable_app_protection_general" />
+    <Preference
+        app:key="@string/setting_monthly_reports_key"
+        app:summary="@string/setting_monthly_reports_summary"
+        app:title="@string/setting_monthly_reports_title" />
 
+    <Preference
+        app:key="@string/setting_enable_app_protection_key"
+        app:title="@string/setting_enable_app_protection_general" />
+
+    <PreferenceCategory app:title="@string/setting_category_data_backup_title">
         <Preference
             app:key="@string/setting_category_backup"
             app:title="@string/backup_settings_activity_title" />
@@ -33,8 +40,8 @@
 
         <Preference
             app:key="@string/setting_category_premium_redeem_key"
-            app:title="@string/setting_category_premium_redeem_title"
-            app:summary="@string/setting_category_premium_redeem_message" />
+            app:summary="@string/setting_category_premium_redeem_message"
+            app:title="@string/setting_category_premium_redeem_title" />
 
     </PreferenceCategory>
 
@@ -51,16 +58,22 @@
             app:title="@string/setting_category_share_app_title" />
 
         <Preference
+            app:key="@string/setting_category_feedback_app_key"
+            app:summary="@string/setting_category_feedback_app_message"
+            app:title="@string/setting_category_rate_app_title" />
+
+        <Preference
             app:key="@string/setting_app_version_key"
             app:summary="@string/setting_app_version"
             app:title="@string/setting_app_version" />
 
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/setting_category_copyrights_title">
         <Preference
             app:key="@string/setting_app_open_source_key"
             app:summary="@string/setting_app_open_source_summary"
             app:title="@string/text_open_source" />
-
     </PreferenceCategory>
-
 
 </PreferenceScreen>

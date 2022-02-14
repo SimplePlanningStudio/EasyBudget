@@ -15,25 +15,33 @@
  */
 package com.simplebudget.view
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.google.android.play.core.review.ReviewInfo
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.android.play.core.tasks.Task
 import com.simplebudget.R
 import com.simplebudget.helper.*
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.hasUserCompleteRating
 import com.simplebudget.prefs.setUserHasCompleteRating
+import com.simplebudget.view.main.MainActivity
 
 /**
  * Rating popup that ask user for feedback and redirect them to the PlayStore
- *
+ * Manual rating updated to In app review.
  * @author Benoit LETONDOR
  */
-class RatingPopup(private val context: Context,
-                  private val appPreferences: AppPreferences) {
+class RatingPopup(
+    private val context: Context,
+    private val appPreferences: AppPreferences
+) {
 
     /**
      * Show the rating popup to the user
@@ -42,23 +50,55 @@ class RatingPopup(private val context: Context,
      * will have a button to asked not to be asked again
      * @return true if the popup has been shown, false otherwise
      */
-    fun show(forceShow: Boolean): Boolean {
-        if ( !forceShow && appPreferences.hasUserCompleteRating() ) {
+    fun show(forceShow: Boolean, isInAppOptional: Boolean): Boolean {
+        if (!forceShow && appPreferences.hasUserCompleteRating()) {
             Logger.debug("Not showing rating cause user already completed it")
             return false
         }
+        if (isInAppOptional)
+            showNormalRatingPopup(forceShow)
+        else
+            checkInAppReviewOrLaunchRating(forceShow)
 
+        return true
+    }
+
+    /**
+     *
+     */
+    private fun checkInAppReviewOrLaunchRating(forceShow: Boolean) {
+        val reviewManager = ReviewManagerFactory.create(context)
+        val requestReviewFlow = reviewManager.requestReviewFlow()
+        requestReviewFlow.addOnCompleteListener { request ->
+            if (request.isSuccessful) {
+                // We got the ReviewInfo object
+                val reviewInfo = request.result
+                val flow = reviewManager.launchReviewFlow((context as Activity), reviewInfo)
+                flow.addOnCompleteListener { task ->
+                    // The flow has finished. The API does not indicate whether the user
+                    // reviewed or not, or even whether the review dialog was shown. Thus, no
+                    // matter the result, we continue our app flow.
+                    if (task.isSuccessful) {
+                        Log.d("", "")
+                    }
+                    appPreferences.setUserHasCompleteRating()
+                }
+            } else {
+                showNormalRatingPopup(forceShow)
+                Log.d("Error: ", request.exception.toString())
+                // There was some problem, continue regardless of the result.
+            }
+        }
+    }
+
+    private fun showNormalRatingPopup(forceShow: Boolean) {
         appPreferences.setRatingPopupStep(RatingPopupStep.STEP_SHOWN)
-
         val dialog = buildStep1(includeDontAskMeAgainButton = !forceShow)
         dialog.show()
-
         if (!forceShow) {
             // Center buttons
             dialog.centerButtons()
         }
-
-        return true
     }
 
     /**
@@ -108,19 +148,7 @@ class RatingPopup(private val context: Context,
             .setPositiveButton(R.string.rating_popup_negative_cta_positive) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_DISLIKE_FEEDBACK)
                 appPreferences.setUserHasCompleteRating()
-
-                val sendIntent = Intent()
-                sendIntent.action = Intent.ACTION_SENDTO
-                sendIntent.data = Uri.parse("mailto:") // only email apps should handle this
-                sendIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(context.resources.getString(R.string.rating_feedback_email)))
-                sendIntent.putExtra(Intent.EXTRA_TEXT, context.resources.getString(R.string.rating_feedback_send_text))
-                sendIntent.putExtra(Intent.EXTRA_SUBJECT, context.resources.getString(R.string.rating_feedback_send_subject))
-
-                if (sendIntent.resolveActivity(context.packageManager) != null) {
-                    context.startActivity(sendIntent)
-                } else {
-                    Toast.makeText(context, context.resources.getString(R.string.rating_feedback_send_error), Toast.LENGTH_SHORT).show()
-                }
+                Feedback.askForFeedback(context)
             }
             .create()
     }
@@ -141,18 +169,7 @@ class RatingPopup(private val context: Context,
             .setPositiveButton(R.string.rating_popup_positive_cta_positive) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_LIKE_RATED)
                 appPreferences.setUserHasCompleteRating()
-
-                val appPackageName = context.packageName
-
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
-
-                    context.startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName"))
-
-                    context.startActivity(intent)
-                }
+                Rate.onPlayStore(context)
             }
             .create()
     }
@@ -237,7 +254,12 @@ private const val RATING_STEP_PARAMETERS_KEY = "rating_step"
  * Get the current user rating step
  */
 fun AppPreferences.getRatingPopupUserStep(): RatingPopup.RatingPopupStep? {
-    return RatingPopup.RatingPopupStep.fromValue(getInt(RATING_STEP_PARAMETERS_KEY, RatingPopup.RatingPopupStep.STEP_NOT_SHOWN.value))
+    return RatingPopup.RatingPopupStep.fromValue(
+        getInt(
+            RATING_STEP_PARAMETERS_KEY,
+            RatingPopup.RatingPopupStep.STEP_NOT_SHOWN.value
+        )
+    )
 }
 
 /**

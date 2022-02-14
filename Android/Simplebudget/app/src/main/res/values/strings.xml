@@ -147,11 +147,16 @@
     <string name="setting_category_start_day_of_week_summary">Start day of week is (%s)</string>
     <string name="setting_category_app_version_title" translatable="false">SimpleBudget %s</string>
     <string name="setting_category_share_app_title">Share with friends</string>
+    <string name="setting_category_rate_app_title">Feedback</string>
     <string name="setting_category_share_app_message">SimpleBudget is free, so why not sharing it with your friends!</string>
+    <string name="setting_category_feedback_app_message">Share your feedback to improve SimpleBudget!</string>
     <string name="setting_category_dev_title" translatable="false">Dev</string>
     <string name="setting_category_show_welcome_screen_button_title" translatable="false">Show welcome screen</string>
     <string name="setting_category_show_premium" translatable="false">Show premium screen</string>
     <string name="setting_category_premium_title">Premium</string>
+    <string name="setting_category_copyrights_title">Copyrights</string>
+    <string name="setting_category_data_backup_title">Data Backup</string>
+    <string name="setting_category_security_title">Security</string>
     <string name="setting_category_premium_status_title">You are premium!</string>
     <string name="setting_category_premium_status_message">You have access to premium features without Ads.</string>
     <string name="setting_category_premium_redeem_title">Promo code</string>
@@ -310,6 +315,7 @@
     <string name="setting_category_rate_button_key" translatable="false">rate</string>
     <string name="setting_category_app_version_key" translatable="false">app_version</string>
     <string name="setting_category_share_app_key" translatable="false">share_app</string>
+    <string name="setting_category_feedback_app_key" translatable="false">feedback_app</string>
     <string name="setting_category_premium_key" translatable="false">category_premium</string>
     <string name="setting_category_not_premium_key" translatable="false">category_not_premium</string>
     <string name="setting_category_premium_status_key" translatable="false">premium</string>
@@ -322,6 +328,12 @@
     <string name="setting_category_dev_show_premium_key" translatable="false">show_premium</string>
     <string name="setting_category_start_day_of_week_key" translatable="false">start_day_of_week</string>
     <string name="setting_enable_app_protection_key" translatable="false">enable_app_protection</string>
+
+    <string name="setting_category_reports_title">Reports</string>
+    <string name="setting_monthly_reports_key" translatable="false">monthly_reports</string>
+    <string name="setting_monthly_reports_title" translatable="false">Reports</string>
+    <string name="setting_monthly_reports_summary" translatable="false">View and download Weekly, Monthly expenses report.</string>
+
     <string name="setting_app_version_key" translatable="false">app_version</string>
     <string name="setting_enable_app_protection_off">Enable app password protection</string>
     <string name="setting_enable_app_protection_general">App password protection</string>
@@ -427,4 +439,38 @@
     <string name="not_now">Not now</string>
     <string name="generate_this_month_report">Generate this month report</string>
     <string name="print_download_as_pdf">Print / Download as PDF</string>
+    <string name="proceed_with_adding_expenses">Proceed with adding expenses!</string>
+    <string name="iab_success_message">Thank you so much for your support! You can enjoy the premium features lifetime without ads.</string>
+    <string name="category">Category</string>
+    <string name="save">Save</string>
+    <string name="today">Today:</string>
+
+    <string-array name="categories">
+        <item>Miscellaneous</item>
+        <item>Grocery</item>
+        <item>Utilities</item>
+        <item>Shopping</item>
+        <item>Clothing</item>
+        <item>Entertainment</item>
+        <item>Transportation</item>
+        <item>Education</item>
+        <item>Medical</item>
+        <item>Household</item>
+        <item>Food</item>
+        <item>Breakfast</item>
+        <item>Dinner</item>
+        <item>Lunch</item>
+        <item>Personal</item>
+        <item>Insurance</item>
+        <item>Retirement</item>
+        <item>Donations</item>
+        <item>Salary</item>
+        <item>Income</item>
+        <item>Profit</item>
+        <item>Debit</item>
+        <item>Credit</item>
+        <item>Debt</item>
+        <item>Balance</item>
+        <item>Savings</item>
+    </string-array>
 </resources>

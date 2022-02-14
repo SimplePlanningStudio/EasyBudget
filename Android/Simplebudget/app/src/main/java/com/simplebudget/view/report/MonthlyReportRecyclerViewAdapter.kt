@@ -77,6 +77,7 @@ class MonthlyReportRecyclerViewAdapter(private val expenses: List<Expense>,
             val expense = getExpense(position)
 
             viewHolder.expenseTitleTextView.text = expense.title
+            viewHolder.categoryTypeTextView.text = expense.category.name
             viewHolder.expenseAmountTextView.text = CurrencyHelper.getFormattedCurrencyString(appPreferences, -expense.amount)
             viewHolder.expenseAmountTextView.setTextColor(ContextCompat.getColor(viewHolder.view.context, if (expense.isRevenue()) R.color.budget_green else R.color.budget_red))
             viewHolder.monthlyIndicator.visibility = if (expense.isRecurring()) View.VISIBLE else View.GONE
@@ -93,6 +94,7 @@ class MonthlyReportRecyclerViewAdapter(private val expenses: List<Expense>,
                     RecurringExpenseType.TER_MONTHLY -> viewHolder.recurringExpenseTypeTextView.text = viewHolder.view.context.getString(R.string.ter_monthly)
                     RecurringExpenseType.SIX_MONTHLY -> viewHolder.recurringExpenseTypeTextView.text = viewHolder.view.context.getString(R.string.six_monthly)
                     RecurringExpenseType.YEARLY -> viewHolder.recurringExpenseTypeTextView.text = viewHolder.view.context.getString(R.string.yearly)
+                    else -> {}
                 }
             }
 
@@ -157,6 +159,7 @@ class MonthlyReportRecyclerViewAdapter(private val expenses: List<Expense>,
         internal val monthlyIndicator: ViewGroup = view.findViewById(R.id.recurring_indicator)
         internal val dateTextView: TextView = view.findViewById(R.id.date_tv)
         internal val recurringExpenseTypeTextView: TextView = view.findViewById(R.id.recurring_expense_type)
+        internal val categoryTypeTextView: TextView = view.findViewById(R.id.category_type)
     }
 
     class HeaderViewHolder internal constructor(internal val view: View) : RecyclerView.ViewHolder(view) {

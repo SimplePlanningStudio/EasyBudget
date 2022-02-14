@@ -16,8 +16,8 @@ android {
         applicationId "gplx.simple.budgetapp"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 11
-        versionName "1.1.0"
+        versionCode 14
+        versionName "2.0.0"
         vectorDrawables.useSupportLibrary = true
         flavorDimensions "default"
     }
@@ -114,10 +114,13 @@ dependencies {
     implementation 'com.android.billingclient:billing:3.0.3'
 
     //Firebase In app messaging
-    implementation 'com.google.firebase:firebase-inappmessaging-display-ktx:20.1.0'
+    implementation 'com.google.firebase:firebase-inappmessaging-display-ktx:20.1.1'
 
     // EZ Permission
     implementation 'com.androidisland.ezpermission:ezpermission:0.1.4'
+
+    implementation 'com.google.android.play:core:1.10.3'
+    implementation 'com.google.android.play:core-ktx:1.8.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

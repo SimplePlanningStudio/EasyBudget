@@ -17,6 +17,7 @@ package com.simplebudget.view.premium
 
 import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
@@ -41,9 +42,6 @@ class PremiumActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_premium)
 
-        // Cancelled by default
-        setResult(Activity.RESULT_CANCELED)
-
         premium_not_now_button.setOnClickListener {
             finish()
         }
@@ -57,7 +55,7 @@ class PremiumActivity : BaseActivity() {
         }
 
         var loadingProgressDialog: ProgressDialog? = null
-        viewModel.premiumFlowErrorEventStream.observe(this, Observer { status ->
+        viewModel.premiumFlowErrorEventStream.observe(this, { status ->
             when (status) {
                 PremiumPurchaseFlowResult.Cancelled -> {
                     loadingProgressDialog?.dismiss()
@@ -95,12 +93,15 @@ class PremiumActivity : BaseActivity() {
                 PremiumFlowStatus.DONE -> {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
-                    //Update Premium Status So That Can't be displayed
+                    //Update Premium Status So That Ad can't be displayed
                     SimpleBudget.appOpenManager?.updatePremiumStatus(true)
-                    setResult(Activity.RESULT_OK)
+                    startActivity(
+                        Intent(this, PremiumSuccessActivity::class.java)
+                            .putExtra(PremiumSuccessActivity.REQUEST_CODE_IS_BACK_ENABLED, false)
+                    )
                     finish()
                 }
-                null -> {
+                null -> {PremiumSuccessActivity
                 }
             }
         })

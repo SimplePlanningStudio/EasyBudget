@@ -25,6 +25,7 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -36,9 +37,18 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.helper.*
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.DatePickerDialogFragment
-import kotlinx.android.synthetic.main.activity_expense_edit.*
+import kotlinx.android.synthetic.main.activity_expense_edit.amount_edittext
+import kotlinx.android.synthetic.main.activity_expense_edit.amount_inputlayout
+import kotlinx.android.synthetic.main.activity_expense_edit.categories_spinner
+import kotlinx.android.synthetic.main.activity_expense_edit.date_button
+import kotlinx.android.synthetic.main.activity_expense_edit.description_edittext
+import kotlinx.android.synthetic.main.activity_expense_edit.expense_type_switch
+import kotlinx.android.synthetic.main.activity_expense_edit.expense_type_tv
+import kotlinx.android.synthetic.main.activity_expense_edit.save_expense_fab
+import kotlinx.android.synthetic.main.activity_expense_edit.toolbar
 import org.koin.android.ext.android.inject
 import org.koin.android.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
@@ -51,15 +61,16 @@ import kotlin.math.abs
  * @author Benoit LETONDOR
  */
 class ExpenseEditActivity : BaseActivity() {
+
     private val appPreferences: AppPreferences by inject()
     private val viewModel: ExpenseEditViewModel by viewModel()
-
     private lateinit var receiver: BroadcastReceiver
-
-    // -------------------------------------->
     private var adView: AdView? = null
 
 
+    /**
+     *
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_expense_edit)
@@ -96,9 +107,9 @@ class ExpenseEditActivity : BaseActivity() {
 
         viewModel.existingExpenseEventStream.observe(this, { existingValues ->
             if (existingValues != null) {
-                setUpTextFields(existingValues.title, existingValues.amount)
+                setUpTextFields(existingValues.title, existingValues.amount, existingValues.categoryType)
             } else {
-                setUpTextFields(description = null, amount = null)
+                setUpTextFields(description = null, amount = null, ExpenseCategoryType.MISCELLANEOUS)
             }
         })
 
@@ -145,7 +156,8 @@ class ExpenseEditActivity : BaseActivity() {
                 .setPositiveButton(R.string.expense_add_before_init_date_dialog_positive_cta) { _, _ ->
                     viewModel.onAddExpenseBeforeInitDateConfirmed(
                         getCurrentAmount(),
-                        description_edittext.text.toString()
+                        description_edittext.text.toString(),
+                        CategoryTypeFromSpinnerSelection.get(categories_spinner.selectedItemPosition)
                     )
                 }
                 .setNegativeButton(R.string.expense_add_before_init_date_dialog_negative_cta) { _, _ ->
@@ -155,8 +167,9 @@ class ExpenseEditActivity : BaseActivity() {
         })
     }
 
-// ----------------------------------->
-
+    /**
+     *
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
@@ -216,7 +229,11 @@ class ExpenseEditActivity : BaseActivity() {
 
         save_expense_fab.setOnClickListener {
             if (validateInputs()) {
-                viewModel.onSave(getCurrentAmount(), description_edittext.text.toString())
+                viewModel.onSave(
+                    getCurrentAmount(),
+                    description_edittext.text.toString(),
+                    CategoryTypeFromSpinnerSelection.get(categories_spinner.selectedItemPosition)
+                )
             }
         }
     }
@@ -245,7 +262,7 @@ class ExpenseEditActivity : BaseActivity() {
     /**
      * Set up text field focus behavior
      */
-    private fun setUpTextFields(description: String?, amount: Double?) {
+    private fun setUpTextFields(description: String?, amount: Double?, categoryType: ExpenseCategoryType) {
         amount_inputlayout.hint =
             resources.getString(R.string.amount, appPreferences.getUserCurrency().symbol)
 
@@ -262,6 +279,18 @@ class ExpenseEditActivity : BaseActivity() {
         if (amount != null) {
             amount_edittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
         }
+
+        val adapterCategory =
+            ArrayAdapter(
+                this,
+                R.layout.spinner_item_categories,
+                resources.getStringArray(R.array.categories)
+            )
+        adapterCategory.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categories_spinner.adapter = adapterCategory
+
+        //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
+        categories_spinner.setSelection(GetPositionOfCategoryTypeForSpinner.get(categoryType))
     }
 
     /**
@@ -289,6 +318,9 @@ class ExpenseEditActivity : BaseActivity() {
         }
     }
 
+    /**
+     *
+     */
     private fun getCurrentAmount(): Double {
         return java.lang.Double.parseDouble(amount_edittext.text.toString())
     }

@@ -40,7 +40,7 @@ class AppOpenManager(private val myApplication: SimpleBudget) : LifecycleObserve
     /**
      * Shows the ad if one isn't already showing.
      */
-    fun showAdIfAvailable() {
+    private fun showAdIfAvailable() {
         // Only show ad if there is not already an app open ad currently showing
         // and an ad is available.
         if (!isShowingAd && isAdAvailable) {
@@ -60,7 +60,8 @@ class AppOpenManager(private val myApplication: SimpleBudget) : LifecycleObserve
                     }
                 }
             appOpenAd?.fullScreenContentCallback = fullScreenContentCallback
-            appOpenAd?.show(currentActivity!!)
+            if (!isUserPremium)
+                appOpenAd?.show(currentActivity!!)
         } else {
             Log.d(LOG_TAG, "Can not show ad.")
             fetchAd()
@@ -89,7 +90,7 @@ class AppOpenManager(private val myApplication: SimpleBudget) : LifecycleObserve
     /**
      * Request an ad
      */
-    fun fetchAd() {
+    private fun fetchAd() {
         // Have unused ad, no need to fetch another.
         if (isAdAvailable) {
             return
@@ -130,7 +131,7 @@ class AppOpenManager(private val myApplication: SimpleBudget) : LifecycleObserve
     /**
      * Utility method that checks if ad exists and can be shown.
      */
-    val isAdAvailable: Boolean
+    private val isAdAvailable: Boolean
         get() = appOpenAd != null && wasLoadTimeLessThanNHoursAgo(1)
 
     companion object {

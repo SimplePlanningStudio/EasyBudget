@@ -1,6 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <string name="ads_sdk_id">your_sdk_ad_id</string>
     <string name="banner_ad_unit_id">your_banner_ad_id</string>
     <string name="interstitial_ad_unit_id">your_interstitial_ad_id</string>
     <string name="app_open_ad_unit">your_app_open_ad_id</string>
+
 </resources>

@@ -47,6 +47,7 @@ import com.google.firebase.inappmessaging.FirebaseInAppMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
 import com.simplebudget.R
+import com.simplebudget.SimpleBudget
 import com.simplebudget.helper.*
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.Expense
@@ -463,12 +464,17 @@ class MainActivity : BaseActivity() {
         })
 
         viewModel.premiumStatusLiveData.observe(this, { isPremium ->
+            SimpleBudget.appOpenManager?.updatePremiumStatus(true)
             isUserPremium = isPremium
             invalidateOptionsMenu()
 
             if (isPremium) {
                 val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-                adContainerView.visibility = View.INVISIBLE
+                adContainerView.visibility = View.GONE
+                val layoutParams: RelativeLayout.LayoutParams =
+                    llAddAmountContainer.layoutParams as RelativeLayout.LayoutParams
+                layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                llAddAmountContainer.layoutParams = layoutParams
             } else {
                 loadAndDisplayBannerAds()
             }

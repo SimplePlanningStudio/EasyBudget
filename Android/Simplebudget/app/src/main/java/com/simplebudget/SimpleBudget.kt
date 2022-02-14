@@ -162,7 +162,7 @@ class SimpleBudget : Application() {
             val dailyOpens = appPreferences.getNumberOfDailyOpen()
             if (dailyOpens > 2) {
                 if (!hasRatingPopupBeenShownToday()) {
-                    val shown = RatingPopup(activity, appPreferences).show(false)
+                    val shown = RatingPopup(activity, appPreferences).show(false, false)
                     if (shown) {
                         appPreferences.setRatingPopupLastAutoShowTimestamp(Date().time)
                     }

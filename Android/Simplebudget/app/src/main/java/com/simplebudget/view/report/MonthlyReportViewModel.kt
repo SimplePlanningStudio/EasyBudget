@@ -15,9 +15,6 @@
  */
 package com.simplebudget.view.report
 
-import android.os.Build
-import android.text.Html
-import android.text.Spanned
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -25,7 +22,6 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.model.Expense
 import com.simplebudget.db.DB
 import com.simplebudget.helper.CurrencyHelper.getFormattedAmountValue
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -200,76 +196,70 @@ class MonthlyReportViewModel(private val db: DB) : ViewModel() {
         }
     }
 
+    private val generatePDFReport: MutableLiveData<String> = MutableLiveData()
+    val observeGeneratePDFReport: LiveData<String> = generatePDFReport
+
     /**
      * Generate HTML for printing a PDF report
      */
-    fun generateHtml(currency: Currency, month: Date): String {
-        val contents: StringBuilder = StringBuilder()
-        val format = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        val monthFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+    fun generateHtml(currency: Currency, month: Date) {
+        viewModelScope.launch {
+            val contents: StringBuilder = StringBuilder()
+            val format = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+            val monthFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
 
-        // Style
-        contents.append("<style>\n" +
-                "table {\n" +
-                "  border-collapse: collapse;\n" +
-                "  width: 100%;\n" +
-                "}\n" +
-                "\n" +
-                "tr {\n" +
-                "  border-bottom: 1px solid #ddd;\n" +
-                "}\n" +
-                "</style>")
+            // Table start
+            contents.append("<html><head><body>")
+            contents.append("<p>")
+            // Month Title
+            contents.append("<h1 style=\"color:black;\">${(String.format("Budget Report Of %s", monthFormat.format(month)))}</h1>")
+            contents.append("<hr>")
 
-        // Table start
-        contents.append("<table style=\"width:100%\">")
+            // Incomes Total
+            contents.append("<h2 style=\"color:green;\">${("$CSV_TITLE_INCOMES_TOTAL (${currency.symbol ?: currency.displayName}) = ")}" +
+                    "<b style=\"color:black;\">${getFormattedAmountValue(revenuesAmount)}</b></h2>")
 
-        // Month Title
-        contents.append("<tr><td><h1 style=\"color:black;\">${(String.format("Budget report of %s", monthFormat.format(month)))}</h1></td><td></td><td></td></tr>")
+            // Expense Total
+            contents.append("<h2 style=\"color:red;\">${"$CSV_TITLE_EXPENSE_TOTAL (${currency.symbol ?: currency.displayName}) = "}" +
+                    "<b style=\"color:black;\">${getFormattedAmountValue(expensesAmount)}</b></h2>")
 
-        // Incomes Total
-        contents.append("<tr><td><h3 style=\"color:black;\">${("$CSV_TITLE_INCOMES_TOTAL (${currency.symbol ?: currency.displayName})")}</h3></td><td><h2 style=\"color:green;\">${getFormattedAmountValue(revenuesAmount)}</h2></td><td></td></tr>")
+            // Balance Total
+            val color = if(balance>0) "green" else "red"
+            contents.append("<h2 style=\"color:${color};\">${"$CSV_TITLE_BALANCE (${currency.symbol ?: currency.displayName}) = "}" +
+                    "<b style=\"color:black;\">${getFormattedAmountValue(balance)}</b></h2>")
 
-        // Expense Total
-        contents.append("<tr><td><h3 style=\"color:black;\">${"$CSV_TITLE_EXPENSE_TOTAL (${currency.symbol ?: currency.displayName})"}</h3></td><td><h2 style=\"color:red;\">${getFormattedAmountValue(expensesAmount)}</h2></td><td></td></tr>")
 
-        // Balance Total
-        contents.append("<tr><td><h3 style=\"color:black;\">${"$CSV_TITLE_BALANCE (${currency.symbol ?: currency.displayName})"}</h3></td><td><h2 style=\"color:green;\">${getFormattedAmountValue(balance)}</h2></td><td></td></tr>")
+            // Incomes
+            contents.append("<h2 style=\"color:black;background-color:LightGray\">${CSV_HEADER_INCOMES}</h2>")
+            for (data in revenues) {
+                contents.append("" +
+                        "<p style=\"font-size:140%;color:black\"><b>${(data.title)}</b></p>" +
+                        "<p style=\"font-size:140%;color:grey\">${(String.format("%s", format.format(data.date)))} / ${(data.category)}</p>" +
+                        "<p style=\"font-size:140%;color:green\">${(getFormattedAmountValue(-data.amount))}</p>" +
+                        "")
+                contents.append("<hr>")
+            }
 
-        // Incomes
-        contents.append("<tr><td><h2 style=\"color:green;\">${CSV_HEADER_INCOMES}</h2></td><td></td><td></td></tr>")
-        // "Description,Amount,Date"
-        contents.append("<tr style=\"color:green;\">" +
-                "<td><h3>Description</h3></td>" +
-                "<td><h3>Amount</h3></td>" +
-                "<td><h3>Date</h3></td>" +
-                "</tr>")
-        for (data in revenues) {
-            contents.append("<tr>")
-            contents.append("<td><h4>${(data.title?:"")}</h4></td>")
-            contents.append("<td><h4 style=\"color:green;\">${(getFormattedAmountValue(-data.amount))}</h4></td>")
-            contents.append("<td><h4>${(String.format("%s", format.format(data.date)))}</h4></td>")
-            contents.append("</tr>")
+            // Expenses
+            contents.append("<h2 style=\"color:black;background-color:LightGray;\">${CSV_HEADER_EXPENSE}</h2>")
+            for (data in expenses) {
+                contents.append("" +
+                        "<p style=\"font-size:140%;color:black\"><b>${(data.title)}</b></p>" +
+                        "<p style=\"font-size:140%;color:grey\">${(String.format("%s", format.format(data.date)))} / ${(data.category)}</p>" +
+                        "<p style=\"font-size:140%;color:red\">${(getFormattedAmountValue(-data.amount))}</p>" +
+                        "")
+                contents.append("<hr>")
+            }
+            // Table end
+            contents.append("</p>")
+            contents.append("<br><br>")
+            contents.append("<p style=\"font-size:120%;color:grey;text-align:center;\">Generated with SimpleBudget!</b>")
+            contents.append("<p style=\"font-size:140%;color:black;text-align:center;\"><b>------------------THANK YOU------------------</b></p>")
+            contents.append("</body>")
+            contents.append("</html>")
+
+            generatePDFReport.value = contents.toString()
         }
-        // Expenses
-        contents.append("<tr><td><h2 style=\"color:red;\">${CSV_HEADER_EXPENSE}</h2></td><td></td><td></td></tr>")
-
-        // "Description,Amount,Date"
-        contents.append("<tr style=\"color:red;\">" +
-                "<td><h3>Description</h3></td>" +
-                "<td><h3>Amount</h3></td>" +
-                "<td><h3>Date</h3></td>" +
-                "</tr>")
-        for (data in expenses) {
-            contents.append("<tr>")
-            contents.append("<td><h4>${(data.title?:"")}</h4></td>")
-            contents.append("<td><h4 style=\"color:red;\">${(getFormattedAmountValue(-data.amount))}</h4></td>")
-            contents.append("<td><h4>${(String.format("%s", format.format(data.date)))}</h4></td>")
-            contents.append("</tr>")
-        }
-        // Table end
-        contents.append("</table>")
-
-        return  contents.toString()
     }
 
     /**
