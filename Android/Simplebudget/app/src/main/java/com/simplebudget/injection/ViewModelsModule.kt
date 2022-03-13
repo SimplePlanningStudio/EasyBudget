@@ -29,7 +29,7 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { MainViewModel(get(), get()) }
     viewModel { SelectCurrencyViewModel() }
-    viewModel { MonthlyReportViewModel(get()) }
+    viewModel { MonthlyReportViewModel(get(),get()) }
     viewModel { MonthlyReportBaseViewModel(get()) }
     viewModel { ExpenseEditViewModel(get(), get(), get()) }
     viewModel { RecurringExpenseEditViewModel(get(), get(), get()) }

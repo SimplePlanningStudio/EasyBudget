@@ -22,9 +22,14 @@
         android:visibility="visible">
 
         <RelativeLayout
+            android:id="@+id/ic_export"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_8sdp"
+            android:clickable="true"
+            android:paddingHorizontal="@dimen/_2sdp"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:orientation="horizontal">
 
             <TextView
@@ -41,16 +46,12 @@
                 tools:ignore="RelativeOverlap" />
 
             <ImageView
-                android:id="@+id/ic_export"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="20dp"
-                android:clickable="true"
                 android:contentDescription="@string/export"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
                 android:src="@drawable/ic_export_report" />
         </RelativeLayout>
 

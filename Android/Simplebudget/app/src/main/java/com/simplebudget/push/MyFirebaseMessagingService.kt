@@ -169,19 +169,28 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         if (notification.body == null) return // Body is null no need to display notification
         val intent = Intent(this, SplashActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        val pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT)
+
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
+
+        /*val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        } else {
+            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
+        }*/
 
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channel)
-                .setSmallIcon(R.drawable.ic_push)
-                .setContentTitle(notification.title ?: getString(R.string.app_name))
-                .setStyle(NotificationCompat.BigTextStyle().bigText(notification.body)) // Multi line support
-                .setContentText(notification.body)
-                .setAutoCancel(true)
-                .setSound(defaultSoundUri)
-                .setContentIntent(pendingIntent)
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            .setSmallIcon(R.drawable.ic_push)
+            .setContentTitle(notification.title ?: getString(R.string.app_name))
+            .setStyle(
+                NotificationCompat.BigTextStyle().bigText(notification.body)
+            ) // Multi line support
+            .setContentText(notification.body)
+            .setAutoCancel(true)
+            .setSound(defaultSoundUri)
+            .setContentIntent(pendingIntent)
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(Random.nextInt(), notificationBuilder.build())
     }
 
@@ -195,7 +204,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val description = getString(R.string.setting_category_notifications_monthly_message)
             val importance = NotificationManager.IMPORTANCE_DEFAULT
 
-            val monthlyReportChannel = NotificationChannel(CHANNEL_WEEKLY_REMINDERS, name, importance)
+            val monthlyReportChannel =
+                NotificationChannel(CHANNEL_WEEKLY_REMINDERS, name, importance)
             monthlyReportChannel.description = description
 
             // Daily reminder channel
@@ -203,15 +213,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val dailyDescription = getString(R.string.setting_category_notifications_daily_message)
             val dailyImportance = NotificationManager.IMPORTANCE_DEFAULT
 
-            val dailyReportChannel = NotificationChannel(CHANNEL_DAILY_REMINDERS, dailyName, dailyImportance)
+            val dailyReportChannel =
+                NotificationChannel(CHANNEL_DAILY_REMINDERS, dailyName, dailyImportance)
             dailyReportChannel.description = dailyDescription
 
             // New features channel
             val newFeatureName = getString(R.string.setting_category_notifications_update_title)
-            val newFeatureDescription = getString(R.string.setting_category_notifications_update_message)
+            val newFeatureDescription =
+                getString(R.string.setting_category_notifications_update_message)
             val newFeatureImportance = NotificationManager.IMPORTANCE_LOW
 
-            val newFeatureChannel = NotificationChannel(CHANNEL_NEW_FEATURES, newFeatureName, newFeatureImportance)
+            val newFeatureChannel =
+                NotificationChannel(CHANNEL_NEW_FEATURES, newFeatureName, newFeatureImportance)
             newFeatureChannel.description = newFeatureDescription
 
             val notificationManager = getSystemService(NotificationManager::class.java)

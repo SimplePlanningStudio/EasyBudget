@@ -29,6 +29,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -136,6 +137,7 @@ class MonthlyReportFragment : Fragment() {
                         MonthlyReportRecyclerViewAdapter(
                             result.expenses,
                             result.revenues,
+                            result.allExpensesOfThisMonth,
                             appPreferences
                         )
                     )
@@ -185,6 +187,9 @@ class MonthlyReportFragment : Fragment() {
             result?.let {
                 if (it.message.isNotEmpty())
                     requireActivity().toast(it.message)
+
+                if (!it.status) return@let
+
                 it.file?.let { file ->
                     shareCsvFile(file)
                 }
@@ -193,14 +198,14 @@ class MonthlyReportFragment : Fragment() {
         /*
           Observe HTML/PDF report generation
          */
-        viewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { html ->
-            html?.let {
-                if (html.isEmpty()) {
-                    requireActivity().toast("Something went wrong in pdf generation try again.")
+        viewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { htmlReport ->
+            htmlReport?.let {
+                if (htmlReport.html.isEmpty() || htmlReport.isEmpty) {
+                    requireActivity().toast("Please add expenses of this month to generate report.")
                 } else {
                     startActivity(
                         Intent(requireActivity(), PDFReportActivity::class.java)
-                            .putExtra(PDFReportActivity.INTENT_CODE_PDF_CONTENTS, html)
+                            .putExtra(PDFReportActivity.INTENT_CODE_PDF_CONTENTS, htmlReport.html)
                     )
                 }
             }
