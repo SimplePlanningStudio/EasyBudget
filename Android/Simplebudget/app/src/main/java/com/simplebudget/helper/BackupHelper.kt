@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -42,13 +42,15 @@ private const val BACKUP_VERSION = 1
 private const val BACKUP_VERSION_FILENAME = "version"
 private const val BACKUP_DB_FILENAME = "db_backup"
 
-suspend fun backupDB(context: Context,
-                     db: DB,
-                     cloudStorage: CloudStorage,
-                     auth: Auth,
-                     appPreferences: AppPreferences): ListenableWorker.Result {
+suspend fun backupDB(
+    context: Context,
+    db: DB,
+    cloudStorage: CloudStorage,
+    auth: Auth,
+    appPreferences: AppPreferences
+): ListenableWorker.Result {
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
-    if( currentUser == null ) {
+    if (currentUser == null) {
         Log.e(
             "BackupJob",
             "Not authenticated"
@@ -122,18 +124,22 @@ suspend fun backupDB(context: Context,
     return ListenableWorker.Result.success()
 }
 
-suspend fun getBackupDBMetaData(cloudStorage: CloudStorage,
-                                auth: Auth): FileMetaData? {
+suspend fun getBackupDBMetaData(
+    cloudStorage: CloudStorage,
+    auth: Auth
+): FileMetaData? {
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
         ?: throw IllegalStateException("Not authenticated")
 
     return cloudStorage.getFileMetaData(getRemoteBackupPath(currentUser.id))
 }
 
-suspend fun restoreLatestDBBackup(context: Context,
-                                  auth: Auth,
-                                  cloudStorage: CloudStorage,
-                                  appPreferences: AppPreferences) {
+suspend fun restoreLatestDBBackup(
+    context: Context,
+    auth: Auth,
+    cloudStorage: CloudStorage,
+    appPreferences: AppPreferences
+) {
 
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
         ?: throw IllegalStateException("Not authenticated")
@@ -152,7 +158,7 @@ suspend fun restoreLatestDBBackup(context: Context,
         val versionFile = File(backupFolder, BACKUP_VERSION_FILENAME)
         val dbBackupFile = File(backupFolder, BACKUP_DB_FILENAME)
 
-        restoreDBBackup(versionFile.readBackupVersion(), dbBackupFile, context)
+        restoreDBBackup(dbBackupFile, context)
         appPreferences.setShouldResetInitDate(true)
     } finally {
         try {
@@ -168,15 +174,17 @@ suspend fun restoreLatestDBBackup(context: Context,
     }
 }
 
-suspend fun deleteBackup(auth: Auth,
-                         cloudStorage: CloudStorage): Boolean {
+suspend fun deleteBackup(
+    auth: Auth,
+    cloudStorage: CloudStorage
+): Boolean {
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
         ?: throw IllegalStateException("Not authenticated")
 
     return cloudStorage.deleteFile(getRemoteBackupPath(currentUser.id))
 }
 
-private fun restoreDBBackup(backupVersion: Int, dbBackupFile: File, context: Context) {
+private fun restoreDBBackup(dbBackupFile: File, context: Context) {
     context.deleteDatabase(DB_NAME)
     dbBackupFile.copyTo(context.getDatabasePath(DB_NAME), overwrite = true)
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
+import com.simplebudget.db.impl.toCategoriesNamesList
 import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.model.Category
 import com.simplebudget.model.Expense
+import com.simplebudget.model.ExpenseCategories
 import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.getInitTimestamp
@@ -29,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
+import kotlin.collections.ArrayList
 
 class ExpenseEditViewModel(
     private val db: DB,
@@ -45,7 +49,7 @@ class ExpenseEditViewModel(
     val editTypeLiveData = MutableLiveData<ExpenseEditType>()
     val existingExpenseEventStream = SingleLiveEvent<ExistingExpenseData?>()
     val expenseAddBeforeInitDateEventStream = SingleLiveEvent<Unit>()
-    val finishEventStream = MutableLiveData<Unit>()
+    val finishEventStream = MutableLiveData<Unit?>()
 
     fun onIabStatusChanged() {
         premiumStatusLiveData.value = iab.isUserPremium()
@@ -58,14 +62,18 @@ class ExpenseEditViewModel(
             ExpenseEditType(expense?.isRevenue() ?: false, expense != null)
 
         existingExpenseEventStream.value =
-            if (expense != null) ExistingExpenseData(expense.title, expense.amount, expense.category) else null
+            if (expense != null) ExistingExpenseData(
+                expense.title,
+                expense.amount,
+                expense.category
+            ) else null
     }
 
     fun onExpenseRevenueValueChanged(isRevenue: Boolean) {
         editTypeLiveData.value = ExpenseEditType(isRevenue, expense != null)
     }
 
-    fun onSave(value: Double, description: String, expenseCategoryType: ExpenseCategoryType) {
+    fun onSave(value: Double, description: String, expenseCategoryType: String) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
@@ -73,14 +81,13 @@ class ExpenseEditViewModel(
             expenseAddBeforeInitDateEventStream.value = Unit
             return
         }
-
         doSaveExpense(value, description, isRevenue, date, expenseCategoryType)
     }
 
     fun onAddExpenseBeforeInitDateConfirmed(
         value: Double,
         description: String,
-        expenseCategoryType: ExpenseCategoryType
+        expenseCategoryType: String
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -97,7 +104,7 @@ class ExpenseEditViewModel(
         description: String,
         isRevenue: Boolean,
         date: Date,
-        expenseCategoryType: ExpenseCategoryType
+        expenseCategoryType: String
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
@@ -112,10 +119,8 @@ class ExpenseEditViewModel(
                     date,
                     expenseCategoryType
                 )
-
                 db.persistExpense(expense)
             }
-
             finishEventStream.value = null
         }
     }
@@ -139,4 +144,4 @@ class ExpenseEditViewModel(
 
 data class ExpenseEditType(val isRevenue: Boolean, val editing: Boolean)
 
-data class ExistingExpenseData(val title: String, val amount: Double,val categoryType: ExpenseCategoryType)
+data class ExistingExpenseData(val title: String, val amount: Double, val categoryType: String)

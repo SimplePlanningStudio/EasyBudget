@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -39,10 +39,12 @@ class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : V
             }
 
             datesLiveData.value = dates
-            if( !fromNotification || dates.size == 1) {
-                selectedPositionLiveData.value = MonthlyReportSelectedPosition(dates.size - 1, dates[dates.size - 1], true)
+            if (!fromNotification || dates.size == 1) {
+                selectedPositionLiveData.value =
+                    MonthlyReportSelectedPosition(dates.size - 1, dates[dates.size - 1], true)
             } else {
-                selectedPositionLiveData.value = MonthlyReportSelectedPosition(dates.size - 2, dates[dates.size - 2], false)
+                selectedPositionLiveData.value =
+                    MonthlyReportSelectedPosition(dates.size - 2, dates[dates.size - 2], false)
             }
         }
     }
@@ -52,7 +54,11 @@ class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : V
         val (selectedPosition) = selectedPositionLiveData.value ?: return
 
         if (selectedPosition > 0) {
-            selectedPositionLiveData.value = MonthlyReportSelectedPosition(selectedPosition - 1, dates[selectedPosition - 1], false)
+            selectedPositionLiveData.value = MonthlyReportSelectedPosition(
+                selectedPosition - 1,
+                dates[selectedPosition - 1],
+                false
+            )
         }
     }
 
@@ -60,15 +66,20 @@ class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : V
         val dates = datesLiveData.value ?: return
         val (selectedPosition) = selectedPositionLiveData.value ?: return
 
-        if ( selectedPosition < dates.size - 1 ) {
-            selectedPositionLiveData.value = MonthlyReportSelectedPosition(selectedPosition + 1, dates[selectedPosition + 1], dates.size == selectedPosition + 2)
+        if (selectedPosition < dates.size - 1) {
+            selectedPositionLiveData.value = MonthlyReportSelectedPosition(
+                selectedPosition + 1,
+                dates[selectedPosition + 1],
+                dates.size == selectedPosition + 2
+            )
         }
     }
 
     fun onPageSelected(position: Int) {
         val dates = datesLiveData.value ?: return
 
-        selectedPositionLiveData.value = MonthlyReportSelectedPosition(position, dates[position], dates.size == position + 1)
+        selectedPositionLiveData.value =
+            MonthlyReportSelectedPosition(position, dates[position], dates.size == position + 1)
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Waheed Nazir
+ *   Copyright 2022 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package com.simplebudget.view.premium
 import android.content.Intent
 import android.os.Bundle
 import com.simplebudget.R
+import com.simplebudget.databinding.ActivitySuccessPremiumBinding
 import com.simplebudget.helper.BaseActivity
 import com.simplebudget.view.splash.SplashActivity
-import kotlinx.android.synthetic.main.activity_success_premium.*
 
 /**
  *
  */
-class PremiumSuccessActivity : BaseActivity() {
+class PremiumSuccessActivity : BaseActivity<ActivitySuccessPremiumBinding>() {
 
     var isBackEnabled: Boolean = false
 
@@ -36,25 +36,28 @@ class PremiumSuccessActivity : BaseActivity() {
         const val REQUEST_CODE_IS_BACK_ENABLED = "BackEnabled"
     }
 
+    override fun createBinding(): ActivitySuccessPremiumBinding {
+        return ActivitySuccessPremiumBinding.inflate(layoutInflater)
+    }
+
     /**
      *
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_success_premium)
 
         isBackEnabled = intent.getBooleanExtra(REQUEST_CODE_IS_BACK_ENABLED, false)
         if (isBackEnabled) {
-            btnLetsProceed.text = String.format("%s", getString(R.string.back))
+            binding.btnLetsProceed.text = String.format("%s", getString(R.string.back))
         } else {
-            btnLetsProceed.text =
+            binding.btnLetsProceed.text =
                 String.format("%s", getString(R.string.proceed_with_adding_expenses))
         }
 
         /**
          *
          */
-        btnLetsProceed.setOnClickListener {
+        binding.btnLetsProceed.setOnClickListener {
             if (isBackEnabled) {
                 finish()
             } else {

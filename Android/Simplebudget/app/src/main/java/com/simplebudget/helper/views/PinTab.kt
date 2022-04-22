@@ -8,8 +8,7 @@ import com.simplebudget.helper.PROTECTION_PIN
 import com.simplebudget.helper.extensions.performHapticFeedback
 import com.simplebudget.helper.interfaces.HashListener
 import com.simplebudget.helper.numpad.NumPadView
-import com.simplebudget.helper.toast
-import kotlinx.android.synthetic.main.dialog_security.view.*
+import com.simplemobiletools.commons.views.MyTextView
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.*
@@ -19,9 +18,14 @@ class PinTab(context: Context, attrs: AttributeSet) : RelativeLayout(context, at
     private var requiredHash = ""
     private var pin = ""
     lateinit var hashListener: HashListener
+    lateinit var pinLockTitle: MyTextView
+    lateinit var pinLockCurrentPin: MyTextView
 
     override fun onFinishInflate() {
         super.onFinishInflate()
+
+        pinLockTitle = findViewById(R.id.pin_lock_title)
+        pinLockCurrentPin = findViewById(R.id.pin_lock_current_pin)
 
         val customNumberPad: NumPadView = findViewById(R.id.custom_number_pad)
         customNumberPad.setNumberPadClickListener { button ->
@@ -71,7 +75,7 @@ class PinTab(context: Context, attrs: AttributeSet) : RelativeLayout(context, at
         } else if (hash.isEmpty()) {
             hash = newHash
             resetPin()
-            pin_lock_title.setText(R.string.repeat_pin)
+            pinLockTitle.setText(R.string.repeat_pin)
         } else if (hash == newHash) {
             hashListener.receivedHash(hash, PROTECTION_PIN)
         } else {
@@ -79,7 +83,7 @@ class PinTab(context: Context, attrs: AttributeSet) : RelativeLayout(context, at
             hashListener.error(context.resources.getString(R.string.wrong_pin))
             if (requiredHash.isEmpty()) {
                 hash = ""
-                pin_lock_title.setText(R.string.enter_pin)
+                pinLockTitle.setText(R.string.enter_pin)
             }
         }
         performHapticFeedback()
@@ -87,11 +91,11 @@ class PinTab(context: Context, attrs: AttributeSet) : RelativeLayout(context, at
 
     private fun resetPin() {
         pin = ""
-        pin_lock_current_pin.text = ""
+        pinLockCurrentPin.text = ""
     }
 
     private fun updatePinCode() {
-        pin_lock_current_pin.text = "◉".repeat(pin.length)
+        pinLockCurrentPin.text = "◉".repeat(pin.length)
         if (hash.isNotEmpty() && hash == getHashedPin()) {
             hashListener.receivedHash(hash, PROTECTION_PIN)
         }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
@@ -37,48 +38,58 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
+import com.simplebudget.databinding.ActivityRecurringExpenseAddBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.extensions.capital
+import com.simplebudget.model.ExpenseCategories
 import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.view.CategoriesViewModel
 import com.simplebudget.view.DatePickerDialogFragment
-import kotlinx.android.synthetic.main.activity_expense_edit.*
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.*
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.amount_edittext
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.amount_inputlayout
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.categories_spinner
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.date_button
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.description_edittext
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.expense_type_switch
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.expense_type_tv
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.save_expense_fab
-import kotlinx.android.synthetic.main.activity_recurring_expense_add.toolbar
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
 
-class RecurringExpenseEditActivity : BaseActivity() {
+class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBinding>() {
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: RecurringExpenseEditViewModel by viewModel()
+    private val viewModelCategory: CategoriesViewModel by viewModel()
     private lateinit var receiver: BroadcastReceiver
-
-    // ------------------------------------------->
     private var adView: AdView? = null
+    private var categories: ArrayList<String> = ArrayList()
+
+    /**
+     *
+     */
+    override fun createBinding(): ActivityRecurringExpenseAddBinding {
+        return ActivityRecurringExpenseAddBinding.inflate(layoutInflater)
+    }
 
     /**
      *
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_recurring_expense_add)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
 
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
+            categories.clear()
+            if (dbCat.isEmpty()) {
+                categories.addAll(ExpenseCategories.getCategoriesList())
+            } else {
+                categories.addAll(dbCat)
+            }
+            //Load category view with empty state
+            setCategoriesViews("")
+        }
 
         // Register receiver
         val filter = IntentFilter()
@@ -102,14 +113,14 @@ class RecurringExpenseEditActivity : BaseActivity() {
             )
         }
 
-        viewModel.premiumStatusLiveData.observe(this, { isPremium ->
+        viewModel.premiumStatusLiveData.observe(this) { isPremium ->
             if (isPremium) {
                 val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
                 adContainerView.visibility = View.INVISIBLE
             } else {
                 loadAndDisplayBannerAds()
             }
-        })
+        }
 
         setUpButtons()
         setResult(Activity.RESULT_CANCELED)
@@ -117,20 +128,20 @@ class RecurringExpenseEditActivity : BaseActivity() {
         if (willAnimateActivityEnter()) {
             animateActivityEnter(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
-                    save_expense_fab.animateFABAppearance()
+                    binding.saveExpenseFab.animateFABAppearance()
                 }
             })
         } else {
-            save_expense_fab.animateFABAppearance()
+            binding.saveExpenseFab.animateFABAppearance()
         }
 
-        date_button.removeButtonBorder() // Remove border
+        binding.dateButton.removeButtonBorder() // Remove border
 
-        viewModel.editTypeLiveData.observe(this, { (isRevenue, isEditing) ->
+        viewModel.editTypeLiveData.observe(this) { (isRevenue, isEditing) ->
             setExpenseTypeTextViewLayout(isRevenue, isEditing)
-        })
+        }
 
-        viewModel.existingExpenseEventStream.observe(this, { existingValues ->
+        viewModel.existingExpenseEventStream.observe(this) { existingValues ->
             if (existingValues != null) {
                 setUpTextFields(
                     existingValues.title,
@@ -143,17 +154,17 @@ class RecurringExpenseEditActivity : BaseActivity() {
                     description = null,
                     amount = null,
                     type = null,
-                    ExpenseCategoryType.MISCELLANEOUS
+                    categoryType = null
                 )
             }
-        })
+        }
 
-        viewModel.expenseDateLiveData.observe(this, { date ->
+        viewModel.expenseDateLiveData.observe(this) { date ->
             setUpDateButton(date)
-        })
+        }
 
         var progressDialog: ProgressDialog? = null
-        viewModel.savingIsRevenueEventStream.observe(this, { isRevenue ->
+        viewModel.savingIsRevenueEventStream.observe(this) { isRevenue ->
             // Show a ProgressDialog
             val dialog = ProgressDialog(this)
             dialog.isIndeterminate = true
@@ -164,17 +175,17 @@ class RecurringExpenseEditActivity : BaseActivity() {
             dialog.show()
 
             progressDialog = dialog
-        })
+        }
 
-        viewModel.finishLiveData.observe(this, {
+        viewModel.finishLiveData.observe(this) {
             progressDialog?.dismiss()
             progressDialog = null
 
             setResult(Activity.RESULT_OK)
             finish()
-        })
+        }
 
-        viewModel.errorEventStream.observe(this, {
+        viewModel.errorEventStream.observe(this) {
             progressDialog?.dismiss()
             progressDialog = null
 
@@ -183,25 +194,26 @@ class RecurringExpenseEditActivity : BaseActivity() {
                 .setMessage(getString(R.string.recurring_expense_add_error_message))
                 .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
                 .show()
-        })
+        }
 
-        viewModel.expenseAddBeforeInitDateEventStream.observe(this, {
+        viewModel.expenseAddBeforeInitDateEventStream.observe(this) {
             AlertDialog.Builder(this)
                 .setTitle(R.string.expense_add_before_init_date_dialog_title)
                 .setMessage(R.string.expense_add_before_init_date_dialog_description)
                 .setPositiveButton(R.string.expense_add_before_init_date_dialog_positive_cta) { _, _ ->
                     viewModel.onAddExpenseBeforeInitDateConfirmed(
                         getCurrentAmount(),
-                        description_edittext.text.toString(),
-                        getRecurringTypeFromSpinnerSelection(expense_type_spinner.selectedItemPosition),
-                        CategoryTypeFromSpinnerSelection.get(categories_spinner.selectedItemPosition)
+                        binding.descriptionEdittext.text.toString(),
+                        getRecurringTypeFromSpinnerSelection(binding.expenseTypeSpinner.selectedItemPosition),
+                        binding.categoriesSpinner.text?.toString()
+                            ?: ExpenseCategoryType.MISCELLANEOUS.name
                     )
                 }
                 .setNegativeButton(R.string.expense_add_before_init_date_dialog_negative_cta) { _, _ ->
                     viewModel.onAddExpenseBeforeInitDateCancelled()
                 }
                 .show()
-        })
+        }
     }
 
     /**
@@ -226,25 +238,26 @@ class RecurringExpenseEditActivity : BaseActivity() {
     private fun validateInputs(): Boolean {
         var ok = true
 
-        val description = description_edittext.text.toString()
+        val description = binding.descriptionEdittext.text.toString()
         if (description.trim { it <= ' ' }.isEmpty()) {
-            description_edittext.error = resources.getString(R.string.no_description_error)
+            binding.descriptionEdittext.error = resources.getString(R.string.no_description_error)
             ok = false
         }
 
-        val amount = amount_edittext.text.toString()
+        val amount = binding.amountEdittext.text.toString()
         if (amount.trim { it <= ' ' }.isEmpty()) {
-            amount_edittext.error = resources.getString(R.string.no_amount_error)
+            binding.amountEdittext.error = resources.getString(R.string.no_amount_error)
             ok = false
         } else {
             try {
                 val value = java.lang.Double.parseDouble(amount)
                 if (value <= 0) {
-                    amount_edittext.error = resources.getString(R.string.negative_amount_error)
+                    binding.amountEdittext.error =
+                        resources.getString(R.string.negative_amount_error)
                     ok = false
                 }
             } catch (e: Exception) {
-                amount_edittext.error = resources.getString(R.string.invalid_amount)
+                binding.amountEdittext.error = resources.getString(R.string.invalid_amount)
                 ok = false
             }
 
@@ -256,22 +269,24 @@ class RecurringExpenseEditActivity : BaseActivity() {
      * Set-up revenue and payment buttons
      */
     private fun setUpButtons() {
-        expense_type_switch.setOnCheckedChangeListener { _, isChecked ->
+        binding.expenseTypeSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onExpenseRevenueValueChanged(isChecked)
         }
 
-        expense_type_tv.setOnClickListener {
-            viewModel.onExpenseRevenueValueChanged(!expense_type_switch.isChecked)
+        binding.expenseTypeTv.setOnClickListener {
+            viewModel.onExpenseRevenueValueChanged(!binding.expenseTypeSwitch.isChecked)
         }
 
-        save_expense_fab.setOnClickListener {
+        binding.saveExpenseFab.setOnClickListener {
             if (validateInputs()) {
                 viewModel.onSave(
                     getCurrentAmount(),
-                    description_edittext.text.toString(),
-                    getRecurringTypeFromSpinnerSelection(expense_type_spinner.selectedItemPosition),
-                    CategoryTypeFromSpinnerSelection.get(categories_spinner.selectedItemPosition)
+                    binding.descriptionEdittext.text.toString(),
+                    getRecurringTypeFromSpinnerSelection(binding.expenseTypeSpinner.selectedItemPosition),
+                    binding.categoriesSpinner.text?.toString()?.uppercase()
+                        ?: ExpenseCategoryType.MISCELLANEOUS.name
                 )
+                viewModelCategory.saveCategory(binding.categoriesSpinner.text.toString())
             }
         }
     }
@@ -281,10 +296,10 @@ class RecurringExpenseEditActivity : BaseActivity() {
      */
     private fun setExpenseTypeTextViewLayout(isRevenue: Boolean, isEditing: Boolean) {
         if (isRevenue) {
-            expense_type_tv.setText(R.string.income)
-            expense_type_tv.setTextColor(ContextCompat.getColor(this, R.color.budget_green))
+            binding.expenseTypeTv.setText(R.string.income)
+            binding.expenseTypeTv.setTextColor(ContextCompat.getColor(this, R.color.budget_green))
 
-            expense_type_switch.isChecked = true
+            binding.expenseTypeSwitch.isChecked = true
 
             if (isEditing) {
                 setTitle(R.string.title_activity_recurring_income_edit)
@@ -292,10 +307,10 @@ class RecurringExpenseEditActivity : BaseActivity() {
                 setTitle(R.string.title_activity_recurring_income_add)
             }
         } else {
-            expense_type_tv.setText(R.string.payment)
-            expense_type_tv.setTextColor(ContextCompat.getColor(this, R.color.budget_red))
+            binding.expenseTypeTv.setText(R.string.payment)
+            binding.expenseTypeTv.setTextColor(ContextCompat.getColor(this, R.color.budget_red))
 
-            expense_type_switch.isChecked = false
+            binding.expenseTypeSwitch.isChecked = false
 
             if (isEditing) {
                 setTitle(R.string.title_activity_recurring_expense_edit)
@@ -312,9 +327,9 @@ class RecurringExpenseEditActivity : BaseActivity() {
         description: String?,
         amount: Double?,
         type: RecurringExpenseType?,
-        categoryType: ExpenseCategoryType
+        categoryType: String?
     ) {
-        amount_inputlayout.hint =
+        binding.amountInputlayout.hint =
             resources.getString(R.string.amount, appPreferences.getUserCurrency().symbol)
 
         val recurringTypesString = arrayOf(
@@ -332,7 +347,7 @@ class RecurringExpenseEditActivity : BaseActivity() {
 
         val adapter = ArrayAdapter(this, R.layout.spinner_item, recurringTypesString)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        expense_type_spinner.adapter = adapter
+        binding.expenseTypeSpinner.adapter = adapter
 
         if (type != null) {
             setSpinnerSelectionFromRecurringType(type)
@@ -341,30 +356,44 @@ class RecurringExpenseEditActivity : BaseActivity() {
         }
 
         if (description != null) {
-            description_edittext.setText(description)
-            description_edittext.setSelection(
-                description_edittext.text?.length
+            binding.descriptionEdittext.setText(description)
+            binding.descriptionEdittext.setSelection(
+                binding.descriptionEdittext.text?.length
                     ?: 0
             ) // Put focus at the end of the text
         }
 
-        amount_edittext.preventUnsupportedInputForDecimals()
+        binding.amountEdittext.preventUnsupportedInputForDecimals()
 
         if (amount != null) {
-            amount_edittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
+            binding.amountEdittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
         }
 
+        if (categoryType != null) setCategoriesViews(categoryType)
+
+    }
+
+    /**
+     *
+     */
+    private fun setCategoriesViews(categoryType: String) {
         val adapterCategory =
             ArrayAdapter(
                 this,
                 R.layout.spinner_item_categories,
-                resources.getStringArray(R.array.categories)
+                categories
             )
         adapterCategory.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        categories_spinner.adapter = adapterCategory
-
+        binding.categoriesSpinner.setAdapter(adapterCategory)
+        binding.categoriesSpinner.threshold = 1
         //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
-        categories_spinner.setSelection(GetPositionOfCategoryTypeForSpinner.get(categoryType))
+        binding.categoriesSpinner.setText(categoryType.capital())
+        //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
+        binding.categoriesSpinner.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, _, position, _ ->
+                val selectedItem = parent.getItemAtPosition(position).toString()
+                binding.categoriesSpinner.setText(selectedItem.capital())
+            }
     }
 
     /**
@@ -374,18 +403,18 @@ class RecurringExpenseEditActivity : BaseActivity() {
      * @return the corresponding expense type
      */
     private fun getRecurringTypeFromSpinnerSelection(spinnerSelectedItem: Int): RecurringExpenseType {
-        when (spinnerSelectedItem) {
-            0 -> return RecurringExpenseType.DAILY
-            1 -> return RecurringExpenseType.WEEKLY
-            2 -> return RecurringExpenseType.BI_WEEKLY
-            3 -> return RecurringExpenseType.TER_WEEKLY
-            4 -> return RecurringExpenseType.FOUR_WEEKLY
-            5 -> return RecurringExpenseType.MONTHLY
-            6 -> return RecurringExpenseType.BI_MONTHLY
-            7 -> return RecurringExpenseType.TER_MONTHLY
-            8 -> return RecurringExpenseType.SIX_MONTHLY
-            9 -> return RecurringExpenseType.YEARLY
-            else -> return RecurringExpenseType.NOTHING
+        return when (spinnerSelectedItem) {
+            0 -> RecurringExpenseType.DAILY
+            1 -> RecurringExpenseType.WEEKLY
+            2 -> RecurringExpenseType.BI_WEEKLY
+            3 -> RecurringExpenseType.TER_WEEKLY
+            4 -> RecurringExpenseType.FOUR_WEEKLY
+            5 -> RecurringExpenseType.MONTHLY
+            6 -> RecurringExpenseType.BI_MONTHLY
+            7 -> RecurringExpenseType.TER_MONTHLY
+            8 -> RecurringExpenseType.SIX_MONTHLY
+            9 -> RecurringExpenseType.YEARLY
+            else -> RecurringExpenseType.NOTHING
         }
     }
 
@@ -403,7 +432,7 @@ class RecurringExpenseEditActivity : BaseActivity() {
             RecurringExpenseType.YEARLY -> 9
             else -> 0
         }
-        expense_type_spinner.setSelection(selectionIndex, false)
+        binding.expenseTypeSpinner.setSelection(selectionIndex, false)
     }
 
     /**
@@ -414,9 +443,9 @@ class RecurringExpenseEditActivity : BaseActivity() {
             resources.getString(R.string.add_expense_date_format),
             Locale.getDefault()
         )
-        date_button.text = formatter.format(date)
+        binding.dateButton.text = formatter.format(date)
 
-        date_button.setOnClickListener {
+        binding.dateButton.setOnClickListener {
             val fragment = DatePickerDialogFragment(date) { _, year, monthOfYear, dayOfMonth ->
                 val cal = Calendar.getInstance()
 
@@ -432,7 +461,7 @@ class RecurringExpenseEditActivity : BaseActivity() {
     }
 
     private fun getCurrentAmount(): Double {
-        return java.lang.Double.parseDouble(amount_edittext.text.toString())
+        return java.lang.Double.parseDouble(binding.amountEdittext.text.toString())
     }
 
     /**

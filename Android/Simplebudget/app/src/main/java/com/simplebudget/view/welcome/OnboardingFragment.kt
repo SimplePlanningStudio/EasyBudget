@@ -5,8 +5,10 @@ import androidx.annotation.ColorRes
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import android.view.View
+import androidx.viewbinding.ViewBinding
 
 import com.simplebudget.db.DB
+import com.simplebudget.helper.BaseFragment
 import org.koin.android.ext.android.inject
 
 /**
@@ -14,13 +16,12 @@ import org.koin.android.ext.android.inject
  *
  * @author Benoit LETONDOR
  */
-abstract class OnboardingFragment : Fragment() {
+abstract class OnboardingFragment<V : ViewBinding> : BaseFragment<V>() {
 
     protected val db: DB by inject()
 
     override fun onDestroy() {
         db.close()
-
         super.onDestroy()
     }
 
@@ -48,8 +49,14 @@ abstract class OnboardingFragment : Fragment() {
     protected fun next(animationCenter: View) {
         val intent = Intent(WelcomeActivity.PAGER_NEXT_INTENT)
         intent.putExtra(WelcomeActivity.ANIMATE_TRANSITION_KEY, true)
-        intent.putExtra(WelcomeActivity.CENTER_X_KEY, animationCenter.x.toInt() + animationCenter.width / 2)
-        intent.putExtra(WelcomeActivity.CENTER_Y_KEY, animationCenter.y.toInt() + animationCenter.height / 2)
+        intent.putExtra(
+            WelcomeActivity.CENTER_X_KEY,
+            animationCenter.x.toInt() + animationCenter.width / 2
+        )
+        intent.putExtra(
+            WelcomeActivity.CENTER_Y_KEY,
+            animationCenter.y.toInt() + animationCenter.height / 2
+        )
         LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
     }
 

@@ -13,10 +13,7 @@ object InAppReview {
                 // We got the ReviewInfo object
                 val reviewInfo = request.result
                 val flow = reviewManager.launchReviewFlow(activity, reviewInfo)
-                flow.addOnCompleteListener { rv ->
-                    // The flow has finished. The API does not indicate whether the user
-                    // reviewed or not, or even whether the review dialog was shown. Thus, no
-                    // matter the result, we continue our app flow.
+                flow.addOnCompleteListener {
                 }
             } else {
                 Log.d("Error: ", request.exception.toString())

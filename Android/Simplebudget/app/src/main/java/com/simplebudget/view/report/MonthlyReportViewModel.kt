@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -104,11 +104,11 @@ class MonthlyReportViewModel(
             withContext(Dispatchers.Default) {
                 for (expense in expensesForMonth) {
                     // Adding category into map with empty list
-                    if (!hashMap.containsKey(expense.category.name))
-                        hashMap[expense.category.name] =
-                            CustomTriple.Data(expense.category.name, 0.0, 0.0, ArrayList<Expense>())
-                    var tCredit: Double = hashMap[expense.category.name]?.totalCredit ?: 0.0
-                    var tDebit: Double = hashMap[expense.category.name]?.totalDebit ?: 0.0
+                    if (!hashMap.containsKey(expense.category))
+                        hashMap[expense.category] =
+                            CustomTriple.Data(expense.category, 0.0, 0.0, ArrayList<Expense>())
+                    var tCredit: Double = hashMap[expense.category]?.totalCredit ?: 0.0
+                    var tDebit: Double = hashMap[expense.category]?.totalDebit ?: 0.0
 
                     if (expense.isRevenue()) {
                         revenues.add(expense)
@@ -119,9 +119,9 @@ class MonthlyReportViewModel(
                         expensesAmount += expense.amount
                         tDebit += expense.amount
                     }
-                    hashMap[expense.category.name]?.totalCredit = tCredit
-                    hashMap[expense.category.name]?.totalDebit = tDebit
-                    hashMap[expense.category.name]?.expenses?.add(expense)
+                    hashMap[expense.category]?.totalCredit = tCredit
+                    hashMap[expense.category]?.totalDebit = tDebit
+                    hashMap[expense.category]?.expenses?.add(expense)
                 }
             }
 
@@ -209,7 +209,7 @@ class MonthlyReportViewModel(
                     fileWriter.append(",")
                     fileWriter.append(String.format("%s", format.format(data.date)))
                     fileWriter.append(",")
-                    fileWriter.append(data.category.name)
+                    fileWriter.append(data.category)
                     fileWriter.append("\n")
                 }
                 fileWriter.append("\n\n")
@@ -224,7 +224,7 @@ class MonthlyReportViewModel(
                     fileWriter.append(",")
                     fileWriter.append(String.format("%s", format.format(data.date)))
                     fileWriter.append(",")
-                    fileWriter.append(data.category.name)
+                    fileWriter.append(data.category)
                     fileWriter.append("\n")
                 }
                 exportStatus.value =
@@ -288,14 +288,16 @@ class MonthlyReportViewModel(
             contents.append("<hr>")
 
             // Incomes Total
-            val revTotalFormattedAmount = CurrencyHelper.getFormattedCurrencyString(appPreferences,revenuesAmount)
+            val revTotalFormattedAmount =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, revenuesAmount)
             contents.append(
                 "<h2 style=\"color:green;\">${("$CSV_TITLE_INCOMES_TOTAL (${currency.symbol ?: currency.displayName}) = ")}" +
                         "<b style=\"color:black;\">${revTotalFormattedAmount}</b></h2>"
             )
 
             // Expense Total
-            val expTotalFormattedAmount = CurrencyHelper.getFormattedCurrencyString(appPreferences,expensesAmount)
+            val expTotalFormattedAmount =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, expensesAmount)
             contents.append(
                 "<h2 style=\"color:red;\">${"$CSV_TITLE_EXPENSE_TOTAL (${currency.symbol ?: currency.displayName}) = "}" +
                         "<b style=\"color:black;\">${expTotalFormattedAmount}</b></h2>"
@@ -303,7 +305,8 @@ class MonthlyReportViewModel(
 
             // Balance Total
             val color = if (balance > 0) "green" else "red"
-            val balanceFormattedAmount = CurrencyHelper.getFormattedCurrencyString(appPreferences,balance)
+            val balanceFormattedAmount =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
             contents.append(
                 "<h2 style=\"color:${color};\">${"$CSV_TITLE_BALANCE (${currency.symbol ?: currency.displayName}) = "}" +
                         "<b style=\"color:black;\">${balanceFormattedAmount}</b></h2>"
@@ -314,12 +317,16 @@ class MonthlyReportViewModel(
                     val amountSpend =
                         CurrencyHelper.getFormattedCurrencyString(
                             appPreferences,
-                            (if (data.totalCredit > data.totalDebit) (data.totalCredit - data.totalDebit) else (data.totalDebit - data.totalCredit)))
+                            (if (data.totalCredit > data.totalDebit) (data.totalCredit - data.totalDebit) else (data.totalDebit - data.totalCredit))
+                        )
                     contents.append("<h2 style=\"color:white;background-color:mediumblue\">${data.category} ($amountSpend)</h2>")
                 } else {
                     if (data is Child) {
-                        val formattedAmount = CurrencyHelper.getFormattedCurrencyString(appPreferences,-(data.expense.amount))
-                        val color = if(data.expense.isRevenue())"green" else "red"
+                        val formattedAmount = CurrencyHelper.getFormattedCurrencyString(
+                            appPreferences,
+                            -(data.expense.amount)
+                        )
+                        val color = if (data.expense.isRevenue()) "green" else "red"
                         contents.append(
                             "<p style=\"font-size:140%;color:black\"><b>${(data.expense.title)}</b></p>" +
                                     "<p style=\"font-size:140%;color:grey\">${

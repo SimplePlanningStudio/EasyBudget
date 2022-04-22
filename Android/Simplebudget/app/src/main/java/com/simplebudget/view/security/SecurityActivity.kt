@@ -1,3 +1,18 @@
+/*
+ *   Copyright 2022 Waheed Nazir
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 package com.simplebudget.view.security
 
 import android.app.Activity
@@ -14,11 +29,12 @@ import android.view.animation.AnimationUtils
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.simplebudget.R
+import com.simplebudget.databinding.DialogSecurityBinding
+import com.simplebudget.helper.BaseActivity
 import com.simplebudget.helper.interfaces.HashListener
-import kotlinx.android.synthetic.main.dialog_security.*
 
 
-class SecurityActivity : AppCompatActivity(), HashListener {
+class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
 
     private lateinit var requiredHash: String
     private var showTabIndex: Int = 0
@@ -28,6 +44,13 @@ class SecurityActivity : AppCompatActivity(), HashListener {
         const val VERIFICATION = "VERIFICATION"
         const val SET_PIN = "SET_PIN"
         private var SECURITY_TYPE = ""
+    }
+
+    /**
+     *
+     */
+    override fun createBinding(): DialogSecurityBinding {
+        return DialogSecurityBinding.inflate(layoutInflater)
     }
 
     /**
@@ -44,16 +67,13 @@ class SecurityActivity : AppCompatActivity(), HashListener {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
-
-        setContentView(R.layout.dialog_security)
-
         requiredHash = intent.getStringExtra("HASH") ?: ""
         showTabIndex = intent.getIntExtra("TAB_INDEX", 0)
         SECURITY_TYPE = intent.getStringExtra(REQUEST_CODE_SECURITY_TYPE) ?: ""
 
-        pin_lock_holder.initTab(requiredHash, this)
+        binding.pinLockHolder.initTab(requiredHash, this)
 
-        ivClose.setOnClickListener { onCancelFail() }
+        binding.ivClose.setOnClickListener { onCancelFail() }
     }
 
     /**
@@ -78,7 +98,7 @@ class SecurityActivity : AppCompatActivity(), HashListener {
             SET_PIN -> {
                 setResult(
                     Activity.RESULT_CANCELED,
-                    Intent().putExtra("HASH", pin_lock_holder.hash)
+                    Intent().putExtra("HASH", binding.pinLockHolder.hash)
                 )
                 finish()
             }
@@ -95,7 +115,7 @@ class SecurityActivity : AppCompatActivity(), HashListener {
                 finish()
             }
             SET_PIN -> {
-                setResult(Activity.RESULT_OK, Intent().putExtra("HASH", pin_lock_holder.hash))
+                setResult(Activity.RESULT_OK, Intent().putExtra("HASH", binding.pinLockHolder.hash))
                 finish()
             }
         }
@@ -105,15 +125,15 @@ class SecurityActivity : AppCompatActivity(), HashListener {
      *
      */
     override fun error(errorMsg: String) {
-        error.text = errorMsg
-        error.visibility = View.VISIBLE
-        shakeAnimation(error)
+        binding.error.text = errorMsg
+        binding.error.visibility = View.VISIBLE
+        shakeAnimation(binding.error)
         object : CountDownTimer(1000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
             }
 
             override fun onFinish() {
-                error.visibility = View.GONE
+                binding.error.visibility = View.GONE
             }
         }.start()
     }

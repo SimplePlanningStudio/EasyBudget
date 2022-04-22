@@ -1,3 +1,18 @@
+/*
+ *   Copyright 2022 Waheed Nazir
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 package com.simplebudget.view.report
 
 import android.annotation.SuppressLint
@@ -11,26 +26,29 @@ import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import com.simplebudget.R
+import com.simplebudget.databinding.ActivityPdfReportBinding
 import com.simplebudget.helper.BaseActivity
 import com.simplebudget.helper.MultiClick
-import kotlinx.android.synthetic.main.activity_pdf_report.*
-
 
 /**
  * Activity that displays monthly report
  *
  * @author Waheed Nazir
  */
-class PDFReportActivity : BaseActivity() {
+class PDFReportActivity : BaseActivity<ActivityPdfReportBinding>() {
+
+
+    override fun createBinding(): ActivityPdfReportBinding {
+        return ActivityPdfReportBinding.inflate(layoutInflater)
+    }
 
     /**
      *
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_pdf_report)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -38,41 +56,41 @@ class PDFReportActivity : BaseActivity() {
             loadContents(htmlContents)
         }
 
-        btnDownloadPrint.setOnClickListener {
+        binding.btnDownloadPrint.setOnClickListener {
             MultiClick.avoid(it)
-            createWebPrintJob(webView)
+            createWebPrintJob(binding.webView)
         }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun loadContents(htmlContents: String) {
-        webView.clearCache(true)
-        webView.settings.javaScriptEnabled = true
-        webView.settings.useWideViewPort = true
-        webView.settings.setSupportZoom(true)
-        webView.settings.builtInZoomControls = false
-        webView.settings.displayZoomControls = true
-        webView.settings.loadWithOverviewMode = true
-        webView.isVerticalScrollBarEnabled = true
-        webView.isHorizontalScrollBarEnabled = true
-        webView.isScrollbarFadingEnabled = false
-        webView.scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY
-        webView.isScrollbarFadingEnabled = false
-        webView.scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY
-        webView.webChromeClient = object : WebChromeClient() {
+        binding.webView.clearCache(true)
+        binding.webView.settings.javaScriptEnabled = true
+        binding.webView.settings.useWideViewPort = true
+        binding.webView.settings.setSupportZoom(true)
+        binding.webView.settings.builtInZoomControls = false
+        binding.webView.settings.displayZoomControls = true
+        binding.webView.settings.loadWithOverviewMode = true
+        binding.webView.isVerticalScrollBarEnabled = true
+        binding.webView.isHorizontalScrollBarEnabled = true
+        binding.webView.isScrollbarFadingEnabled = false
+        binding.webView.scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY
+        binding.webView.isScrollbarFadingEnabled = false
+        binding.webView.scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY
+        binding.webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView, progress: Int) {
-                progressBar.progress = progress
+                binding.progressBar.progress = progress
                 Log.d("PROGRESS: ", progress.toString())
                 if (progress == 100) {
-                    progressBar.visibility = View.GONE
+                    binding.progressBar.visibility = View.GONE
                 } else {
-                    progressBar.visibility = View.VISIBLE
+                    binding.progressBar.visibility = View.VISIBLE
                 }
             }
         }
-        webView.loadDataWithBaseURL(null, htmlContents, "text/html", "utf-8", null)
+        binding.webView.loadDataWithBaseURL(null, htmlContents, "text/html", "utf-8", null)
 
-        createWebPrintJob(webView)
+        createWebPrintJob(binding.webView)
     }
 
     private fun createWebPrintJob(webView: WebView) {

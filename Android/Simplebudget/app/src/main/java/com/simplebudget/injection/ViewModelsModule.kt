@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.simplebudget.injection
 
+import com.simplebudget.view.CategoriesViewModel
 import com.simplebudget.view.expenseedit.ExpenseEditViewModel
 import com.simplebudget.view.main.MainViewModel
 import com.simplebudget.view.premium.PremiumViewModel
@@ -23,13 +24,14 @@ import com.simplebudget.view.report.MonthlyReportViewModel
 import com.simplebudget.view.report.base.MonthlyReportBaseViewModel
 import com.simplebudget.view.selectcurrency.SelectCurrencyViewModel
 import com.simplebudget.view.settings.backup.BackupSettingsViewModel
-import org.koin.android.viewmodel.dsl.viewModel
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {
     viewModel { MainViewModel(get(), get()) }
+    viewModel { CategoriesViewModel(get()) }
     viewModel { SelectCurrencyViewModel() }
-    viewModel { MonthlyReportViewModel(get(),get()) }
+    viewModel { MonthlyReportViewModel(get(), get()) }
     viewModel { MonthlyReportBaseViewModel(get()) }
     viewModel { ExpenseEditViewModel(get(), get(), get()) }
     viewModel { RecurringExpenseEditViewModel(get(), get(), get()) }

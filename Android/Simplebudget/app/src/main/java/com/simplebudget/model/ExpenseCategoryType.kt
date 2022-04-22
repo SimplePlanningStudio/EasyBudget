@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Waheed Nazir
+ *   Copyright 2022 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  *   limitations under the License.
  */
 package com.simplebudget.model
+
+import java.util.ArrayList
 
 
 enum class ExpenseCategoryType {
@@ -42,5 +44,46 @@ enum class ExpenseCategoryType {
     CREDIT,
     DEBT,
     BALANCE,
-    SAVINGS
+    SAVINGS,
+    RENT,
+    AIRBNB,
+    MORTGAGE,
+    FURNITURE,
+    GYM,
+    TAXES,
+    MEMBERSHIP,
+    FUEL,
+    TRAVEL,
+    GIFT,
+    CAR_PAYMENT,
+    PARKING_FEE,
+    REPAIRS,
+    DENTAL_CARE,
+    BOOKS,
+    WEDDING,
+    BIRTHDAY,
+    GAMES,
+    MOVIES,
+    CHARITIES,
+    SUBSCRIPTIONS,
+    COLLEGE,
+    HAIRCUTS,
+    CLEANING,
+    HEALTH_INSURANCE,
+    LIFE_INSURANCE,
+    AUTO_INSURANCE
+}
+
+
+object ExpenseCategories {
+    fun contains(category: String): Boolean =
+        ExpenseCategoryType.values().none { this.equals(category) }
+
+    fun getCategoriesList(): ArrayList<String> {
+        val categories: ArrayList<String> = ArrayList()
+        ExpenseCategoryType.values().forEach {
+            categories.add(it.name)
+        }
+        return categories
+    }
 }

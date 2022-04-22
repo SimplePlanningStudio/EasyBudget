@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -25,27 +25,30 @@ data class Expense(
     val amount: Double,
     val date: Date,
     val associatedRecurringExpense: RecurringExpense?,
-    val category: ExpenseCategoryType
+    val category: String
 ) : Parcelable {
 
     constructor(
         title: String,
         amount: Double,
-        date: Date, category: ExpenseCategoryType
+        date: Date,
+        category: String
     ) : this(null, title, amount, date, null, category)
 
     constructor(
         id: Long,
         title: String,
         amount: Double,
-        date: Date, category: ExpenseCategoryType
+        date: Date,
+        category: String
     ) : this(id, title, amount, date, null, category)
 
     constructor(
         title: String,
         amount: Double,
         date: Date,
-        associatedRecurringExpense: RecurringExpense, category: ExpenseCategoryType
+        associatedRecurringExpense: RecurringExpense,
+        category: String
     ) : this(null, title, amount, date, associatedRecurringExpense, category)
 
     private constructor(parcel: Parcel) : this(
@@ -54,7 +57,7 @@ data class Expense(
         parcel.readDouble(),
         Date(parcel.readLong()),
         parcel.readParcelable(RecurringExpense::class.java.classLoader),
-        ExpenseCategoryType.values()[parcel.readInt()]
+        parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name
     )
 
     init {
@@ -73,7 +76,7 @@ data class Expense(
         parcel.writeDouble(amount)
         parcel.writeLong(date.time)
         parcel.writeParcelable(associatedRecurringExpense, flags)
-        parcel.writeInt(category.ordinal)
+        parcel.writeString(category)
     }
 
     override fun describeContents(): Int = 0

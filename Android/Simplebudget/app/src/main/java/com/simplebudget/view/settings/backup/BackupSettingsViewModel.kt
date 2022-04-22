@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -39,9 +39,11 @@ import java.util.*
 import org.koin.java.KoinJavaComponent.get
 import java.lang.RuntimeException
 
-class BackupSettingsViewModel(private val auth: Auth,
-                              private val appPreferences: AppPreferences,
-                              private val appContext: Context) : ViewModel() {
+class BackupSettingsViewModel(
+    private val auth: Auth,
+    private val appPreferences: AppPreferences,
+    private val appContext: Context
+) : ViewModel() {
 
     val cloudBackupStateStream: MutableLiveData<BackupCloudStorageState> = MutableLiveData()
     val authenticationConfirmationDisplayEvent = SingleLiveEvent<Unit>()
@@ -72,9 +74,9 @@ class BackupSettingsViewModel(private val auth: Auth,
                         }
                     } catch (e: Throwable) {
                         Log.e(
-                                "BackupSettingsViewModel",
-                                "Error getting last backup date",
-                                e
+                            "BackupSettingsViewModel",
+                            "Error getting last backup date",
+                            e
                         )
                     }
 
@@ -138,10 +140,16 @@ class BackupSettingsViewModel(private val auth: Auth,
                 } else {
                     if (appPreferences.isBackupEnabled()) {
                         val lastBackupDate = appPreferences.getLastBackupDate()
-                        val backupNowAvailable = lastBackupDate == null || lastBackupDate.isOlderThanADay()
+                        val backupNowAvailable =
+                            lastBackupDate == null || lastBackupDate.isOlderThanADay()
                         val restoreAvailable = lastBackupDate != null
 
-                        BackupCloudStorageState.Activated(authState.currentUser, lastBackupDate, backupNowAvailable, restoreAvailable)
+                        BackupCloudStorageState.Activated(
+                            authState.currentUser,
+                            lastBackupDate,
+                            backupNowAvailable,
+                            restoreAvailable
+                        )
                     } else {
                         BackupCloudStorageState.NotActivated(authState.currentUser)
                     }
@@ -161,7 +169,7 @@ class BackupSettingsViewModel(private val auth: Auth,
             if (newBackupState is BackupCloudStorageState.Activated) {
                 val lastBackupDate = newBackupState.lastBackupDate
                 if (lastBackupDate != null) {
-                    previousBackupAvailableEvent.value = lastBackupDate
+                    previousBackupAvailableEvent.value = lastBackupDate!!
                 }
             }
 
@@ -186,11 +194,12 @@ class BackupSettingsViewModel(private val auth: Auth,
             try {
                 withContext(Dispatchers.IO) {
                     val result = backupDB(
-                            appContext,
-                            get(DB::class.java),
-                            get(CloudStorage::class.java),
-                            auth,
-                            appPreferences)
+                        appContext,
+                        get(DB::class.java),
+                        get(CloudStorage::class.java),
+                        auth,
+                        appPreferences
+                    )
 
                     if (result !is ListenableWorker.Result.Success) {
                         throw RuntimeException(result.toString())
@@ -255,13 +264,13 @@ class BackupSettingsViewModel(private val auth: Auth,
     }
 
     private fun startRestoreFlow() {
-        val lastBackupDate = (cloudBackupStateStream.value as? BackupCloudStorageState.Activated)?.lastBackupDate
+        val lastBackupDate =
+            (cloudBackupStateStream.value as? BackupCloudStorageState.Activated)?.lastBackupDate
         if (lastBackupDate == null) {
             Logger.error("Starting restore with no last backup date")
             return
         }
-
-        restoreConfirmationDisplayEvent.value = lastBackupDate
+        restoreConfirmationDisplayEvent.value = lastBackupDate!!
     }
 
     private fun restoreData() {
@@ -271,7 +280,12 @@ class BackupSettingsViewModel(private val auth: Auth,
 
             try {
                 withContext(Dispatchers.IO) {
-                    restoreLatestDBBackup(appContext, auth, get(CloudStorage::class.java), appPreferences)
+                    restoreLatestDBBackup(
+                        appContext,
+                        auth,
+                        get(CloudStorage::class.java),
+                        appPreferences
+                    )
                 }
 
                 appRestartEvent.postValue(Unit)
@@ -297,10 +311,12 @@ sealed class BackupCloudStorageState {
     object NotAuthenticated : BackupCloudStorageState()
     object Authenticating : BackupCloudStorageState()
     data class NotActivated(val currentUser: CurrentUser) : BackupCloudStorageState()
-    data class Activated(val currentUser: CurrentUser,
-                         val lastBackupDate: Date?,
-                         val backupNowAvailable: Boolean,
-                         val restoreAvailable: Boolean) : BackupCloudStorageState()
+    data class Activated(
+        val currentUser: CurrentUser,
+        val lastBackupDate: Date?,
+        val backupNowAvailable: Boolean,
+        val restoreAvailable: Boolean
+    ) : BackupCloudStorageState()
 
     data class BackupInProgress(val currentUser: CurrentUser) : BackupCloudStorageState()
     data class RestorationInProgress(val currentUser: CurrentUser) : BackupCloudStorageState()

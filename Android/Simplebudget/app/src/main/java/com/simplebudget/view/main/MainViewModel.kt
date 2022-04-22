@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,15 +20,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
+import com.simplebudget.db.impl.toCategoriesNamesList
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.model.Expense
-import com.simplebudget.model.ExpenseCategoryType
-import com.simplebudget.model.RecurringExpense
-import com.simplebudget.model.RecurringExpenseDeleteType
+import com.simplebudget.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainViewModel(
     private val db: DB,
@@ -52,6 +51,7 @@ class MainViewModel(
     val currentBalanceEditedEventStream = SingleLiveEvent<BalanceAdjustedData>()
     val currentBalanceRestoringEventStream = SingleLiveEvent<Unit>()
     val currentBalanceRestoringErrorEventStream = SingleLiveEvent<Exception>()
+
 
     sealed class RecurringExpenseDeleteProgressState {
         class Starting(val expense: Expense) : RecurringExpenseDeleteProgressState()
@@ -92,6 +92,7 @@ class MainViewModel(
         premiumStatusLiveData.value = iab.isUserPremium()
         refreshDataForDate(selectedDate)
     }
+
 
     fun onDeleteExpenseClicked(expense: Expense) {
         viewModelScope.launch {
@@ -334,7 +335,7 @@ class MainViewModel(
                                 balanceExpenseTitle,
                                 -diff,
                                 Date(),
-                                ExpenseCategoryType.BALANCE
+                                ExpenseCategoryType.BALANCE.name
                             )
                         )
                     }

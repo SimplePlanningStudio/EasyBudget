@@ -8,24 +8,26 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
+import com.simplebudget.SimpleBudget
 import com.simplebudget.helper.*
 import com.simplebudget.notif.CHANNEL_DAILY_REMINDERS
 import com.simplebudget.notif.CHANNEL_WEEKLY_REMINDERS
 import com.simplebudget.notif.CHANNEL_NEW_FEATURES
 import com.simplebudget.prefs.*
 import com.simplebudget.view.splash.SplashActivity
-import org.koin.java.KoinJavaComponent.get
+import org.koin.android.ext.android.inject
 import java.util.*
 import kotlin.random.Random
 
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
-    private val parameters = get(AppPreferences::class.java)
+    private val parameters: AppPreferences by inject()
 
     /**
      *
@@ -59,7 +61,34 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     }
                     else -> {
                         sendNotification(it, CHANNEL_NEW_FEATURES)
+                        checkIfItsDownloadCampaign(remoteMessage)
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * If it's for download promotion for other apps.
+     */
+    private fun checkIfItsDownloadCampaign(remoteMessage: RemoteMessage) {
+        val download: String = remoteMessage.data["download"] ?: ""
+        if (download.isNotEmpty()) {
+            val appPackage: String = remoteMessage.data["package"] ?: ""
+            appPackage.let { pkg ->
+                if (pkg != "") {
+                    parameters.putString(PACKAGE_TO_DOWNLOAD, pkg)
+                    val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+                    val localIntent = Intent(ACTION_TRIGGER_DOWNLOAD)
+                        .putExtra("download", download)
+                        .putExtra("package", pkg)
+                        .putExtra("title", remoteMessage.notification?.title ?: "Download")
+                        .putExtra(
+                            "body",
+                            remoteMessage.notification?.body
+                                ?: "Download ${remoteMessage.notification?.title ?: "Download"}  app for free!"
+                        )
+                    localBroadcastManager.sendBroadcast(localIntent)
                 }
             }
         }
@@ -158,6 +187,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
          * Key to retrieve the monthly reminder key for a push
          */
         const val WEEKLY_REMINDER_KEY = "weekly"
+
+        /**
+         * Package to download
+         */
+        const val PACKAGE_TO_DOWNLOAD = "KeyPackageToDownload"
+
+        /**
+         * Action triggered to download
+         */
+        const val ACTION_TRIGGER_DOWNLOAD = "DownloadTrigger"
+
+        /**
+         * Action triggered to download
+         */
+        const val NOTIFICATION_ID_NEW_FEATURES = 124124124
     }
 
     /**
@@ -170,18 +214,16 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val intent = Intent(this, SplashActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
-
-        /*val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         } else {
             PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
-        }*/
+        }
 
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val notificationBuilder = NotificationCompat.Builder(this, channel)
             .setSmallIcon(R.drawable.ic_push)
-            .setContentTitle(notification.title ?: getString(R.string.app_name))
+            .setContentTitle(notification.title ?: getString(R.string.app_name_simple_budget))
             .setStyle(
                 NotificationCompat.BigTextStyle().bigText(notification.body)
             ) // Multi line support
@@ -191,7 +233,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(Random.nextInt(), notificationBuilder.build())
+
+        notificationManager.notify(
+            if (channel == CHANNEL_NEW_FEATURES) NOTIFICATION_ID_NEW_FEATURES else Random.nextInt(),
+            notificationBuilder.build()
+        )
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import android.content.Context
 import androidx.room.*
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.simplebudget.db.impl.entity.CategoryEntity
 import com.simplebudget.db.impl.entity.ExpenseEntity
 import com.simplebudget.db.impl.entity.RecurringExpenseEntity
 import com.simplebudget.model.ExpenseCategoryType
@@ -29,8 +30,9 @@ const val DB_NAME = "easybudget.db"
 
 @Database(
     exportSchema = false,
-    version = 5,
+    version = 6,
     entities = [
+        CategoryEntity::class,
         ExpenseEntity::class,
         RecurringExpenseEntity::class
     ]
@@ -39,11 +41,18 @@ const val DB_NAME = "easybudget.db"
 abstract class RoomDB : RoomDatabase() {
 
     abstract fun expenseDao(): ExpenseDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         fun create(context: Context): RoomDB = Room
             .databaseBuilder(context, RoomDB::class.java, DB_NAME)
-            .addMigrations(migrationFrom1To2, migrationFrom2To3, migrationToRoom, migrationFrom4To5)
+            .addMigrations(
+                migrationFrom1To2,
+                migrationFrom2To3,
+                migrationToRoom,
+                migrationFrom4To5,
+                migrationFrom5To6
+            )
             .build()
     }
 }
@@ -60,6 +69,11 @@ private class TimestampConverters {
     }
 }
 
+private val migrationFrom5To6 = object : Migration(5, 6) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("CREATE TABLE IF NOT EXISTS category ('_category_id' INTEGER, 'name' text not null DEFAULT 'MISCELLANEOUS', PRIMARY KEY('_category_id'))")
+    }
+}
 private val migrationFrom4To5 = object : Migration(4, 5) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE expense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS + "'")
@@ -69,7 +83,6 @@ private val migrationFrom4To5 = object : Migration(4, 5) {
 
 private val migrationToRoom = object : Migration(3, 4) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        // No-op, simple migration from SQLite to Room
     }
 }
 

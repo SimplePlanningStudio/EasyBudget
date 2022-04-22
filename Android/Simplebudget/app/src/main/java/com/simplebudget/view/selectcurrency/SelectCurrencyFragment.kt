@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.simplebudget.R
 import com.simplebudget.helper.afterTextChanged
 import com.simplebudget.prefs.AppPreferences
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
  * Fragment that contains UI for user to chose its currency.<br></br>
@@ -46,12 +46,16 @@ class SelectCurrencyFragment : DialogFragment() {
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: SelectCurrencyViewModel by viewModel()
-    private  var adapter: SelectCurrencyRecyclerViewAdapter? = null
+    private var adapter: SelectCurrencyRecyclerViewAdapter? = null
 
     /**
      *
      */
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         if (showsDialog) {
             return null
         }
@@ -69,11 +73,17 @@ class SelectCurrencyFragment : DialogFragment() {
      */
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // Inflate the layout for this fragment
-        val v = LayoutInflater.from(activity).inflate(R.layout.fragment_select_currency, null, false)
+        val v =
+            LayoutInflater.from(activity).inflate(R.layout.fragment_select_currency, null, false)
         setupRecyclerView(v)
 
         // Put some padding between title and content
-        v.setPadding(0, resources.getDimensionPixelSize(R.dimen.select_currency_dialog_padding_top), 0, 0)
+        v.setPadding(
+            0,
+            resources.getDimensionPixelSize(R.dimen.select_currency_dialog_padding_top),
+            0,
+            0
+        )
 
         val builder = AlertDialog.Builder(requireActivity())
 
@@ -96,14 +106,20 @@ class SelectCurrencyFragment : DialogFragment() {
             val searchCurrency: TextInputEditText = v.findViewById(R.id.search_currency)
             recyclerView.layoutManager = LinearLayoutManager(v.context)
 
-            viewModel.currenciesLiveData.observe(this, { (availableCurrencies, otherAvailableCurrencies) ->
-                adapter = SelectCurrencyRecyclerViewAdapter(availableCurrencies, otherAvailableCurrencies, appPreferences)
-                recyclerView.adapter = adapter
+            viewModel.currenciesLiveData.observe(
+                this,
+                { (availableCurrencies, otherAvailableCurrencies) ->
+                    adapter = SelectCurrencyRecyclerViewAdapter(
+                        availableCurrencies,
+                        otherAvailableCurrencies,
+                        appPreferences
+                    )
+                    recyclerView.adapter = adapter
 
-                if (adapter!!.selectedCurrencyPosition() > 1) {
-                    recyclerView.scrollToPosition(adapter!!.selectedCurrencyPosition() - 1)
-                }
-            })
+                    if (adapter!!.selectedCurrencyPosition() > 1) {
+                        recyclerView.scrollToPosition(adapter!!.selectedCurrencyPosition() - 1)
+                    }
+                })
 
             searchCurrency.afterTextChanged {
                 adapter?.filter?.filter(it)

@@ -63,6 +63,16 @@
             app:title="@string/setting_category_rate_app_title" />
 
         <Preference
+            app:key="@string/setting_more_apps_key"
+            app:summary="@string/setting_more_apps_summary"
+            app:title="@string/setting_more_apps_title" />
+
+        <Preference
+            app:key="@string/setting_telegram_channel_key"
+            app:summary="@string/setting_telegram_channel_summary"
+            app:title="@string/setting_telegram_channel_title" />
+
+        <Preference
             app:key="@string/setting_app_version_key"
             app:summary="@string/setting_app_version"
             app:title="@string/setting_app_version" />
@@ -70,6 +80,10 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_copyrights_title">
+        <Preference
+            app:key="@string/setting_privacy_policy_key"
+            app:summary="@string/setting_privacy_policy_summary"
+            app:title="@string/setting_privacy_policy_title" />
         <Preference
             app:key="@string/setting_app_open_source_key"
             app:summary="@string/setting_app_open_source_summary"

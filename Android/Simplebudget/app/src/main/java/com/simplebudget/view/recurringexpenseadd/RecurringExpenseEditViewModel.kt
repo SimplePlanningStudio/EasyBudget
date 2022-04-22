@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -46,9 +46,9 @@ class RecurringExpenseEditViewModel(
     val editTypeLiveData = MutableLiveData<ExpenseEditType>()
     val existingExpenseEventStream = SingleLiveEvent<ExistingExpenseData?>()
     val savingIsRevenueEventStream = SingleLiveEvent<Boolean>()
-    val finishLiveData = MutableLiveData<Unit>()
+    val finishLiveData = MutableLiveData<Unit?>()
     val expenseAddBeforeInitDateEventStream = SingleLiveEvent<Unit>()
-    val errorEventStream = SingleLiveEvent<Unit>()
+    val errorEventStream = SingleLiveEvent<Unit?>()
 
 
     fun onIabStatusChanged() {
@@ -78,7 +78,7 @@ class RecurringExpenseEditViewModel(
 
     fun onSave(
         value: Double, description: String, recurringExpenseType: RecurringExpenseType,
-        expenseCategoryType: ExpenseCategoryType
+        expenseCategoryType: String
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -103,7 +103,7 @@ class RecurringExpenseEditViewModel(
         value: Double,
         description: String,
         recurringExpenseType: RecurringExpenseType,
-        expenseCategoryType: ExpenseCategoryType
+        expenseCategoryType: String
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -130,7 +130,7 @@ class RecurringExpenseEditViewModel(
         editedExpense: Expense?,
         isRevenue: Boolean,
         date: Date,
-        expenseCategoryType: ExpenseCategoryType
+        expenseCategoryType: String
     ) {
         savingIsRevenueEventStream.value = isRevenue
 
@@ -223,7 +223,7 @@ class RecurringExpenseEditViewModel(
     private suspend fun flattenExpensesForRecurringExpense(
         expense: RecurringExpense,
         date: Date,
-        expenseCategoryType: ExpenseCategoryType
+        expenseCategoryType: String
     ): Boolean {
         val cal = Calendar.getInstance()
         cal.time = date
@@ -505,5 +505,5 @@ data class ExistingExpenseData(
     val title: String,
     val amount: Double,
     val type: RecurringExpenseType,
-    val categoryType: ExpenseCategoryType
+    val categoryType: String
 )

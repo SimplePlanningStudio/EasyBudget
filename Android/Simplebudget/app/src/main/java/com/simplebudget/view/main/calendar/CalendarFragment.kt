@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ class CalendarFragment : CaldroidFragment() {
         try {
             // Exception that occurs if we call this code before the calendar being initialized
             super.moveToDate(fromDate)
-        } catch (ignored: Exception) { }
+        } catch (ignored: Exception) {
+        }
     }
 
     fun getSelectedDate() = mSelectedDate

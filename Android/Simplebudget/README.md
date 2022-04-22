@@ -10,16 +10,19 @@ You can download EasyBudget on the PlayStore: [https://play.google.com/store/app
 
 You can download Simple Budget on the PlayStore: [https://play.google.com/store/apps/details?id=gplx.simple.budgetapp](https://play.google.com/store/apps/details?id=gplx.simple.budgetapp)
 
-### Some of the implementations done in this codebase (SimpleBudget)
+### Some of the implementations done in this codebase (for SimpleBudget)
 
 - Revised design, Day theme only
-- Firebase push notifications, In app messaging, Analytics
+- Firebase push notifications, In app messaging, Analytics, Crashlytics
 - App security password feature
 - Balance privacy on dashboard
-- Currency searching
+- Currency searching / UI Enhancements 
 - Starting weeks from any weekday
 - App open, Banner and Interstitial Ads
-- Version history timelines
+- Version history timelines in settings
+- More apps / Privacy policy / Telegram Channel in settings. 
+- Edit / Create own categories of expenses.
+- Category wise reports and total expensive for each category.
 
 ### Important (In order to run)
 
@@ -28,11 +31,12 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 
 
 ### For any query related to SimpleBudget
- 
- You can coordinate [Waheed](mailto:mwaheednazir8@gmail.com)
+
+You can coordinate [Waheed](mailto:mwaheednazir8@gmail.com)
 
 ### Copyright
 
-    Source code is availables under the Apache 2 licence.
+    Copyright (C) 2022 Waheed Nazir. The name "SimpleBudget", the app idea and assets (images, names, wordings etc...) are all under copyright.
+    Sources are availables under the Apache 2.0 licence (See LICENSE for details) and contributions will be warmely welcomed! Feel free to contribute :)
     
     

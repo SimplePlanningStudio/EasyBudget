@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -130,7 +130,6 @@ class CalendarGridAdapter(context: Context,
             }
 
             val date = Date(dateTime.getMilliseconds(TimeZone.getDefault()))
-            // FIXME coroutine threading!!
             if (runBlocking { db.hasExpenseForDay(date) }) {
                 val balance = runBlocking { db.getBalanceForDay(date) }
 

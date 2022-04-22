@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,44 +18,48 @@ package com.simplebudget.view.premium
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.Observer
+import com.bumptech.glide.Glide
 import com.simplebudget.iab.PremiumPurchaseFlowResult
 import com.simplebudget.SimpleBudget
 import com.simplebudget.R
+import com.simplebudget.databinding.ActivityPremiumBinding
 import com.simplebudget.helper.BaseActivity
 import com.simplebudget.helper.RedeemPromo
-import kotlinx.android.synthetic.main.activity_premium.*
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
  * Activity that contains the premium onboarding screen. This activity should return with a
  * [Activity.RESULT_OK] if user has successfully purchased premium.
  *
  */
-class PremiumActivity : BaseActivity() {
+class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
 
     private val viewModel: PremiumViewModel by viewModel()
 
+    override fun createBinding(): ActivityPremiumBinding {
+        return ActivityPremiumBinding.inflate(layoutInflater)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_premium)
 
-        premium_not_now_button.setOnClickListener {
+        binding.premiumNotNowButton.setOnClickListener {
             finish()
         }
 
-        premium_cta_button.setOnClickListener {
+        binding.premiumCtaButton.setOnClickListener {
             viewModel.onBuyPremiumClicked(this)
         }
 
-        tv_promo_code.setOnClickListener {
+        binding.tvPromoCode.setOnClickListener {
             RedeemPromo.openPromoCodeDialog(this)
         }
 
         var loadingProgressDialog: ProgressDialog? = null
-        viewModel.premiumFlowErrorEventStream.observe(this, { status ->
+        viewModel.premiumFlowErrorEventStream.observe(this) { status ->
             when (status) {
                 PremiumPurchaseFlowResult.Cancelled -> {
                     loadingProgressDialog?.dismiss()
@@ -73,10 +77,11 @@ class PremiumActivity : BaseActivity() {
                         }
                         .show()
                 }
+                else -> {}
             }
-        })
+        }
 
-        viewModel.premiumFlowStatusLiveData.observe(this, { status ->
+        viewModel.premiumFlowStatusLiveData.observe(this) { status ->
             when (status) {
                 PremiumFlowStatus.NOT_STARTED -> {
                     loadingProgressDialog?.dismiss()
@@ -101,10 +106,17 @@ class PremiumActivity : BaseActivity() {
                     )
                     finish()
                 }
-                null -> {PremiumSuccessActivity
+                null -> {
+                    PremiumSuccessActivity
                 }
             }
-        })
+        }
+
+        // Load no ads image
+        Glide.with(this)
+            .load(Uri.parse("file:///android_asset/ic_no_ads.png"))
+            .circleCrop()
+            .into(binding.animationViewNoAds)
     }
 
 }

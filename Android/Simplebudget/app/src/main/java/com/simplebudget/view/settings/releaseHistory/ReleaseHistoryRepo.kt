@@ -9,11 +9,24 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 2.0.5
+            releaseList.add(ReleaseHistory("Version", "2.0.5", "Create/Edit own categories for expenses."))
+            releaseList.add(ReleaseHistory("Version", "2.0.5", "Telegram channel added for quick support and news."))
+            releaseList.add(ReleaseHistory("Version", "2.0.5", "More apps section added."))
+            releaseList.add(ReleaseHistory("Version", "2.0.5", "Privacy policy section added."))
+            releaseList.add(ReleaseHistory("Version", "2.0.5", "UI enhancement and bug fixing."))
+
             // 2.0.2
             releaseList.add(ReleaseHistory("Version", "2.0.2", "Monthly reports now showing categories and total spending."))
             releaseList.add(ReleaseHistory("Version", "2.0.2", "Reports PDF design updated added categories."))
             releaseList.add(ReleaseHistory("Version", "2.0.2", "Feedback to email issue fixed."))
             releaseList.add(ReleaseHistory("Version", "2.0.2", "UI enhancement and bug fixing."))
+
+            // 2.0.1
+            releaseList.add(ReleaseHistory("Version", "2.0.1", "Monthly reports now showing categories and total spending."))
+            releaseList.add(ReleaseHistory("Version", "2.0.1", "Reports PDF design updated added categories."))
+            releaseList.add(ReleaseHistory("Version", "2.0.1", "Feedback to email issue fixed."))
+            releaseList.add(ReleaseHistory("Version", "2.0.1", "UI enhancement and bug fixing."))
 
             // 2.0.0
             releaseList.add(ReleaseHistory("Version", "2.0.0", "Categories added for Incomes / Expenses."))

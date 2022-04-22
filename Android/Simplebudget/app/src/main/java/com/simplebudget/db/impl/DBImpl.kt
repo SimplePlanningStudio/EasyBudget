@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,10 +21,13 @@ import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpense
 import com.simplebudget.db.DB
+import com.simplebudget.db.impl.entity.CategoryEntity
 import com.simplebudget.db.impl.entity.ExpenseEntity
 import com.simplebudget.db.impl.entity.RecurringExpenseEntity
 import com.simplebudget.helper.Logger
+import com.simplebudget.model.Category
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -36,6 +39,25 @@ class DBImpl(private val roomDB: RoomDB) : DB {
 
     override suspend fun triggerForceWriteToDisk() {
         roomDB.expenseDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
+    }
+
+    /**
+     * Category implementations
+     */
+    override suspend fun persistCategories(category: Category): Category {
+        val newId = roomDB.categoryDao().persistCategory(category.toCategoryEntity())
+        return category.copy(id = newId)
+    }
+
+    override suspend fun getCategories(): List<Category> {
+        return roomDB.categoryDao().getCategories().toCategories()
+    }
+
+    override suspend fun deleteCategory(category: Category) {
+        if (category.id == null) {
+            throw IllegalArgumentException("deleteCategory called with a category that has no id")
+        }
+        roomDB.categoryDao().deleteCategory(category.toCategoryEntity())
     }
 
     override fun close() {
@@ -192,13 +214,34 @@ private suspend fun ExpenseEntity.toExpense(db: DB): Expense {
     return toExpense(recurringExpense)
 }
 
+private fun List<CategoryEntity>.toCategories(): List<Category> {
+    val list: ArrayList<Category> = ArrayList()
+    this.forEach {
+        list.add(Category(it.id, it.name))
+    }
+    return list
+}
+
+fun List<Category>.toCategoriesNamesList(): List<String> {
+    val list: ArrayList<String> = ArrayList()
+    this.forEach {
+        list.add(it.name)
+    }
+    return list
+}
+
+private fun Category.toCategoryEntity() = CategoryEntity(
+    id,
+    name
+)
+
 private fun Expense.toExpenseEntity() = ExpenseEntity(
     id,
     title,
     amount.getDBValue(),
     date,
     associatedRecurringExpense?.id,
-    category.name
+    category
 )
 
 private fun RecurringExpense.toRecurringExpenseEntity() = RecurringExpenseEntity(
@@ -208,7 +251,7 @@ private fun RecurringExpense.toRecurringExpenseEntity() = RecurringExpenseEntity
     recurringDate,
     modified,
     type.name,
-    category.name
+    category
 )
 
 private data class DayDateRange(val dayStartDate: Date, val dayEndDate: Date)

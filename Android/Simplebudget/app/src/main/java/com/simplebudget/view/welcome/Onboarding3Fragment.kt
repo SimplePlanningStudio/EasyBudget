@@ -6,11 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
+import com.simplebudget.databinding.FragmentOnboarding3Binding
 import com.simplebudget.helper.*
 import com.simplebudget.model.Expense
 import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
-import kotlinx.android.synthetic.main.fragment_onboarding3.*
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 import java.util.*
@@ -20,7 +20,8 @@ import java.util.*
  *
  * @author Benoit LETONDOR
  */
-class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() {
+class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
+    CoroutineScope by MainScope() {
     private val appPreferences: AppPreferences by inject()
 
     override val statusBarColor: Int
@@ -28,7 +29,7 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
 
     private val amountValue: Double
         get() {
-            val valueString = onboarding_screen3_initial_amount_et.text.toString()
+            val valueString = binding?.onboardingScreen3InitialAmountEt?.text.toString()
 
             return try {
                 if ("" == valueString || "-" == valueString) 0.0 else java.lang.Double.valueOf(
@@ -49,18 +50,9 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
 
         }
 
-
     /**
      *
      */
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_onboarding3, container, false)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -69,13 +61,13 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
                 -db.getBalanceForDay(Date())
             }
 
-            onboarding_screen3_initial_amount_et.setText(if (amount == 0.0) "" else amount.toString())
+            binding?.onboardingScreen3InitialAmountEt?.setText(if (amount == 0.0) "" else amount.toString())
         }
 
         setCurrency()
 
-        onboarding_screen3_initial_amount_et.preventUnsupportedInputForDecimals()
-        onboarding_screen3_next_button.setOnClickListener {
+        binding?.onboardingScreen3InitialAmountEt?.preventUnsupportedInputForDecimals()
+        binding?.onboardingScreen3NextButton?.setOnClickListener {
             launch {
                 withContext(Dispatchers.Default) {
                     val currentBalance = -db.getBalanceForDay(Date())
@@ -88,15 +80,18 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
                             resources.getString(R.string.adjust_balance_expense_title),
                             -diff,
                             Date(),
-                            ExpenseCategoryType.BALANCE
+                            ExpenseCategoryType.BALANCE.name
                         )
                         db.persistExpense(expense)
                     }
                 }
 
-                Keyboard.hideSoftKeyboard(requireContext(), onboarding_screen3_initial_amount_et)
+                Keyboard.hideSoftKeyboard(
+                    requireContext(),
+                    binding?.onboardingScreen3InitialAmountEt!!
+                )
 
-                next(onboarding_screen3_next_button)
+                next(binding?.onboardingScreen3NextButton!!)
             }
         }
     }
@@ -121,10 +116,16 @@ class Onboarding3Fragment : OnboardingFragment(), CoroutineScope by MainScope() 
      *
      */
     private fun setCurrency() {
-        onboarding_screen3_initial_amount_money_tv?.text = String.format(
+        binding?.onboardingScreen3InitialAmountMoneyTv?.text = String.format(
             "%s - %s",
             appPreferences.getUserCurrency().symbol,
             appPreferences.getUserCurrency().displayName
         )
     }
+
+    override fun onCreateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): FragmentOnboarding3Binding = FragmentOnboarding3Binding.inflate(inflater, container, false)
 }

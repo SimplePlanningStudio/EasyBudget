@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,23 +15,13 @@
  */
 package com.simplebudget.view
 
-import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.google.android.play.core.review.ReviewInfo
-import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.android.play.core.tasks.Task
 import com.simplebudget.R
 import com.simplebudget.helper.*
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.hasUserCompleteRating
 import com.simplebudget.prefs.setUserHasCompleteRating
-import com.simplebudget.view.main.MainActivity
 
 /**
  * Rating popup that ask user for feedback and redirect them to the PlayStore
@@ -50,47 +40,18 @@ class RatingPopup(
      * will have a button to asked not to be asked again
      * @return true if the popup has been shown, false otherwise
      */
-    fun show(forceShow: Boolean, isInAppOptional: Boolean): Boolean {
+    fun show(forceShow: Boolean): Boolean {
         if (!forceShow && appPreferences.hasUserCompleteRating()) {
             Logger.debug("Not showing rating cause user already completed it")
             return false
         }
-        if (isInAppOptional)
-            showNormalRatingPopup(forceShow)
-        else
-            checkInAppReviewOrLaunchRating(forceShow)
-
+        showNormalRatingPopup(forceShow)
         return true
     }
 
     /**
      *
      */
-    private fun checkInAppReviewOrLaunchRating(forceShow: Boolean) {
-        val reviewManager = ReviewManagerFactory.create(context)
-        val requestReviewFlow = reviewManager.requestReviewFlow()
-        requestReviewFlow.addOnCompleteListener { request ->
-            if (request.isSuccessful) {
-                // We got the ReviewInfo object
-                val reviewInfo = request.result
-                val flow = reviewManager.launchReviewFlow((context as Activity), reviewInfo)
-                flow.addOnCompleteListener { task ->
-                    // The flow has finished. The API does not indicate whether the user
-                    // reviewed or not, or even whether the review dialog was shown. Thus, no
-                    // matter the result, we continue our app flow.
-                    if (task.isSuccessful) {
-                        Log.d("", "")
-                    }
-                    appPreferences.setUserHasCompleteRating()
-                }
-            } else {
-                showNormalRatingPopup(forceShow)
-                Log.d("Error: ", request.exception.toString())
-                // There was some problem, continue regardless of the result.
-            }
-        }
-    }
-
     private fun showNormalRatingPopup(forceShow: Boolean) {
         appPreferences.setRatingPopupStep(RatingPopupStep.STEP_SHOWN)
         val dialog = buildStep1(includeDontAskMeAgainButton = !forceShow)

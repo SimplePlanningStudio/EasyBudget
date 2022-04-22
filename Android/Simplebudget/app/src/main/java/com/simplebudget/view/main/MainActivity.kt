@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.simplebudget.view.main
 
 import android.app.Activity
 import android.app.Dialog
+import android.app.NotificationManager
 import android.app.ProgressDialog
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -26,6 +27,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
@@ -41,13 +43,16 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.inappmessaging.FirebaseInAppMessaging
+import com.google.firebase.messaging.FirebaseMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
 import com.simplebudget.R
 import com.simplebudget.SimpleBudget
+import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.Expense
@@ -64,11 +69,10 @@ import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
 import com.simplebudget.view.welcome.WelcomeActivity
-import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 /**
@@ -76,7 +80,7 @@ import java.util.*
  *
  * @author Benoit LETONDOR
  */
-class MainActivity : BaseActivity() {
+class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private lateinit var receiver: BroadcastReceiver
 
@@ -98,7 +102,7 @@ class MainActivity : BaseActivity() {
      */
     private fun handleAppPasswordProtection() {
         if (appPreferences.isAppPasswordProtectionOn()) {
-            framelayoutOpaque.visibility = View.VISIBLE
+            binding.framelayoutOpaque.visibility = View.VISIBLE
             val intent = Intent(this, SecurityActivity::class.java)
                 .putExtra("HASH", appPreferences.appPasswordHash())
                 .putExtra("TAB_INDEX", appPreferences.appProtectionType())
@@ -118,9 +122,14 @@ class MainActivity : BaseActivity() {
             if (result.resultCode == Activity.RESULT_CANCELED) {
                 finish()
             } else {
-                framelayoutOpaque.visibility = View.GONE
+                binding.framelayoutOpaque.visibility = View.GONE
             }
         }
+
+    /**
+     * Create binding
+     */
+    override fun createBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
 
     /**
      *
@@ -137,9 +146,7 @@ class MainActivity : BaseActivity() {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
 
-        setContentView(R.layout.activity_main)
-
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         handleAppPasswordProtection()
         initCalendarFragment(savedInstanceState)
         initRecyclerView()
@@ -222,33 +229,32 @@ class MainActivity : BaseActivity() {
             openSettingsForBackupIfNeeded(intent)
         }
 
-
-
         viewModel.expenseDeletionSuccessEventStream.observe(
-            this, { (deletedExpense, newBalance) ->
+            this
+        ) { (deletedExpense, newBalance) ->
 
-                expensesViewAdapter.removeExpense(deletedExpense)
-                updateBalanceDisplayForDay(expensesViewAdapter.getDate(), newBalance)
-                calendarFragment.refreshView()
+            expensesViewAdapter.removeExpense(deletedExpense)
+            updateBalanceDisplayForDay(expensesViewAdapter.getDate(), newBalance)
+            calendarFragment.refreshView()
 
-                val snackbar = Snackbar.make(
-                    coordinatorLayout,
-                    if (deletedExpense.isRevenue()) R.string.income_delete_snackbar_text else R.string.expense_delete_snackbar_text,
-                    Snackbar.LENGTH_LONG
+            val snackbar = Snackbar.make(
+                binding.coordinatorLayout,
+                if (deletedExpense.isRevenue()) R.string.income_delete_snackbar_text else R.string.expense_delete_snackbar_text,
+                Snackbar.LENGTH_LONG
+            )
+            snackbar.setAction(R.string.undo) {
+                viewModel.onExpenseDeletionCancelled(deletedExpense)
+            }
+            snackbar.setActionTextColor(
+                ContextCompat.getColor(
+                    this@MainActivity,
+                    R.color.snackbar_action_undo
                 )
-                snackbar.setAction(R.string.undo) {
-                    viewModel.onExpenseDeletionCancelled(deletedExpense)
-                }
-                snackbar.setActionTextColor(
-                    ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.snackbar_action_undo
-                    )
-                )
+            )
 
-                snackbar.duration = BaseTransientBottomBar.LENGTH_LONG
-                snackbar.show()
-            })
+            snackbar.duration = BaseTransientBottomBar.LENGTH_LONG
+            snackbar.show()
+        }
 
         viewModel.expenseDeletionErrorEventStream.observe(this, Observer {
             AlertDialog.Builder(this@MainActivity)
@@ -258,16 +264,16 @@ class MainActivity : BaseActivity() {
                 .show()
         })
 
-        viewModel.expenseRecoverySuccessEventStream.observe(this, {
+        viewModel.expenseRecoverySuccessEventStream.observe(this) {
             // Nothing to do
-        })
+        }
 
-        viewModel.expenseRecoveryErrorEventStream.observe(this, { expense ->
+        viewModel.expenseRecoveryErrorEventStream.observe(this) { expense ->
             Logger.error("Error restoring deleted expense: $expense")
-        })
+        }
 
         var expenseDeletionDialog: ProgressDialog? = null
-        viewModel.recurringExpenseDeletionProgressEventStream.observe(this, { status ->
+        viewModel.recurringExpenseDeletionProgressEventStream.observe(this) { status ->
             when (status) {
                 is MainViewModel.RecurringExpenseDeleteProgressState.Starting -> {
                     val dialog = ProgressDialog(this@MainActivity)
@@ -304,7 +310,7 @@ class MainActivity : BaseActivity() {
                 }
                 is MainViewModel.RecurringExpenseDeleteProgressState.Deleted -> {
                     val snackbar = Snackbar.make(
-                        coordinatorLayout,
+                        binding.coordinatorLayout,
                         R.string.recurring_expense_delete_success_message,
                         Snackbar.LENGTH_LONG
                     )
@@ -330,10 +336,10 @@ class MainActivity : BaseActivity() {
                     expenseDeletionDialog = null
                 }
             }
-        })
+        }
 
         var expenseRestoreDialog: Dialog? = null
-        viewModel.recurringExpenseRestoreProgressEventStream.observe(this, { status ->
+        viewModel.recurringExpenseRestoreProgressEventStream.observe(this) { status ->
             when (status) {
                 is MainViewModel.RecurringExpenseRestoreProgressState.Starting -> {
                     val dialog = ProgressDialog(this@MainActivity)
@@ -358,7 +364,7 @@ class MainActivity : BaseActivity() {
                 }
                 is MainViewModel.RecurringExpenseRestoreProgressState.Restored -> {
                     Snackbar.make(
-                        coordinatorLayout,
+                        binding.coordinatorLayout,
                         R.string.recurring_expense_restored_success_message,
                         Snackbar.LENGTH_LONG
                     ).show()
@@ -367,9 +373,9 @@ class MainActivity : BaseActivity() {
                     expenseRestoreDialog = null
                 }
             }
-        })
+        }
 
-        viewModel.startCurrentBalanceEditorEventStream.observe(this, { currentBalance ->
+        viewModel.startCurrentBalanceEditorEventStream.observe(this) { currentBalance ->
             val dialogView = layoutInflater.inflate(R.layout.dialog_adjust_balance, null)
             val amountEditText = dialogView.findViewById<EditText>(R.id.balance_amount)
             amountEditText.setText(
@@ -411,7 +417,7 @@ class MainActivity : BaseActivity() {
                     dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
                 }
             }
-        })
+        }
 
         viewModel.currentBalanceEditingErrorEventStream.observe(this, Observer { exception ->
             Logger.error("Error while adjusting balance", exception)
@@ -428,7 +434,7 @@ class MainActivity : BaseActivity() {
             Observer { (expense, diff, newBalance) ->
                 //Show snackbar
                 val snackbar = Snackbar.make(
-                    coordinatorLayout,
+                    binding.coordinatorLayout,
                     resources.getString(
                         R.string.adjust_balance_snackbar_text,
                         CurrencyHelper.getFormattedCurrencyString(appPreferences, newBalance)
@@ -463,7 +469,7 @@ class MainActivity : BaseActivity() {
                 .show()
         })
 
-        viewModel.premiumStatusLiveData.observe(this, { isPremium ->
+        viewModel.premiumStatusLiveData.observe(this) { isPremium ->
             SimpleBudget.appOpenManager?.updatePremiumStatus(true)
             isUserPremium = isPremium
             invalidateOptionsMenu()
@@ -472,15 +478,15 @@ class MainActivity : BaseActivity() {
                 val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
                 adContainerView.visibility = View.GONE
                 val layoutParams: RelativeLayout.LayoutParams =
-                    llAddAmountContainer.layoutParams as RelativeLayout.LayoutParams
+                    binding.llAddAmountContainer.layoutParams as RelativeLayout.LayoutParams
                 layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
-                llAddAmountContainer.layoutParams = layoutParams
+                binding.llAddAmountContainer.layoutParams = layoutParams
             } else {
                 loadAndDisplayBannerAds()
             }
-        })
+        }
 
-        viewModel.selectedDateChangeLiveData.observe(this, { (date, balance, expenses) ->
+        viewModel.selectedDateChangeLiveData.observe(this) { (date, balance, expenses) ->
             refreshAllForDate(date, balance, expenses)
 
             var expensesAmount = 0.0
@@ -511,26 +517,66 @@ class MainActivity : BaseActivity() {
                     formatted.length - 3
                 ) + "" // Remove . at the end of the month (ex: nov. : -> nov :)
             }
-            expenseLine.text = formatted
-            switchHideBalance.isChecked = appPreferences.getDisplayBalance()
+            binding.expenseLine.text = formatted
+            binding.switchHideBalance.isChecked = appPreferences.getDisplayBalance()
 
             expenseOfSelectedDay = expensesAmount
 
             if (appPreferences.getDisplayBalance()) {
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, expensesAmount)
-                expenseLineAmount.text =
+                binding.expenseLineAmount.text =
                     CurrencyHelper.getFormattedCurrencyString(appPreferences, expenseOfSelectedDay)
             } else {
-                expenseLineAmount.text = BALANCE_PLACE_HOLDER
+                binding.expenseLineAmount.text = BALANCE_PLACE_HOLDER
             }
-        })
+        }
 
         // Routing towards weekly report if weekly report notification received
         if (intent?.hasExtra(MyFirebaseMessagingService.WEEKLY_REMINDER_KEY) == true) {
             val startIntent = Intent(this, MonthlyReportBaseActivity::class.java)
             ActivityCompat.startActivity(this@MainActivity, startIntent, null)
         }
+
+        // Check and launch download campaign.
+        checkIfItsDownloadCampaign()
+
+        //checkToken()
     }
+
+    /**
+     * Check and launch download campaign.
+     * If download campaign active, notification click should have package to redirect on play store.
+     */
+    private fun checkIfItsDownloadCampaign() {
+        try {
+            if (intent != null) {
+                if (intent.hasExtra("package")) {
+                    Rate.openPlayStore(intent.getStringExtra("package") ?: "", this)
+                    //Cancel notification.
+                    (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).cancel(
+                        MyFirebaseMessagingService.NOTIFICATION_ID_NEW_FEATURES
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Only enable for testing.
+     */
+    private fun checkToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                return@OnCompleteListener
+            }
+            // Get new FCM registration token
+            val token = task.result
+            Log.d("FCM TOKEN", token ?: "")
+        })
+    }
+
 
     /**
      *
@@ -542,12 +588,12 @@ class MainActivity : BaseActivity() {
                 Locale.getDefault()
             )
             val formattedDate = format.format(expensesViewAdapter.getDate())
-            todaysDate.text = String.format("%s", formattedDate)
+            binding.todaysDate.text = String.format("%s", formattedDate)
 
-            reveal_calendar.setOnClickListener {
+            binding.revealCalendar.setOnClickListener {
                 revealHideCalendar()
             }
-            llBalances.setOnClickListener { reveal_calendar.callOnClick() }
+            binding.llBalances.setOnClickListener { binding.revealCalendar.callOnClick() }
         } catch (e: Exception) {
         }
     }
@@ -556,14 +602,14 @@ class MainActivity : BaseActivity() {
      * Reveal hide calendar
      */
     private fun revealHideCalendar() {
-        if (calendarView.visibility == View.VISIBLE) {
-            arrowDown.setImageResource(R.drawable.ic_arrow_down)
-            calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.debounce))
-            calendarView.visibility = View.GONE
+        if (binding.calendarView.visibility == View.VISIBLE) {
+            binding.arrowDown.setImageResource(R.drawable.ic_arrow_down)
+            binding.calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.debounce))
+            binding.calendarView.visibility = View.GONE
         } else {
-            calendarView.visibility = View.VISIBLE
-            calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
-            arrowDown.setImageResource(R.drawable.ic_arrow_up)
+            binding.calendarView.visibility = View.VISIBLE
+            binding.calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
+            binding.arrowDown.setImageResource(R.drawable.ic_arrow_up)
         }
     }
 
@@ -657,19 +703,19 @@ class MainActivity : BaseActivity() {
 
         // Remove monthly report for non premium users
         if (!appPreferences.hasUserSawMonthlyReportHint()) {
-            intro_overlay.visibility = View.VISIBLE
-            monthly_report_hint.visibility = View.VISIBLE
+            binding.introOverlay.visibility = View.VISIBLE
+            binding.monthlyReportHint.visibility = View.VISIBLE
 
-            monthly_report_hint_button.setOnClickListener {
-                monthly_report_hint.visibility = View.GONE
+            binding.monthlyReportHintButton.setOnClickListener {
+                binding.monthlyReportHint.visibility = View.GONE
                 appPreferences.setUserSawMonthlyReportHint()
-                adjust_balance_hint.visibility = View.VISIBLE
+                binding.adjustBalanceHint.visibility = View.VISIBLE
             }
         }
 
-        adjust_balance_hint_button.setOnClickListener {
-            intro_overlay.visibility = View.GONE
-            adjust_balance_hint.visibility = View.GONE
+        binding.adjustBalanceHintButton.setOnClickListener {
+            binding.introOverlay.visibility = View.GONE
+            binding.adjustBalanceHint.visibility = View.GONE
             appPreferences.setUserSawAdjustBalanceHint()
         }
 
@@ -722,7 +768,6 @@ class MainActivity : BaseActivity() {
 
     /**
      * Update the balance for the given day
-     * TODO optimization
      */
     private fun updateBalanceDisplayForDay(day: Date, balance: Double) {
         val format = SimpleDateFormat(
@@ -731,8 +776,6 @@ class MainActivity : BaseActivity() {
         )
 
         var formatted = resources.getString(R.string.account_balance_format, format.format(day))
-
-        //FIXME it's ugly!!
         if (formatted.endsWith(".:")) {
             formatted = formatted.substring(
                 0,
@@ -744,30 +787,30 @@ class MainActivity : BaseActivity() {
                 formatted.length - 3
             ) + "" // Remove . at the end of the month (ex: nov. : -> nov :)
         }
-        budgetLine.text = formatted
-        switchHideBalance.isChecked = appPreferences.getDisplayBalance()
+        binding.budgetLine.text = formatted
+        binding.switchHideBalance.isChecked = appPreferences.getDisplayBalance()
 
         if (appPreferences.getDisplayBalance()) {
-            budgetLineAmount.text =
+            binding.budgetLineAmount.text =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
-            expenseLineAmount.text =
+            binding.expenseLineAmount.text =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, expenseOfSelectedDay)
         } else {
-            budgetLineAmount.text = BALANCE_PLACE_HOLDER
-            expenseLineAmount.text = BALANCE_PLACE_HOLDER
+            binding.budgetLineAmount.text = BALANCE_PLACE_HOLDER
+            binding.expenseLineAmount.text = BALANCE_PLACE_HOLDER
         }
 
-        switchHideBalance.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchHideBalance.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 appPreferences.setDisplayBalance(true)
-                budgetLineAmount.text =
+                binding.budgetLineAmount.text =
                     CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
-                expenseLineAmount.text =
+                binding.expenseLineAmount.text =
                     CurrencyHelper.getFormattedCurrencyString(appPreferences, expenseOfSelectedDay)
             } else {
                 appPreferences.setDisplayBalance(false)
-                budgetLineAmount.text = BALANCE_PLACE_HOLDER
-                expenseLineAmount.text = BALANCE_PLACE_HOLDER
+                binding.budgetLineAmount.text = BALANCE_PLACE_HOLDER
+                binding.expenseLineAmount.text = BALANCE_PLACE_HOLDER
             }
             expensesViewAdapter?.notifyDataSetChanged()
         }
@@ -1085,25 +1128,25 @@ class MainActivity : BaseActivity() {
         /*
          * Expense Recycler view
          */
-        expensesRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.expensesRecyclerView.layoutManager = LinearLayoutManager(this)
 
         expensesViewAdapter = ExpensesRecyclerViewAdapter(this, appPreferences, Date())
-        expensesRecyclerView.adapter = expensesViewAdapter
+        binding.expensesRecyclerView.adapter = expensesViewAdapter
 
-        expensesRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        binding.expensesRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 if (dy > 0) {
                     // Scrolling up
-                    if (calendarView.visibility == View.VISIBLE) {
-                        arrowDown.setImageResource(R.drawable.ic_arrow_down)
-                        calendarView.startAnimation(
+                    if (binding.calendarView.visibility == View.VISIBLE) {
+                        binding.arrowDown.setImageResource(R.drawable.ic_arrow_down)
+                        binding.calendarView.startAnimation(
                             AnimationUtils.loadAnimation(
                                 this@MainActivity,
                                 R.anim.debounce
                             )
                         )
-                        calendarView.visibility = View.GONE
+                        binding.calendarView.visibility = View.GONE
                     }
                 } else {
                     // Scrolling down
@@ -1130,11 +1173,11 @@ class MainActivity : BaseActivity() {
     private fun refreshRecyclerViewForDate(date: Date, expenses: List<Expense>) {
         expensesViewAdapter.setDate(date, expenses)
         if (expenses.isNotEmpty()) {
-            expensesRecyclerView.visibility = View.VISIBLE
-            emptyExpensesRecyclerViewPlaceholder.visibility = View.GONE
+            binding.expensesRecyclerView.visibility = View.VISIBLE
+            binding.emptyExpensesRecyclerViewPlaceholder.visibility = View.GONE
         } else {
-            expensesRecyclerView.visibility = View.GONE
-            emptyExpensesRecyclerViewPlaceholder.visibility = View.VISIBLE
+            binding.expensesRecyclerView.visibility = View.GONE
+            binding.emptyExpensesRecyclerViewPlaceholder.visibility = View.VISIBLE
         }
     }
 

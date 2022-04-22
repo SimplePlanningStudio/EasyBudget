@@ -6,27 +6,32 @@ import android.view.View
 import android.view.ViewGroup
 
 import com.simplebudget.R
-import kotlinx.android.synthetic.main.fragment_onboarding4.*
+import com.simplebudget.databinding.FragmentOnboarding4Binding
 
 /**
  * Onboarding step 4 fragment
  *
  * @author Benoit LETONDOR
  */
-class Onboarding4Fragment : OnboardingFragment() {
+class Onboarding4Fragment : OnboardingFragment<FragmentOnboarding4Binding>() {
 
     override val statusBarColor: Int
         get() = R.color.primary_dark
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_onboarding4, container, false)
-    }
-
+    /**
+     *
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        onboarding_screen4_next_button.setOnClickListener {
+        binding?.onboardingScreen4NextButton?.setOnClickListener {
             done()
         }
     }
+
+    override fun onCreateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): FragmentOnboarding4Binding = FragmentOnboarding4Binding.inflate(inflater, container, false)
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.simplebudget.view.report
 
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -26,14 +25,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.androidisland.ezpermission.EzPermission
@@ -41,18 +35,14 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.readData.utils.intentShareCSV
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
-import com.simplebudget.helper.AdSizeUtils
-import com.simplebudget.helper.CurrencyHelper
-import com.simplebudget.helper.getUserCurrency
-import com.simplebudget.helper.toast
+import com.simplebudget.databinding.FragmentMonthlyReportBinding
+import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
-import kotlinx.android.synthetic.main.fragment_monthly_report.view.*
 import org.koin.android.ext.android.inject
-import org.koin.android.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -65,7 +55,7 @@ private const val ARG_DATE = "arg_date"
  *
  * @author Benoit LETONDOR
  */
-class MonthlyReportFragment : Fragment() {
+class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     /**
      * The first date of the month at 00:00:00
      */
@@ -73,7 +63,6 @@ class MonthlyReportFragment : Fragment() {
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: MonthlyReportViewModel by viewModel()
-    private lateinit var thisView: View
     private var adView: AdView? = null
 
     private var mInterstitialAd: InterstitialAd? = null
@@ -86,54 +75,42 @@ class MonthlyReportFragment : Fragment() {
 
 // ---------------------------------->
 
-    override fun onCreateView(
+    override fun onCreateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): FragmentMonthlyReportBinding =
+        FragmentMonthlyReportBinding.inflate(inflater, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         date = requireArguments().getSerializable(ARG_DATE) as Date
 
-        // Inflate the layout for this fragment
-        thisView = inflater.inflate(R.layout.fragment_monthly_report, container, false)
-
-        val progressBar =
-            thisView.findViewById<ProgressBar>(R.id.monthly_report_fragment_progress_bar)
-        val content = thisView.findViewById<View>(R.id.monthly_report_fragment_content)
-        val recyclerView =
-            thisView.findViewById<RecyclerView>(R.id.monthly_report_fragment_recycler_view)
-        val emptyState = thisView.findViewById<View>(R.id.monthly_report_fragment_empty_state)
-        val revenuesAmountTextView =
-            thisView.findViewById<TextView>(R.id.monthly_report_fragment_revenues_total_tv)
-        val expensesAmountTextView =
-            thisView.findViewById<TextView>(R.id.monthly_report_fragment_expenses_total_tv)
-        val balanceTextView =
-            thisView.findViewById<TextView>(R.id.monthly_report_fragment_balance_tv)
-
         viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
-            progressBar.visibility = View.GONE
-            content.visibility = View.VISIBLE
+            binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
+            binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
 
             when (result) {
                 MonthlyReportViewModel.MonthlyReportData.Empty -> {
-                    recyclerView.visibility = View.GONE
-                    emptyState.visibility = View.VISIBLE
+                    binding?.monthlyReportFragmentRecyclerView?.visibility = View.GONE
+                    binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
 
-                    revenuesAmountTextView.text =
+                    binding?.monthlyReportFragmentRevenuesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    expensesAmountTextView.text =
+                    binding?.monthlyReportFragmentExpensesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    balanceTextView.text =
+                    binding?.monthlyReportFragmentBalanceTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    balanceTextView.setTextColor(
+                    binding?.monthlyReportFragmentBalanceTv?.setTextColor(
                         ContextCompat.getColor(
-                            balanceTextView.context,
+                            requireContext(),
                             R.color.budget_green
                         )
                     )
                 }
                 is MonthlyReportViewModel.MonthlyReportData.Data -> {
                     configureRecyclerView(
-                        recyclerView,
+                        binding?.monthlyReportFragmentRecyclerView!!,
                         MonthlyReportRecyclerViewAdapter(
                             result.expenses,
                             result.revenues,
@@ -142,23 +119,23 @@ class MonthlyReportFragment : Fragment() {
                         )
                     )
 
-                    revenuesAmountTextView.text =
+                    binding?.monthlyReportFragmentRevenuesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(
                             appPreferences,
                             result.revenuesAmount
                         )
-                    expensesAmountTextView.text =
+                    binding?.monthlyReportFragmentExpensesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(
                             appPreferences,
                             result.expensesAmount
                         )
 
                     val balance = result.revenuesAmount - result.expensesAmount
-                    balanceTextView.text =
+                    binding?.monthlyReportFragmentBalanceTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
-                    balanceTextView.setTextColor(
+                    binding?.monthlyReportFragmentBalanceTv?.setTextColor(
                         ContextCompat.getColor(
-                            balanceTextView.context,
+                            requireContext(),
                             if (balance >= 0) R.color.budget_green else R.color.budget_red
                         )
                     )
@@ -171,7 +148,7 @@ class MonthlyReportFragment : Fragment() {
         /**
          * Export for this month
          */
-        thisView.ic_export.setOnClickListener {
+        binding?.icExport?.setOnClickListener {
             if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
                 exportSelectionDialog()
             } else {
@@ -215,13 +192,10 @@ class MonthlyReportFragment : Fragment() {
          * Banner ads
          */
         if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
-            val adContainerView = thisView.findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.GONE
+            binding?.adViewContainer?.visibility = View.GONE
         } else {
             loadAndDisplayBannerAds()
         }
-
-        return thisView
     }
 
     /**
@@ -248,15 +222,14 @@ class MonthlyReportFragment : Fragment() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
-            val adContainerView = thisView.findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.VISIBLE
+            binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(),
                 requireActivity().windowManager.defaultDisplay
             )!!
             adView = AdView(requireContext())
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            adContainerView.addView(adView)
+            binding?.adViewContainer?.addView(adView)
             val actualAdRequest = AdRequest.Builder()
                 .build()
             adView?.adSize = adSize
@@ -294,7 +267,7 @@ class MonthlyReportFragment : Fragment() {
      * show Interstitial
      */
     private fun showInterstitial() {
-        thisView.frameLayoutOpaque.visibility = View.VISIBLE
+        binding?.frameLayoutOpaque?.visibility = View.VISIBLE
         // Show the ad if it's ready. Otherwise toast and restart the game.
         if (mInterstitialAd != null) {
             mInterstitialAd?.show(requireActivity())
@@ -315,7 +288,7 @@ class MonthlyReportFragment : Fragment() {
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
-                    thisView.frameLayoutOpaque.visibility = View.GONE
+                    binding?.frameLayoutOpaque?.visibility = View.GONE
                     mInterstitialAd = null
                     mAdIsLoading = false
                     exportSelectionDialog()
@@ -323,7 +296,7 @@ class MonthlyReportFragment : Fragment() {
 
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
                     // Ad was loaded
-                    thisView.frameLayoutOpaque.visibility = View.GONE
+                    binding?.frameLayoutOpaque?.visibility = View.GONE
                     mInterstitialAd = interstitialAd
                     mAdIsLoading = false
                     listenInterstitialAds()
@@ -338,17 +311,17 @@ class MonthlyReportFragment : Fragment() {
     private fun listenInterstitialAds() {
         mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                thisView.frameLayoutOpaque.visibility = View.GONE
+                binding?.frameLayoutOpaque?.visibility = View.GONE
                 exportSelectionDialog()
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
-                thisView.frameLayoutOpaque.visibility = View.GONE
+                binding?.frameLayoutOpaque?.visibility = View.GONE
                 exportSelectionDialog()
             }
 
             override fun onAdShowedFullScreenContent() {
-                thisView.frameLayoutOpaque.visibility = View.GONE
+                binding?.frameLayoutOpaque?.visibility = View.GONE
                 // Ad showed fullscreen content
                 mInterstitialAd = null
             }

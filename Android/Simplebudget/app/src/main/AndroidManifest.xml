@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.simplebudget">
+    package="com.simplebudget"
+    tools:ignore="LockedOrientationActivity">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -20,7 +21,7 @@
         android:name=".SimpleBudget"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="@string/app_name_simple_budget"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
@@ -42,8 +43,7 @@
             android:name="com.simplebudget.view.main.MainActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
-            android:label="@string/app_name"
-            android:launchMode="singleTask"
+            android:launchMode="singleInstancePerTask"
             android:screenOrientation="portrait" />
 
         <activity
@@ -51,6 +51,12 @@
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_premium"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".view.moreApps.MoreAppsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_more_apps"
             android:screenOrientation="portrait" />
 
         <activity
@@ -75,7 +81,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="easybudget" />
+                <data android:scheme="simplebudget" />
             </intent-filter>
         </activity>
         <activity
@@ -159,18 +165,14 @@
             </intent-filter>
         </receiver>
 
-        <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
-     See README(https://goo.gl/l4GJaQ) for more. -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_push" />
-        <!-- Set color used with incoming notification messages. This is used when no color is set for the incoming
-             notification message. See README(https://goo.gl/6BKBk7) for more. -->
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/accent" />
 
-        <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/ads_sdk_id" />

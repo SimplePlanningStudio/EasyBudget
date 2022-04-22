@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -216,7 +216,7 @@ class IabImpl(
         var premium = false
         if (purchaseHistoryRecordList != null) {
             for (purchase in purchaseHistoryRecordList) {
-                if (SKU_PREMIUM == purchase.sku) {
+                if (SKU_PREMIUM in purchase.skus) {
                     premium = true
                 }
             }
@@ -264,7 +264,7 @@ class IabImpl(
         Logger.debug("Purchase successful.")
 
         for (purchase in purchases) {
-            if (SKU_PREMIUM == purchase.sku) {
+            if (SKU_PREMIUM in purchase.skus) {
                 billingClient.acknowledgePurchase(
                     AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken)
                         .build(), this

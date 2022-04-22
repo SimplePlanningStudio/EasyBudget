@@ -1,4 +1,4 @@
-package com.readData.utils
+package com.simplebudget.helper
 
 import android.app.Activity
 import android.content.Intent
@@ -26,24 +26,6 @@ fun intentShareCSV(activity: Activity, uri: Uri) {
         shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
         shareIntent.type = "text/file"
         activity.startActivity(Intent.createChooser(shareIntent, "Send to"))
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-}
-
-fun intentOpenPdfWebView(activity: Activity, htmlContents: String) {
-    try {
-        val sharingIntent = Intent(Intent.ACTION_SEND)
-        sharingIntent.type = "text/html"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            sharingIntent.putExtra(
-                Intent.EXTRA_TEXT,
-                Html.fromHtml(htmlContents, Html.FROM_HTML_MODE_COMPACT)
-            )
-        } else {
-            sharingIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(htmlContents))
-        }
-        activity.startActivity(Intent.createChooser(sharingIntent, "Share using"))
     } catch (e: Exception) {
         e.printStackTrace()
     }

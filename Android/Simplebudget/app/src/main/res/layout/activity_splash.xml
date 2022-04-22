@@ -4,7 +4,7 @@
     android:id="@+id/pare"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:contentDescription="@string/app_name"
+    android:contentDescription="@string/content_description"
     app:shimmer_auto_start="true">
 
     <ImageView
@@ -12,8 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/ic_blue_background"
-        android:contentDescription="@string/app_name"
+        android:contentDescription="@string/content_description"
         android:scaleType="fitXY" />
+
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/animationView"

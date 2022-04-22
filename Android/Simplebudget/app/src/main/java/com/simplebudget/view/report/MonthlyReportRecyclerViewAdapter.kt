@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -75,7 +75,8 @@ class MonthlyReportRecyclerViewAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is HeaderViewHolder) {
             val obj = getExpense(position) as MonthlyReportViewModel.Parent
-            val amountSpend = if(obj.totalCredit>obj.totalDebit) (obj.totalCredit - obj.totalDebit) else (obj.totalDebit - obj.totalCredit)
+            val amountSpend =
+                if (obj.totalCredit > obj.totalDebit) (obj.totalCredit - obj.totalDebit) else (obj.totalDebit - obj.totalCredit)
             holder.headerTitle.text = String.format(
                 "%s (%s)",
                 obj.category,
@@ -85,7 +86,7 @@ class MonthlyReportRecyclerViewAdapter(
             val viewHolder = holder as ExpenseViewHolder
             val obj = getExpense(position) as MonthlyReportViewModel.Child
             viewHolder.expenseTitleTextView.text = obj.expense.title
-            viewHolder.categoryTypeTextView.text = obj.expense.category.name
+            viewHolder.categoryTypeTextView.text = obj.expense.category
             viewHolder.expenseAmountTextView.text =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, -obj.expense.amount)
             viewHolder.expenseAmountTextView.setTextColor(

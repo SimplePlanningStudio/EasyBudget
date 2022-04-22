@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -44,9 +44,11 @@ import java.util.*
  *
  * @author Benoit LETONDOR
  */
-class ExpensesRecyclerViewAdapter(private val activity: Activity,
-                                  private val appPreferences: AppPreferences,
-                                  private var date: Date) : RecyclerView.Adapter<ExpensesRecyclerViewAdapter.ViewHolder>() {
+class ExpensesRecyclerViewAdapter(
+    private val activity: Activity,
+    private val appPreferences: AppPreferences,
+    private var date: Date
+) : RecyclerView.Adapter<ExpensesRecyclerViewAdapter.ViewHolder>() {
 
     private var expenses = mutableListOf<Expense>()
 
@@ -88,7 +90,8 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
 // ------------------------------------------>
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): ViewHolder {
-        val v = LayoutInflater.from(viewGroup.context).inflate(R.layout.recycleview_expense_cell, viewGroup, false)
+        val v = LayoutInflater.from(viewGroup.context)
+            .inflate(R.layout.recycleview_expense_cell, viewGroup, false)
         return ViewHolder(v)
     }
 
@@ -96,30 +99,48 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
         val expense = expenses[i]
 
         viewHolder.expenseTitleTextView.text = expense.title
-        viewHolder.categoryTypeTextview.text = expense.category.name
+        viewHolder.categoryTypeTextview.text = expense.category
         if (appPreferences.getDisplayBalance()) {
-            viewHolder.expenseAmountTextView.text = CurrencyHelper.getFormattedCurrencyString(appPreferences, -expense.amount)
+            viewHolder.expenseAmountTextView.text =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, -expense.amount)
         } else {
             viewHolder.expenseAmountTextView.text = BALANCE_PLACE_HOLDER
         }
-        viewHolder.expenseAmountTextView.setTextColor(ContextCompat.getColor(viewHolder.view.context, if (expense.isRevenue()) R.color.budget_green else R.color.budget_red))
-        viewHolder.recurringIndicator.visibility = if (expense.isRecurring()) View.VISIBLE else View.GONE
+        viewHolder.expenseAmountTextView.setTextColor(
+            ContextCompat.getColor(
+                viewHolder.view.context,
+                if (expense.isRevenue()) R.color.budget_green else R.color.budget_red
+            )
+        )
+        viewHolder.recurringIndicator.visibility =
+            if (expense.isRecurring()) View.VISIBLE else View.GONE
         viewHolder.positiveIndicator.setBackgroundResource(if (expense.isRevenue()) R.drawable.ic_circle_plus_minus else R.drawable.ic_white_circle)
         viewHolder.positiveIndicator.setImageResource(if (expense.isRevenue()) R.drawable.ic_plus_outline else R.drawable.ic_minus)
 
         if (expense.isRecurring()) {
             when (expense.associatedRecurringExpense!!.type) {
-                RecurringExpenseType.DAILY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.daily)
-                RecurringExpenseType.WEEKLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.weekly)
-                RecurringExpenseType.BI_WEEKLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.bi_weekly)
-                RecurringExpenseType.TER_WEEKLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.ter_weekly)
-                RecurringExpenseType.FOUR_WEEKLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.four_weekly)
-                RecurringExpenseType.MONTHLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.monthly)
-                RecurringExpenseType.BI_MONTHLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.bi_monthly)
-                RecurringExpenseType.TER_MONTHLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.ter_monthly)
-                RecurringExpenseType.SIX_MONTHLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.six_monthly)
-                RecurringExpenseType.YEARLY -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.yearly)
-                else -> viewHolder.recurringIndicatorTextview.text = viewHolder.view.context.getString(R.string.daily)
+                RecurringExpenseType.DAILY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.daily)
+                RecurringExpenseType.WEEKLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.weekly)
+                RecurringExpenseType.BI_WEEKLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.bi_weekly)
+                RecurringExpenseType.TER_WEEKLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.ter_weekly)
+                RecurringExpenseType.FOUR_WEEKLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.four_weekly)
+                RecurringExpenseType.MONTHLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.monthly)
+                RecurringExpenseType.BI_MONTHLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.bi_monthly)
+                RecurringExpenseType.TER_MONTHLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.ter_monthly)
+                RecurringExpenseType.SIX_MONTHLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.six_monthly)
+                RecurringExpenseType.YEARLY -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.yearly)
+                else -> viewHolder.recurringIndicatorTextview.text =
+                    viewHolder.view.context.getString(R.string.daily)
             }
         }
 
@@ -131,19 +152,33 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
                     when (which) {
                         // Edit this one
                         0 -> {
-                            val startIntent = Intent(viewHolder.view.context, ExpenseEditActivity::class.java)
+                            val startIntent =
+                                Intent(viewHolder.view.context, ExpenseEditActivity::class.java)
                             startIntent.putExtra("date", expense.date.time)
                             startIntent.putExtra("expense", expense)
 
-                            ActivityCompat.startActivityForResult(activity, startIntent, MainActivity.ADD_EXPENSE_ACTIVITY_CODE, null)
+                            ActivityCompat.startActivityForResult(
+                                activity,
+                                startIntent,
+                                MainActivity.ADD_EXPENSE_ACTIVITY_CODE,
+                                null
+                            )
                         }
                         // Edit this one and following ones
                         1 -> {
-                            val startIntent = Intent(viewHolder.view.context, RecurringExpenseEditActivity::class.java)
+                            val startIntent = Intent(
+                                viewHolder.view.context,
+                                RecurringExpenseEditActivity::class.java
+                            )
                             startIntent.putExtra("dateStart", expense.date.time)
                             startIntent.putExtra("expense", expense)
 
-                            ActivityCompat.startActivityForResult(activity, startIntent, MainActivity.MANAGE_RECURRING_EXPENSE_ACTIVITY_CODE, null)
+                            ActivityCompat.startActivityForResult(
+                                activity,
+                                startIntent,
+                                MainActivity.MANAGE_RECURRING_EXPENSE_ACTIVITY_CODE,
+                                null
+                            )
                         }
                         // Delete this one
                         2 -> {
@@ -151,7 +186,8 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
                             val intent = Intent(MainActivity.INTENT_RECURRING_EXPENSE_DELETED)
                             intent.putExtra("expense", expense)
                             intent.putExtra("deleteType", RecurringExpenseDeleteType.ONE.value)
-                            LocalBroadcastManager.getInstance(activity.applicationContext).sendBroadcast(intent)
+                            LocalBroadcastManager.getInstance(activity.applicationContext)
+                                .sendBroadcast(intent)
                         }
                         // Delete from
                         3 -> {
@@ -159,7 +195,8 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
                             val intent = Intent(MainActivity.INTENT_RECURRING_EXPENSE_DELETED)
                             intent.putExtra("expense", expense)
                             intent.putExtra("deleteType", RecurringExpenseDeleteType.FROM.value)
-                            LocalBroadcastManager.getInstance(activity.applicationContext).sendBroadcast(intent)
+                            LocalBroadcastManager.getInstance(activity.applicationContext)
+                                .sendBroadcast(intent)
                         }
                         // Delete up to
                         4 -> {
@@ -167,7 +204,8 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
                             val intent = Intent(MainActivity.INTENT_RECURRING_EXPENSE_DELETED)
                             intent.putExtra("expense", expense)
                             intent.putExtra("deleteType", RecurringExpenseDeleteType.TO.value)
-                            LocalBroadcastManager.getInstance(activity.applicationContext).sendBroadcast(intent)
+                            LocalBroadcastManager.getInstance(activity.applicationContext)
+                                .sendBroadcast(intent)
                         }
                         // Delete all
                         5 -> {
@@ -175,7 +213,8 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
                             val intent = Intent(MainActivity.INTENT_RECURRING_EXPENSE_DELETED)
                             intent.putExtra("expense", expense)
                             intent.putExtra("deleteType", RecurringExpenseDeleteType.ALL.value)
-                            LocalBroadcastManager.getInstance(activity.applicationContext).sendBroadcast(intent)
+                            LocalBroadcastManager.getInstance(activity.applicationContext)
+                                .sendBroadcast(intent)
                         }
                     }
                 }
@@ -187,18 +226,25 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
                     when (which) {
                         0 // Edit expense
                         -> {
-                            val startIntent = Intent(viewHolder.view.context, ExpenseEditActivity::class.java)
+                            val startIntent =
+                                Intent(viewHolder.view.context, ExpenseEditActivity::class.java)
                             startIntent.putExtra("date", expense.date.time)
                             startIntent.putExtra("expense", expense)
 
-                            ActivityCompat.startActivityForResult(activity, startIntent, MainActivity.ADD_EXPENSE_ACTIVITY_CODE, null)
+                            ActivityCompat.startActivityForResult(
+                                activity,
+                                startIntent,
+                                MainActivity.ADD_EXPENSE_ACTIVITY_CODE,
+                                null
+                            )
                         }
                         1 // Delete
                         -> {
                             // Send notification to inform views that this expense has been deleted
                             val intent = Intent(MainActivity.INTENT_EXPENSE_DELETED)
                             intent.putExtra("expense", expense)
-                            LocalBroadcastManager.getInstance(activity.applicationContext).sendBroadcast(intent)
+                            LocalBroadcastManager.getInstance(activity.applicationContext)
+                                .sendBroadcast(intent)
                         }
                     }
                 }
@@ -223,7 +269,8 @@ class ExpensesRecyclerViewAdapter(private val activity: Activity,
         val expenseTitleTextView: TextView = view.findViewById(R.id.expense_title)
         val expenseAmountTextView: TextView = view.findViewById(R.id.expense_amount)
         val recurringIndicator: ViewGroup = view.findViewById(R.id.recurring_indicator)
-        val recurringIndicatorTextview: TextView = view.findViewById(R.id.recurring_indicator_textview)
+        val recurringIndicatorTextview: TextView =
+            view.findViewById(R.id.recurring_indicator_textview)
         val categoryTypeTextview: TextView = view.findViewById(R.id.category_type)
         val positiveIndicator: ImageView = view.findViewById(R.id.positive_indicator)
     }

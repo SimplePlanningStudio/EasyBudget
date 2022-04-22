@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR , Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpense
 import com.simplebudget.db.DB
 import com.simplebudget.helper.Logger
+import com.simplebudget.model.Category
 import kotlinx.coroutines.runBlocking
 import org.koin.java.KoinJavaComponent.inject
 import java.util.*
@@ -43,6 +44,21 @@ class CachedDBImpl(
         wrappedDB.close()
     }
 
+    override suspend fun persistCategories(category: Category): Category {
+        return wrappedDB.persistCategories(category)
+    }
+
+    override suspend fun getCategories(): List<Category> {
+        return wrappedDB.getCategories()
+    }
+
+    override suspend fun deleteCategory(category: Category) {
+        wrappedDB.deleteCategory(category)
+    }
+
+    /**
+     * Expenses
+     */
     override suspend fun persistExpense(expense: Expense): Expense {
         val newExpense = wrappedDB.persistExpense(expense)
 

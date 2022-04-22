@@ -54,7 +54,7 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="@dimen/_30sdp"
         android:background="@drawable/ic_coins_art"
-        android:contentDescription="@string/app_name"
+        android:contentDescription="@string/content_description"
         app:layout_constraintBottom_toTopOf="@+id/onboarding_screen1_next_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

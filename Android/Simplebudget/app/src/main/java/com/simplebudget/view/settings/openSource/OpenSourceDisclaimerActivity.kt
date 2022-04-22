@@ -2,23 +2,24 @@ package com.simplebudget.view.settings.openSource
 
 import android.os.Bundle
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
-import com.simplebudget.helper.stickytimelineview.callback.SectionCallback
-import com.simplebudget.helper.stickytimelineview.model.SectionInfo
-import kotlinx.android.synthetic.main.activity_release_history_timeline.*
+import com.simplebudget.databinding.ActivityOpenSourceDisclaimerBinding
+import com.simplebudget.helper.BaseActivity
 
-class OpenSourceDisclaimerActivity : AppCompatActivity() {
+class OpenSourceDisclaimerActivity : BaseActivity<ActivityOpenSourceDisclaimerBinding>() {
+
+    /**
+     *
+     */
+    override fun createBinding(): ActivityOpenSourceDisclaimerBinding =
+        ActivityOpenSourceDisclaimerBinding.inflate(layoutInflater)
+
     /**
      *
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_open_source_disclaimer)
-
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -29,12 +30,10 @@ class OpenSourceDisclaimerActivity : AppCompatActivity() {
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
-
         if (id == android.R.id.home) {
             finish()
             return true
         }
-
         return super.onOptionsItemSelected(item)
     }
 }

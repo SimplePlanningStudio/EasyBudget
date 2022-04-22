@@ -74,7 +74,7 @@
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:layout_marginEnd="@dimen/_10sdp"
-                    android:contentDescription="@string/app_name"
+                    android:contentDescription="@string/content_description"
                     android:src="@drawable/ic_arrow_down"
                     android:textSize="@dimen/_18ssp" />
             </RelativeLayout>
@@ -207,7 +207,7 @@
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:alpha="0.6"
-                android:contentDescription="@string/app_name"
+                android:contentDescription="@string/content_description"
                 android:src="@drawable/ic_wallet" />
 
             <TextView

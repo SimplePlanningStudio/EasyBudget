@@ -47,15 +47,14 @@
         android:textColor="@android:color/white"
         android:textSize="@dimen/_18ssp" />
 
-    <com.airbnb.lottie.LottieAnimationView
+    <ImageView
         android:id="@+id/animationViewNoAds"
-        android:layout_width="@dimen/_200sdp"
-        android:layout_height="@dimen/_200sdp"
-        android:layout_below="@id/tvTitle"
+        android:layout_width="@dimen/_120sdp"
+        android:layout_height="@dimen/_120sdp"
+        android:layout_below="@id/tv_description"
         android:layout_centerHorizontal="true"
-        app:lottie_autoPlay="true"
-        app:lottie_loop="false"
-        app:lottie_rawRes="@raw/no_ads" />
+        android:layout_marginTop="@dimen/_20sdp"
+        android:contentDescription="@string/content_description" />
 
     <me.relex.circleindicator.CircleIndicator
         android:id="@+id/premium_view_pager_indicator"

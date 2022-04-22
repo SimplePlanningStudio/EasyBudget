@@ -10,10 +10,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.simplebudget.R
+import com.simplebudget.databinding.FragmentOnboarding2Binding
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.helper.getUserCurrency
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
-import kotlinx.android.synthetic.main.fragment_onboarding2.*
 import org.koin.android.ext.android.inject
 import java.util.*
 
@@ -22,7 +22,7 @@ import java.util.*
  *
  * @author Benoit LETONDOR
  */
-class Onboarding2Fragment : OnboardingFragment() {
+class Onboarding2Fragment : OnboardingFragment<FragmentOnboarding2Binding>() {
     private lateinit var selectedCurrency: Currency
     private lateinit var receiver: BroadcastReceiver
 
@@ -31,12 +31,9 @@ class Onboarding2Fragment : OnboardingFragment() {
     override val statusBarColor: Int
         get() = R.color.primary
 
-// ------------------------------------->
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_onboarding2, container, false)
-    }
-
+    /**
+     *
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -50,14 +47,15 @@ class Onboarding2Fragment : OnboardingFragment() {
         val filter = IntentFilter(SelectCurrencyFragment.CURRENCY_SELECTED_INTENT)
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                selectedCurrency = Currency.getInstance(intent.getStringExtra(SelectCurrencyFragment.CURRENCY_ISO_EXTRA))
+                selectedCurrency =
+                    Currency.getInstance(intent.getStringExtra(SelectCurrencyFragment.CURRENCY_ISO_EXTRA))
                 setNextButtonText()
             }
         }
 
         LocalBroadcastManager.getInstance(view.context).registerReceiver(receiver, filter)
 
-        onboarding_screen2_next_button.setOnClickListener {
+        binding?.onboardingScreen2NextButton?.setOnClickListener {
             next()
         }
     }
@@ -74,4 +72,10 @@ class Onboarding2Fragment : OnboardingFragment() {
     private fun setNextButtonText() {
         //onboarding_screen2_next_button?.text = resources.getString(R.string.onboarding_screen_2_cta, selectedCurrency.symbol)
     }
+
+    override fun onCreateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): FragmentOnboarding2Binding = FragmentOnboarding2Binding.inflate(inflater, container, false)
 }

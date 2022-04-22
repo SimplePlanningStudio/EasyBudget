@@ -15,7 +15,6 @@ import com.simplebudget.injection.viewModelModule
 import com.simplebudget.notif.*
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
-import com.simplebudget.view.main.MainActivity
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
@@ -24,6 +23,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.java.KoinJavaComponent.get
 import java.util.*
+import com.simplebudget.view.main.MainActivity as MainActivity
 
 
 /**
@@ -34,6 +34,7 @@ import java.util.*
 class SimpleBudget : Application() {
 
     private val appPreferences: AppPreferences by inject()
+    private val db: DB by inject()
 
 // ------------------------------------------>
 
@@ -76,15 +77,13 @@ class SimpleBudget : Application() {
         checkUpdateAction()
 
         // Ensure DB is created and reset init date if needed
-        get(DB::class.java).use {
-            it.ensureDBCreated()
-
+        db.run {
+            db.ensureDBCreated()
             // FIX ME this should be done on restore, change that for the whole parameters restoration
             if (appPreferences.getShouldResetInitDate()) {
-                runBlocking { it.getOldestExpense() }?.let { expense ->
+                runBlocking { db.getOldestExpense() }?.let { expense ->
                     appPreferences.setInitTimestamp(expense.date.time)
                 }
-
                 appPreferences.setShouldResetInitDate(false)
             }
         }
@@ -162,7 +161,7 @@ class SimpleBudget : Application() {
             val dailyOpens = appPreferences.getNumberOfDailyOpen()
             if (dailyOpens > 2) {
                 if (!hasRatingPopupBeenShownToday()) {
-                    val shown = RatingPopup(activity, appPreferences).show(false, false)
+                    val shown = RatingPopup(activity, appPreferences).show(false)
                     if (shown) {
                         appPreferences.setRatingPopupLastAutoShowTimestamp(Date().time)
                     }

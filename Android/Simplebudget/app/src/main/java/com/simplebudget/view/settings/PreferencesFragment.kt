@@ -1,5 +1,5 @@
 /*
- *   Copyright 2021 Benoit LETONDOR
+ *   Copyright 2022 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -36,8 +36,10 @@ import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.helper.*
+import com.simplebudget.helper.extensions.getTelegramIntent
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
+import com.simplebudget.view.moreApps.MoreAppsActivity
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.premium.PremiumSuccessActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
@@ -88,8 +90,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             findPreference<Preference>(resources.getString(R.string.setting_app_version_key))!!
         prefAppVersion.title = getString(R.string.setting_app_version)
         prefAppVersion.summary = String.format(
-            "%d(%s)",
-            BuildConfig.VERSION_CODE,
+            "%s",
             BuildConfig.VERSION_NAME
         )
         /*
@@ -98,7 +99,18 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_category_rate_button_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 activity?.let { activity ->
-                    RatingPopup(activity, appPreferences).show(true, true)
+                    RatingPopup(activity, appPreferences).show(true)
+                }
+                false
+            }
+
+        /*
+         * Telegram channel button
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_telegram_channel_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                activity?.let {
+                    startActivity(Intent().getTelegramIntent())
                 }
                 false
             }
@@ -204,6 +216,15 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             }
 
         /*
+         * More apps
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_more_apps_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                startActivity(Intent(activity, MoreAppsActivity::class.java))
+                false
+            }
+
+        /*
          * App version click
          */
         findPreference<Preference>(resources.getString(R.string.setting_app_version_key))?.onPreferenceClickListener =
@@ -221,6 +242,15 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 val sendIntent =
                     Intent(requireActivity(), OpenSourceDisclaimerActivity::class.java)
                 startActivity(sendIntent)
+                false
+            }
+
+        /*
+         * Open privacy policy
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_privacy_policy_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                intentOpenWebsite(requireActivity(), getString(R.string.privacy_policy))
                 false
             }
 
