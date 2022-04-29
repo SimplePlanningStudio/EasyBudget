@@ -25,6 +25,8 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - Category wise reports and total expensive for each category.
 - Exporting/Downloading a PDF / Excel reports
 - In app reviews
+- Monthly Breakdown and PiChart
+- Future Payements 
 
 
 ### For any query related to SimpleBudget
