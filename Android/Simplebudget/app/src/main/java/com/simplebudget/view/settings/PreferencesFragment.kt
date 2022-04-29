@@ -39,6 +39,8 @@ import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.getTelegramIntent
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
+import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
+import com.simplebudget.view.futurepayments.FutureBaseActivity
 import com.simplebudget.view.moreApps.MoreAppsActivity
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.premium.PremiumSuccessActivity
@@ -171,6 +173,32 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             Preference.OnPreferenceClickListener {
                 val startIntent = Intent(requireActivity(), MonthlyReportBaseActivity::class.java)
                 startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, false)
+                ActivityCompat.startActivity(requireActivity(), startIntent, null)
+                true
+            }
+
+        /*
+         * Monthly Breakdown
+         */
+        val monthlyBreakDown =
+            findPreference<Preference>(getString(R.string.setting_monthly_breakdown_key))
+        monthlyBreakDown?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                val startIntent = Intent(requireActivity(), BreakDownBaseActivity::class.java)
+                startIntent.putExtra(BreakDownBaseActivity.FROM_NOTIFICATION_EXTRA, false)
+                ActivityCompat.startActivity(requireActivity(), startIntent, null)
+                true
+            }
+
+        /*
+         * Future expenses
+         */
+        val futureExpenses =
+            findPreference<Preference>(getString(R.string.setting_future_expenses_key))
+        futureExpenses?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                val startIntent = Intent(requireActivity(), FutureBaseActivity::class.java)
+                startIntent.putExtra(FutureBaseActivity.FROM_NOTIFICATION_EXTRA, false)
                 ActivityCompat.startActivity(requireActivity(), startIntent, null)
                 true
             }

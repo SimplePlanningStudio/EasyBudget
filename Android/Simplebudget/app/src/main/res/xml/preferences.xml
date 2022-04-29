@@ -16,14 +16,28 @@
             app:title="@string/setting_category_start_day_of_week_title" />
     </PreferenceCategory>
 
-    <Preference
-        app:key="@string/setting_monthly_reports_key"
-        app:summary="@string/setting_monthly_reports_summary"
-        app:title="@string/setting_monthly_reports_title" />
+    <PreferenceCategory app:title="@string/setting_category_reports_title">
+        <Preference
+            app:key="@string/setting_monthly_reports_key"
+            app:summary="@string/setting_monthly_reports_summary"
+            app:title="@string/setting_monthly_reports_title" />
 
-    <Preference
-        app:key="@string/setting_enable_app_protection_key"
-        app:title="@string/setting_enable_app_protection_general" />
+        <Preference
+            app:key="@string/setting_future_expenses_key"
+            app:summary="@string/setting_future_expenses_summary"
+            app:title="@string/setting_future_expenses_title" />
+
+        <Preference
+            app:key="@string/setting_monthly_breakdown_key"
+            app:summary="@string/setting_monthly_breakdown_summary"
+            app:title="@string/setting_monthly_breakdown_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/setting_category_security_title">
+        <Preference
+            app:key="@string/setting_enable_app_protection_key"
+            app:title="@string/setting_enable_app_protection_general" />
+    </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_data_backup_title">
         <Preference

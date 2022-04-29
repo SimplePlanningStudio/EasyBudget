@@ -54,16 +54,19 @@ import com.simplebudget.R
 import com.simplebudget.SimpleBudget
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpenseDeleteType
 import com.simplebudget.prefs.*
 import com.simplebudget.push.MyFirebaseMessagingService
+import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import com.simplebudget.view.main.calendar.CalendarFragment
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
+import com.simplebudget.view.futurepayments.FutureBaseActivity
 import com.simplebudget.view.security.SecurityActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity
@@ -705,21 +708,90 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (!appPreferences.hasUserSawMonthlyReportHint()) {
             binding.introOverlay.visibility = View.VISIBLE
             binding.monthlyReportHint.visibility = View.VISIBLE
-
             binding.monthlyReportHintButton.setOnClickListener {
-                binding.monthlyReportHint.visibility = View.GONE
                 appPreferences.setUserSawMonthlyReportHint()
-                binding.adjustBalanceHint.visibility = View.VISIBLE
+                binding.monthlyReportHint.visibility = View.GONE
+                binding.futureExpenseHint.visibility = View.VISIBLE
             }
         }
 
-        binding.adjustBalanceHintButton.setOnClickListener {
-            binding.introOverlay.visibility = View.GONE
-            binding.adjustBalanceHint.visibility = View.GONE
-            appPreferences.setUserSawAdjustBalanceHint()
+        if (!appPreferences.hasUserSawFutureExpensesHint()) {
+            binding.futureExpenseHintButton.setOnClickListener {
+                appPreferences.setUserSawFutureExpensesHint()
+                binding.futureExpenseHint.visibility = View.GONE
+                binding.breakdownHint.visibility = View.VISIBLE
+            }
+        }
+
+        if (!appPreferences.hasUserSawBreakDownHint()) {
+            binding.breakdownHintButton.setOnClickListener {
+                appPreferences.setUserSawBreakDownHint()
+                binding.breakdownHint.visibility = View.GONE
+                binding.settingsHint.visibility = View.VISIBLE
+            }
+        }
+
+        if (!appPreferences.hasUserSawSettingsHint()) {
+            binding.settingsHintButton.setOnClickListener {
+                appPreferences.setUserSawSettingsHint()
+                binding.settingsHint.visibility = View.GONE
+                binding.introOverlay.visibility = View.GONE
+                openHideBalanceShowCase()
+            }
         }
 
         return true
+    }
+
+    /**
+     * Show case Hint for balance
+     */
+    private fun openHideBalanceShowCase() {
+        if (appPreferences.hasUserSawHideBalanceHint().not()) {
+            showCaseView(
+                targetView = binding.contSwitchBalance,
+                title = getString(R.string.hide_balance_hint_title),
+                message = getString(R.string.hide_balance_hint_message),
+                handleGuideListener = {
+                    binding.introOverlay.visibility = View.GONE
+                    showCaseAddSingleExpense()
+                }
+            )
+        }
+    }
+
+    /**
+     * Show case Hint for Add single Income / Expense
+     */
+    private fun showCaseAddSingleExpense() {
+        if (appPreferences.hasUserSawAddSingleExpenseHint().not()) {
+            showCaseView(
+                targetView = binding.tvDummyViewForSingleHint,
+                title = getString(R.string.add_single_expense_hint_title),
+                message = getString(R.string.add_single_expense_hint_message),
+                handleGuideListener = {
+                    binding.introOverlay.visibility = View.GONE
+                    showCaseAddRecurringExpense()
+                }
+            )
+        }
+    }
+
+    /**
+     * Show case Hint for Add recurring Income / Expense
+     */
+    private fun showCaseAddRecurringExpense() {
+        if (appPreferences.hasUserSawAddRecurringExpenseHint().not()) {
+            showCaseView(
+                targetView = binding.tvDummyViewForRecurringHint,
+                title = getString(R.string.add_recurring_expense_hint_title),
+                message = getString(R.string.add_recurring_expense_hint_message),
+                handleGuideListener = {
+                    binding.introOverlay.visibility = View.GONE
+                    binding.llDummyViewForHint.visibility = View.GONE
+                }
+            )
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -737,7 +809,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
             R.id.action_balance -> {
                 viewModel.onAdjustCurrentBalanceClicked()
-
+                return true
+            }
+            R.id.action_breakdown -> {
+                val startIntent = Intent(this, BreakDownBaseActivity::class.java)
+                ActivityCompat.startActivity(this@MainActivity, startIntent, null)
                 return true
             }
             R.id.action_monthly_report -> {
@@ -758,6 +834,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 } catch (e: Exception) {
                     Logger.error("An error occurred during sharing app activity start", e)
                 }
+                return true
+            }
+            R.id.action_future_expenses -> {
+                ActivityCompat.startActivity(
+                    this@MainActivity,
+                    Intent(this, FutureBaseActivity::class.java),
+                    null
+                )
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
@@ -1079,19 +1163,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun initRecyclerView() {
-        val fabNewExpense = findViewById<Button>(R.id.fab_new_expense)
-        fabNewExpense.setOnClickListener {
+        binding.fabNewExpense.setOnClickListener {
             val startIntent = Intent(this@MainActivity, ExpenseEditActivity::class.java)
             startIntent.putExtra("date", calendarFragment.getSelectedDate().time)
 
             startIntent.putExtra(ANIMATE_TRANSITION_KEY, true)
             startIntent.putExtra(
                 CENTER_X_KEY,
-                fabNewExpense.x.toInt() + (fabNewExpense.width.toFloat() / 1.2f).toInt()
+                binding.fabNewExpense.x.toInt() + (binding.fabNewExpense.width.toFloat() / 1.2f).toInt()
             )
             startIntent.putExtra(
                 CENTER_Y_KEY,
-                fabNewExpense.y.toInt() + (fabNewExpense.height.toFloat() / 1.2f).toInt()
+                binding.fabNewExpense.y.toInt() + (binding.fabNewExpense.height.toFloat() / 1.2f).toInt()
             )
 
             ActivityCompat.startActivityForResult(
@@ -1102,19 +1185,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             )
         }
 
-        val fabNewRecurringExpense = findViewById<Button>(R.id.fab_new_recurring_expense)
-        fabNewRecurringExpense.setOnClickListener {
+        binding.fabNewRecurringExpense.setOnClickListener {
             val startIntent = Intent(this@MainActivity, RecurringExpenseEditActivity::class.java)
             startIntent.putExtra("dateStart", calendarFragment.getSelectedDate().time)
 
             startIntent.putExtra(ANIMATE_TRANSITION_KEY, true)
             startIntent.putExtra(
                 CENTER_X_KEY,
-                fabNewRecurringExpense.x.toInt() + (fabNewRecurringExpense.width.toFloat() / 1.2f).toInt()
+                binding.fabNewRecurringExpense.x.toInt() + (binding.fabNewRecurringExpense.width.toFloat() / 1.2f).toInt()
             )
             startIntent.putExtra(
                 CENTER_Y_KEY,
-                fabNewRecurringExpense.y.toInt() + (fabNewRecurringExpense.height.toFloat() / 1.2f).toInt()
+                binding.fabNewRecurringExpense.y.toInt() + (binding.fabNewRecurringExpense.height.toFloat() / 1.2f).toInt()
             )
 
             ActivityCompat.startActivityForResult(

@@ -37,6 +37,12 @@ interface ExpenseDao {
     @Query("SELECT * FROM expense WHERE date >= :monthStartDate AND date <= :monthEndDate")
     suspend fun getExpensesForMonth(monthStartDate: Date, monthEndDate: Date): List<ExpenseEntity>
 
+    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate")
+    suspend fun getAllExpenses(startDate: Date, endDate: Date): List<ExpenseEntity>
+
+    @Query("SELECT * FROM expense WHERE date > :todayDate")
+    suspend fun getAllFutureExpenses(todayDate: Date): List<ExpenseEntity>
+
     @Query("SELECT SUM(amount) FROM expense WHERE date <= :dayEndDate")
     suspend fun getBalanceForDay(dayEndDate: Date): Long?
 

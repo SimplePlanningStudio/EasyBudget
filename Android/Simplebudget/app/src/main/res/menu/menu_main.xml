@@ -10,11 +10,19 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_balance"
-        android:icon="@drawable/ic_adjust_balance"
+        android:id="@+id/action_future_expenses"
+        android:icon="@drawable/ic_menu_future_expenses"
         android:orderInCategory="100"
-        android:title="@string/action_balance"
+        android:title="@string/future_expenses"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_breakdown"
+        android:icon="@drawable/ic_action_menu_breakdown"
+        android:orderInCategory="100"
+        android:title="@string/breakdown"
+        app:showAsAction="always" />
+
 
     <item
         android:id="@+id/action_settings"
@@ -22,11 +30,20 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_balance"
+        android:icon="@drawable/ic_adjust_balance"
+        android:orderInCategory="100"
+        android:title="@string/action_balance"
+        app:showAsAction="ifRoom" />
+
     <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_share"
         android:orderInCategory="100"
-        android:title="@string/share"
-        app:showAsAction="always" />
+        android:title="@string/share_app"
+        app:showAsAction="ifRoom" />
+
 
 </menu>

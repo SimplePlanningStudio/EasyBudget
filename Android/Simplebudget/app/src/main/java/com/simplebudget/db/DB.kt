@@ -45,6 +45,8 @@ interface DB : Closeable {
 
     suspend fun getExpensesForMonth(monthStartDate: Date): List<Expense>
 
+    suspend fun getAllExpenses(startDate: Date, endDate: Date): List<Expense>
+
     suspend fun getBalanceForDay(dayDate: Date): Double
 
     suspend fun persistRecurringExpense(recurringExpense: RecurringExpense): RecurringExpense

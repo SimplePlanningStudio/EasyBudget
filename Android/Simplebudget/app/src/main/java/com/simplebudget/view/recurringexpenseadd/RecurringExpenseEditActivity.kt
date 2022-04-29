@@ -61,6 +61,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
     private lateinit var receiver: BroadcastReceiver
     private var adView: AdView? = null
     private var categories: ArrayList<String> = ArrayList()
+    private var existingExpenseCategory: String = ""
 
     /**
      *
@@ -79,17 +80,6 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
 
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
-            categories.clear()
-            if (dbCat.isEmpty()) {
-                categories.addAll(ExpenseCategories.getCategoriesList())
-            } else {
-                categories.addAll(dbCat)
-            }
-            //Load category view with empty state
-            setCategoriesViews("")
-        }
 
         // Register receiver
         val filter = IntentFilter()
@@ -213,6 +203,17 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                     viewModel.onAddExpenseBeforeInitDateCancelled()
                 }
                 .show()
+        }
+
+        //Load categories
+        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
+            categories.clear()
+            if (dbCat.isEmpty()) {
+                categories.addAll(ExpenseCategories.getCategoriesList())
+            } else {
+                categories.addAll(dbCat)
+            }
+            setCategoriesViews(existingExpenseCategory)
         }
     }
 
@@ -369,8 +370,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             binding.amountEdittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
         }
 
-        if (categoryType != null) setCategoriesViews(categoryType)
-
+        existingExpenseCategory = categoryType?:""
     }
 
     /**
@@ -387,13 +387,13 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         binding.categoriesSpinner.setAdapter(adapterCategory)
         binding.categoriesSpinner.threshold = 1
         //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
-        binding.categoriesSpinner.setText(categoryType.capital())
-        //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
         binding.categoriesSpinner.onItemClickListener =
             AdapterView.OnItemClickListener { parent, _, position, _ ->
                 val selectedItem = parent.getItemAtPosition(position).toString()
                 binding.categoriesSpinner.setText(selectedItem.capital())
             }
+        //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
+        binding.categoriesSpinner.setText(categoryType.capital())
     }
 
     /**

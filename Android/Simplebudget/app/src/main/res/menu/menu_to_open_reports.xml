@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_menu_to_open_report"
+        android:orderInCategory="1"
+        android:title="@string/title_budget_report"
+        app:actionLayout="@layout/custom_menu_view_to_open_report"
+        app:showAsAction="always" />
+
+</menu>

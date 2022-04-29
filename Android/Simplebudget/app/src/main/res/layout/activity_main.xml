@@ -136,6 +136,7 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/contSwitchBalance"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="0.6"
@@ -231,6 +232,27 @@
             android:scrollbars="vertical" />
 
         <LinearLayout
+            android:id="@+id/llDummyViewForHint"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_above="@+id/llAddAmountContainer"
+            android:layout_marginBottom="@dimen/_minus18sdp"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/tvDummyViewForRecurringHint"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tvDummyViewForSingleHint"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/llAddAmountContainer"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_40sdp"
@@ -306,7 +328,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="145dp"
+        android:layout_marginEnd="@dimen/_142sdp"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -343,12 +365,12 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/adjust_balance_hint"
+        android:id="@+id/future_expense_hint"
         android:layout_width="220dp"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="90dp"
+        android:layout_marginEnd="@dimen/_105sdp"
         android:orientation="vertical"
         android:visibility="gone">
 
@@ -369,12 +391,96 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/adjust_balance_hint"
+                android:text="@string/future_expense_hint"
                 android:textColor="@android:color/black"
                 android:textSize="15sp" />
 
             <Button
-                android:id="@+id/adjust_balance_hint_button"
+                android:id="@+id/future_expense_hint_button"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/ok"
+                android:theme="@style/BlueButton" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/breakdown_hint"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="@dimen/_68sdp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="end"
+            android:background="@drawable/triangle_drawable" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/monthly_report_hint_background"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="@string/breakdown_hint"
+                android:textColor="@android:color/black"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/breakdown_hint_button"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/ok"
+                android:theme="@style/BlueButton" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/settings_hint"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="@dimen/_31sdp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="end"
+            android:background="@drawable/triangle_drawable" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/monthly_report_hint_background"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:text="@string/settings_hint"
+                android:textColor="@android:color/black"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/settings_hint_button"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:text="@string/ok"

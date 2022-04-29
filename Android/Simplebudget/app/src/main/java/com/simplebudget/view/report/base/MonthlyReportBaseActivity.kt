@@ -15,21 +15,36 @@
  */
 package com.simplebudget.view.report.base
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityMonthlyReportBinding
 import com.simplebudget.helper.BaseActivity
+import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.getMonthTitle
 import com.simplebudget.helper.removeButtonBorder
+import com.simplebudget.helper.showcaseviewlib.GuideView
+import com.simplebudget.helper.showcaseviewlib.config.DismissType
+import com.simplebudget.helper.showcaseviewlib.config.Gravity
+import com.simplebudget.helper.showcaseviewlib.config.PointerType
+import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.hasUserCompleteFutureExpensesShowCaseView
+import com.simplebudget.prefs.setUserCompleteFutureExpensesShowCaseView
+import com.simplebudget.view.futurepayments.FutureBaseActivity
 import com.simplebudget.view.report.MonthlyReportFragment
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
+
 
 /**
  * Activity that displays monthly report
@@ -42,6 +57,8 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
     private val viewModel: MonthlyReportBaseViewModel by viewModel()
 
     private var ignoreNextPageSelectedEvent: Boolean = false
+
+    private val appPreferences: AppPreferences by inject()
 
 
     override fun createBinding(): ActivityMonthlyReportBinding {
@@ -76,42 +93,87 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
         binding.monthlyReportPreviousMonthButton.removeButtonBorder()
         binding.monthlyReportNextMonthButton.removeButtonBorder()
 
-        viewModel.datesLiveData.observe(this, Observer { dates ->
+        viewModel.datesLiveData.observe(this) { dates ->
             configureViewPager(dates)
 
             binding.monthlyReportProgressBar.visibility = View.GONE
             binding.monthlyReportContent.visibility = View.VISIBLE
-        })
-
-        viewModel.selectedPositionLiveData.observe(
-            this,
-            Observer { (position, date, isLatestMonth) ->
-                if (!ignoreNextPageSelectedEvent) {
-                    binding.monthlyReportViewPager.setCurrentItem(position, true)
-                }
-
-                ignoreNextPageSelectedEvent = false
-
-                binding.monthlyReportMonthTitleTv.text = date.getMonthTitle(this)
-
-                // Last and first available month
-                val isFirstMonth = position == 0
-
-                binding.monthlyReportNextMonthButton.isEnabled = !isLatestMonth
-                binding.monthlyReportPreviousMonthButton.isEnabled = !isFirstMonth
-            })
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-
-        if (id == android.R.id.home) {
-            finish()
-            return true
         }
 
-        return super.onOptionsItemSelected(item)
+        viewModel.selectedPositionLiveData.observe(this) { (position, date, isLatestMonth) ->
+            if (!ignoreNextPageSelectedEvent) {
+                binding.monthlyReportViewPager.setCurrentItem(position, true)
+            }
+
+            ignoreNextPageSelectedEvent = false
+
+            binding.monthlyReportMonthTitleTv.text = date.getMonthTitle(this)
+
+            // Last and first available month
+            val isFirstMonth = position == 0
+
+            binding.monthlyReportNextMonthButton.isEnabled = !isLatestMonth
+            binding.monthlyReportPreviousMonthButton.isEnabled = !isFirstMonth
+        }
     }
+
+// ------------------------------------------>
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.menu_reports, menu)
+        return true
+    }
+
+    /**
+     * Creating a custom menu option.
+     */
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val menuItem = menu?.findItem(R.id.action_future_expenses)
+        val rootView = menuItem?.actionView as LinearLayout?
+        val customFutureExpenseMenu = rootView?.findViewById<TextView>(R.id.tvMenuFutureExpense)
+        customFutureExpenseMenu?.let {
+            if (appPreferences.hasUserCompleteFutureExpensesShowCaseView().not()) {
+                showCaseView(
+                    targetView = it,
+                    title = getString(R.string.future_expenses),
+                    message = getString(R.string.future_expenses_show_view_message),
+                    handleGuideListener = {
+                        appPreferences.setUserCompleteFutureExpensesShowCaseView()
+                    }
+                )
+            }
+            it.setOnClickListener {
+                ActivityCompat.startActivity(
+                    this, Intent(this, FutureBaseActivity::class.java),
+                    null
+                )
+            }
+        }
+        return true
+    }
+
+    /**
+     *
+     */
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            R.id.action_future_expenses -> {
+                ActivityCompat.startActivity(
+                    this, Intent(this, FutureBaseActivity::class.java),
+                    null
+                )
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+// ------------------------------------------>
 
     /**
      * Configure the [.pager] adapter and listener.

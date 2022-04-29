@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,95 +7,179 @@
     android:orientation="vertical"
     tools:context=".view.settings.releaseHistory.ReleaseHistoryTimelineActivity">
 
-
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:theme="@style/ToolbarTheme" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="@dimen/_16sdp"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
         android:orientation="vertical">
 
-        <TextView
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/setting_app_open_source_title"
-            android:textColor="@color/colorBlack"
-            android:textSize="@dimen/_12ssp"
-            android:textStyle="bold" />
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_4sdp"
-            android:autoLink="email"
-            android:text="@string/setting_app_open_source_details"
-            android:textColor="@color/colorBlackLight"
-            android:textSize="@dimen/_12ssp" />
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/ToolbarTheme" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_15sdp"
-            android:text="@string/text_download_easy_budget_on_play_store"
-            android:textColor="@color/colorBlackLight"
-            android:textSize="@dimen/_12ssp" />
+        </com.google.android.material.appbar.AppBarLayout>
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_2sdp"
-            android:autoLink="all"
-            android:text="@string/text_easy_budget_link"
-            android:textColor="@color/colorBlackLight"
-            android:textSize="@dimen/_12ssp" />
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/_16sdp"
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_15sdp"
-            android:text="@string/text_easy_budget_source"
-            android:textColor="@color/colorBlackLight"
-            android:textSize="@dimen/_12ssp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/setting_app_open_source_title"
+                android:textColor="@color/colorBlack"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_2sdp"
-            android:autoLink="all"
-            android:text="@string/text_easy_budget_source_link"
-            android:textColor="@color/colorBlackLight"
-            android:textSize="@dimen/_12ssp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:autoLink="email"
+                android:text="@string/setting_app_open_source_details"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_15sdp"
-            android:text="@string/text_simple_budget_source"
-            android:textColor="@color/colorBlackLight"
-            android:textSize="@dimen/_12ssp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_15sdp"
+                android:text="@string/text_download_easy_budget_on_play_store"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_2sdp"
-            android:autoLink="all"
-            android:text="@string/text_simple_budget_source_link"
-            android:textColor="@color/colorBlackLight"
-            android:textSize="@dimen/_12ssp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:autoLink="all"
+                android:text="@string/text_easy_budget_link"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_15sdp"
+                android:text="@string/text_easy_budget_source"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:autoLink="all"
+                android:text="@string/text_easy_budget_source_link"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_15sdp"
+                android:text="@string/text_simple_budget_source"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:autoLink="all"
+                android:text="@string/text_simple_budget_source_link"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_15sdp"
+                android:text="@string/dotted_divider"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_15sdp"
+                android:text="@string/special_thanks_to_these_open_source_libraries"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_14ssp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/_1_caldroid"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/_2_circleindicator"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/_3_mpandroidchart"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/_4_showcaseview"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/_5_lottie"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/_6_shimmer_facebook"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/_7_jxl_excel_sheet"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+        </LinearLayout>
+
+
     </LinearLayout>
 
 
-</LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -89,10 +89,35 @@ private const val RATING_COMPLETED_PARAMETERS_KEY = "rating_completed"
 /**
  * Has the user saw the monthly report hint (bool)
  */
-private const val USER_SAW_MONTHLY_REPORT_HINT_PARAMETERS_KEY = "user_saw_monthly_report_hint"
+private const val USER_SAW_MONTHLY_REPORT_HINT_PARAMETERS_KEY =
+    "user_saw_monthly_report_hint_updated"
 
 
-private const val USER_SAW_ADJUST_BALANCE_HINT_PARAMETERS_KEY = "user_saw_adjusty_balance_hint"
+/**
+ * Break down hint
+ */
+private const val USER_SAW_BREAK_DOWN_HINT_PARAMETERS_KEY = "user_saw_break_down_hint"
+
+/**
+ * Future expenses hint
+ */
+private const val USER_SAW_FUTURE_EXPENSES_HINT_PARAMETERS_KEY = "user_saw_future_expenses_hint"
+
+/**
+ * Settings Hint
+ */
+private const val USER_SAW_SETTINGS_HINT_PARAMETERS_KEY = "user_saw_settings_hint"
+
+/**
+ * Hide Balance
+ */
+private const val USER_SAW_HIDE_BALANCE_HINT_PARAMETERS_KEY = "user_saw_hide_balance_hint"
+
+private const val USER_SAW_ADD_SINGLE_EXPENSE_HINT_PARAMETERS_KEY =
+    "user_saw_add_single_expense_hint"
+
+private const val USER_SAW_ADD_RECURRING_EXPENSE_HINT_PARAMETERS_KEY =
+    "user_saw_add_recurring_expense_hint"
 
 /**
  * Backup enabled
@@ -118,6 +143,16 @@ private const val DISPLAY_BALANCE = "display_balance"
  * App lock
  */
 private const val APP_LOCK = "app_lock"
+
+/**
+ * Future expenses menu in report activity
+ */
+private const val SHOW_CASE_VIEW_FUTURE_EXPENSES = "future_expenses_menu_in_report"
+
+/**
+ * Future expenses menu in report activity
+ */
+private const val SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN = "expenses_break_menu_in_future"
 
 fun AppPreferences.getInitTimestamp(): Long {
     return getLong(INIT_DATE_PARAMETERS_KEY, 0L)
@@ -264,12 +299,76 @@ fun AppPreferences.setUserSawMonthlyReportHint() {
     putBoolean(USER_SAW_MONTHLY_REPORT_HINT_PARAMETERS_KEY, true)
 }
 
+
 /**
+ * Break Down Hint
  */
-fun AppPreferences.setUserSawAdjustBalanceHint() {
-    putBoolean(USER_SAW_ADJUST_BALANCE_HINT_PARAMETERS_KEY, true)
+fun AppPreferences.hasUserSawBreakDownHint(): Boolean {
+    return getBoolean(USER_SAW_BREAK_DOWN_HINT_PARAMETERS_KEY, false)
 }
 
+fun AppPreferences.setUserSawBreakDownHint() {
+    putBoolean(USER_SAW_BREAK_DOWN_HINT_PARAMETERS_KEY, true)
+}
+
+/**
+ * Future expenses hint
+ */
+fun AppPreferences.hasUserSawFutureExpensesHint(): Boolean {
+    return getBoolean(USER_SAW_FUTURE_EXPENSES_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawFutureExpensesHint() {
+    putBoolean(USER_SAW_FUTURE_EXPENSES_HINT_PARAMETERS_KEY, true)
+}
+
+/**
+ * Settings hint
+ */
+fun AppPreferences.hasUserSawSettingsHint(): Boolean {
+    return getBoolean(USER_SAW_SETTINGS_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawSettingsHint() {
+    putBoolean(USER_SAW_SETTINGS_HINT_PARAMETERS_KEY, true)
+}
+
+/**
+ * Hide Balance, Switch Button on home screen
+ */
+fun AppPreferences.hasUserSawHideBalanceHint(): Boolean {
+    return getBoolean(USER_SAW_HIDE_BALANCE_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawHideBalanceHint() {
+    putBoolean(USER_SAW_HIDE_BALANCE_HINT_PARAMETERS_KEY, true)
+}
+
+/**
+ * Hint Add single expense
+ */
+fun AppPreferences.hasUserSawAddSingleExpenseHint(): Boolean {
+    return getBoolean(USER_SAW_ADD_SINGLE_EXPENSE_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawAddSingleExpenseHint() {
+    putBoolean(USER_SAW_ADD_SINGLE_EXPENSE_HINT_PARAMETERS_KEY, true)
+}
+
+/**
+ * Hint Add Recurring expense
+ */
+fun AppPreferences.hasUserSawAddRecurringExpenseHint(): Boolean {
+    return getBoolean(USER_SAW_ADD_RECURRING_EXPENSE_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawAddRecurringExpenseHint() {
+    putBoolean(USER_SAW_ADD_RECURRING_EXPENSE_HINT_PARAMETERS_KEY, true)
+}
+
+/**
+ *
+ */
 fun AppPreferences.isBackupEnabled(): Boolean {
     return getBoolean(BACKUP_ENABLED_PARAMETERS_KEY, false)
 }
@@ -338,4 +437,36 @@ fun AppPreferences.hiddenProtectionType(): Int {
 
 fun AppPreferences.setHiddenProtectionType(hiddenProtectionType: Int) {
     putInt(PROTECTION_TYPE, hiddenProtectionType)
+}
+
+/**
+ * Has the user complete Future Expenses ShowCaseView
+ *
+ * @return true if the user has already viewed, false otherwise
+ */
+fun AppPreferences.hasUserCompleteFutureExpensesShowCaseView(): Boolean {
+    return getBoolean(SHOW_CASE_VIEW_FUTURE_EXPENSES, false)
+}
+
+/**
+ * Set that the user has complete Future Expenses ShowCaseView
+ */
+fun AppPreferences.setUserCompleteFutureExpensesShowCaseView() {
+    putBoolean(SHOW_CASE_VIEW_FUTURE_EXPENSES, true)
+}
+
+/**
+ * Has the user complete Future Expenses Break Down
+ *
+ * @return true if the user has already viewed, false otherwise
+ */
+fun AppPreferences.hasUserCompleteExpensesBreakDownShowCaseView(): Boolean {
+    return getBoolean(SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN, false)
+}
+
+/**
+ * Set that the user has complete Expenses Break Down
+ */
+fun AppPreferences.setUserCompleteExpensesBreakDownShowCaseView() {
+    putBoolean(SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN, true)
 }

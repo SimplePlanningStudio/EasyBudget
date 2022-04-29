@@ -19,7 +19,6 @@ public class MoreApps {
 
     public static final String PLAY_STORE_BASE_LINK = "https://play.google.com/store/apps/details?id=";
 
-    // Todo it's looking very bad need to improve this
     public static final String MY_APPS_RESPONSE = "{\n" +
             "\t\"data\": [{\n" +
             "\t\t\t\"title\": \"Simple QR and Barcode Scanner\",\n" +

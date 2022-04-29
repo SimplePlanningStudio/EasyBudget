@@ -14,8 +14,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 32
-        versionCode 19
-        versionName "2.0.5"
+        versionCode 20
+        versionName "2.0.6"
         vectorDrawables.useSupportLibrary = true
         flavorDimensions "default"
     }
@@ -24,10 +24,12 @@ android {
         prod {
             applicationId "gplx.simple.budgetapp"
             resValue "string", "app_name_simple_budget", "Simple Budget"
+            resValue "string", "app_name_simplebudget_title", "SimpleBudget"
         }
         dev {
             applicationId "gplx.simple.budgetapp.dev"
             resValue "string", "app_name_simple_budget", "Dev Simple Budget"
+            resValue "string", "app_name_simplebudget_title", "Dev SimpleBudget"
         }
     }
 
@@ -135,6 +137,8 @@ dependencies {
     api 'com.darwinsys:hirondelle-date4j:1.5.1'
 
     implementation 'com.google.code.gson:gson:2.8.9'
+
+    implementation project(':MPChartLib')
 }
 
 apply plugin: 'com.google.gms.google-services'

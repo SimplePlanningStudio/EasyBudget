@@ -56,6 +56,32 @@ fun AppPreferences.getListOfMonthsAvailableForUser(): List<Date> {
     return months
 }
 
+object DateHelper {
+    /**
+     * Get the list of future months available for the user for the monthly report view.
+     *
+     * @return a list of Date object set at the 1st day of the month 00:00:00:000
+     */
+    fun getListOfFutureMonthsAvailableForUser(): List<Date> {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = Date().time // Set today date
+
+        cal.set(Calendar.MILLISECOND, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+       // cal.add(Calendar.MONTH, 1) // To take only future months, Adding one month in advance.
+
+        val months = ArrayList<Date>()
+        for (i in 1..10) {
+            months.add(cal.time)
+            cal.add(Calendar.MONTH, 1)
+        }
+        return months
+    }
+}
+
 /**
  * Get the title of the month to display in the report view
  *

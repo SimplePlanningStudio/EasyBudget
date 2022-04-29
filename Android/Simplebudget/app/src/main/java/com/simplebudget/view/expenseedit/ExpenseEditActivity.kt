@@ -65,6 +65,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
     private var adView: AdView? = null
     private var categories: ArrayList<String> = ArrayList()
     private lateinit var adapterCategory: ArrayAdapter<String>
+    private var existingExpenseCategory: String = ""
 
 
     override fun createBinding(): ActivityExpenseEditBinding =
@@ -80,17 +81,6 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
-            categories.clear()
-            if (dbCat.isEmpty()) {
-                categories.addAll(ExpenseCategories.getCategoriesList())
-            } else {
-                categories.addAll(dbCat)
-            }
-            //Load category view with empty state
-            setCategoriesView("")
-        }
 
         // Register receiver
         val filter = IntentFilter()
@@ -182,6 +172,18 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
                     viewModel.onAddExpenseBeforeInitDateCancelled()
                 }
                 .show()
+        }
+
+        //Load categories
+        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
+            categories.clear()
+            if (dbCat.isEmpty()) {
+                categories.addAll(ExpenseCategories.getCategoriesList())
+            } else {
+                categories.addAll(dbCat)
+            }
+            //Load category view with empty state
+            setCategoriesView(existingExpenseCategory)
         }
     }
 
@@ -304,10 +306,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         if (amount != null) {
             binding.amountEdittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
         }
-
-        if (categoryType != null) {
-            setCategoriesView(categoryType)
-        }
+        //Hold this to display over category spinner
+        existingExpenseCategory = categoryType ?: ""
     }
 
     /**
@@ -322,13 +322,13 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         adapterCategory.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.categoriesSpinner.setAdapter(adapterCategory)
         binding.categoriesSpinner.threshold = 1
-        binding.categoriesSpinner.setText(categoryType.capital())
         //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
         binding.categoriesSpinner.onItemClickListener =
             AdapterView.OnItemClickListener { parent, _, position, _ ->
                 val selectedItem = parent.getItemAtPosition(position).toString()
                 binding.categoriesSpinner.setText(selectedItem.capital())
             }
+        binding.categoriesSpinner.setText(categoryType.capital())
     }
 
     /**

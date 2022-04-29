@@ -43,6 +43,7 @@
             android:name="com.simplebudget.view.main.MainActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
+            android:label="@string/app_name_simplebudget_title"
             android:launchMode="singleInstancePerTask"
             android:screenOrientation="portrait" />
 
@@ -89,6 +90,28 @@
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_budget_report"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.simplebudget.view.breakdown.base.BreakDownBaseActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/title_expenses_breakdown"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.simplebudget.view.search.base.SearchBaseActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/title_search_expenses"
+            android:screenOrientation="portrait" />
+
+
+        <activity
+            android:name="com.simplebudget.view.futurepayments.FutureBaseActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/title_upcoming"
             android:screenOrientation="portrait" />
 
         <activity

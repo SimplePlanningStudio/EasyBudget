@@ -93,6 +93,10 @@ class DBImpl(private val roomDB: RoomDB) : DB {
             .toExpenses(this)
     }
 
+    override suspend fun getAllExpenses(startDate: Date, endDate: Date): List<Expense> {
+        return roomDB.expenseDao().getAllExpenses(startDate, endDate).toExpenses(this)
+    }
+
     override suspend fun getBalanceForDay(dayDate: Date): Double {
         val (_, endDate) = dayDate.getDayDatesRange()
 

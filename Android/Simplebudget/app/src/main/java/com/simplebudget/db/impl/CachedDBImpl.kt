@@ -99,6 +99,9 @@ class CachedDBImpl(
     override suspend fun getExpensesForMonth(monthStartDate: Date): List<Expense> =
         wrappedDB.getExpensesForMonth(monthStartDate)
 
+    override suspend fun getAllExpenses(startDate: Date, endDate: Date): List<Expense> =
+        wrappedDB.getAllExpenses(startDate, endDate)
+
     override suspend fun getBalanceForDay(dayDate: Date): Double {
         val cached = synchronized(cacheStorage.balances) {
             cacheStorage.balances[dayDate.cleaned()]

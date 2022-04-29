@@ -15,7 +15,7 @@
  */
 package com.simplebudget.view.report
 
-import android.Manifest
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
 import android.os.Build
@@ -69,8 +69,8 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     private var mAdIsLoading = false
 
     private val storagePermissions = arrayOf(
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE
+        WRITE_EXTERNAL_STORAGE,
+        READ_EXTERNAL_STORAGE
     )
 
 // ---------------------------------->
@@ -82,6 +82,9 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     ): FragmentMonthlyReportBinding =
         FragmentMonthlyReportBinding.inflate(inflater, container, false)
 
+    /**
+     *
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         date = requireArguments().getSerializable(ARG_DATE) as Date
