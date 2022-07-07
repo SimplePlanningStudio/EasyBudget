@@ -102,11 +102,11 @@ class RatingPopup(
         return AlertDialog.Builder(context)
             .setTitle(R.string.rating_popup_negative_title)
             .setMessage(R.string.rating_popup_negative_message)
-            .setNegativeButton(R.string.rating_popup_negative_cta_negative) { _, _ ->
+            .setNegativeButton(R.string.no_thanks) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_DISLIKE_NO_FEEDBACK)
                 appPreferences.setUserHasCompleteRating()
             }
-            .setPositiveButton(R.string.rating_popup_negative_cta_positive) { _, _ ->
+            .setPositiveButton(R.string.sure) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_DISLIKE_FEEDBACK)
                 appPreferences.setUserHasCompleteRating()
                 Feedback.askForFeedback(context)
@@ -123,11 +123,11 @@ class RatingPopup(
         return AlertDialog.Builder(context)
             .setTitle(R.string.rating_popup_positive_title)
             .setMessage(R.string.rating_popup_positive_message)
-            .setNegativeButton(R.string.rating_popup_positive_cta_negative) { _, _ ->
+            .setNegativeButton(R.string.no_thanks) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_LIKE_NOT_RATED)
                 appPreferences.setUserHasCompleteRating()
             }
-            .setPositiveButton(R.string.rating_popup_positive_cta_positive) { _, _ ->
+            .setPositiveButton(R.string.sure) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_LIKE_RATED)
                 appPreferences.setUserHasCompleteRating()
                 Rate.onPlayStore(context)

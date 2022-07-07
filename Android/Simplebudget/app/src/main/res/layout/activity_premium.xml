@@ -139,7 +139,7 @@
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
         android:text="@string/text_redeem_a_promo_code"
-        android:textColor="@color/fui_linkColor"
+        android:textColor="@color/white"
         android:textSize="@dimen/_14ssp"
         android:textStyle="italic"
         tools:ignore="UnusedAttribute" />

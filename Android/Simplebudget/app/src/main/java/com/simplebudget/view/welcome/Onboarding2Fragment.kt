@@ -23,7 +23,7 @@ import java.util.*
  * @author Benoit LETONDOR
  */
 class Onboarding2Fragment : OnboardingFragment<FragmentOnboarding2Binding>() {
-    private lateinit var selectedCurrency: Currency
+    private var selectedCurrency: Currency? = null
     private lateinit var receiver: BroadcastReceiver
 
     private val appPreferences: AppPreferences by inject()

@@ -83,6 +83,18 @@ class CategoriesViewModel(private val db: DB) : ViewModel() {
     }
 
     /**
+     * Delete category from DB
+     */
+    fun deleteCategory(categoryType: String?) {
+        categoryType?.let {
+            if (it.isEmpty() || it.isBlank()) return
+            viewModelScope.launch {
+                db.deleteCategory(categoryType.uppercase())
+            }
+        }
+    }
+
+    /**
      * Add categories and keep user's categories as well.
      */
     private fun refreshCategories() {

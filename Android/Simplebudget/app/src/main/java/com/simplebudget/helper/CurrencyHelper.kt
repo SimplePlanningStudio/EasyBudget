@@ -110,7 +110,7 @@ object CurrencyHelper {
 private const val CURRENCY_ISO_PARAMETERS_KEY = "currency_iso"
 
 fun AppPreferences.getUserCurrency(): Currency =
-    Currency.getInstance(getString(CURRENCY_ISO_PARAMETERS_KEY))
+    Currency.getInstance(getString(CURRENCY_ISO_PARAMETERS_KEY) ?: "USD")
 
 fun AppPreferences.setUserCurrency(currency: Currency) {
     putString(CURRENCY_ISO_PARAMETERS_KEY, currency.currencyCode)

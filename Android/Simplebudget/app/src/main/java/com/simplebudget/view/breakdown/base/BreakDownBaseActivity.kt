@@ -15,16 +15,19 @@
  */
 package com.simplebudget.view.breakdown.base
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.lifecycle.Observer
 import androidx.viewpager.widget.ViewPager
 import com.simplebudget.databinding.ActivityBreakdownExpensesBinding
 import com.simplebudget.helper.BaseActivity
+import com.simplebudget.prefs.*
 import com.simplebudget.view.breakdown.BreakDownFragment
+import com.simplebudget.view.main.MainActivity
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
@@ -33,10 +36,12 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     ViewPager.OnPageChangeListener {
 
     private val viewModel: BreakDownBaseViewModel by viewModel()
-
     private var ignoreNextPageSelectedEvent: Boolean = false
+    private var isAddedExpense: Boolean = false
 
-
+    /**
+     *
+     */
     override fun createBinding(): ActivityBreakdownExpensesBinding {
         return ActivityBreakdownExpensesBinding.inflate(layoutInflater)
     }
@@ -55,34 +60,49 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
             viewModel.loadData(intent.getBooleanExtra(FROM_NOTIFICATION_EXTRA, false))
         }
 
-        viewModel.datesLiveData.observe(this, Observer { dates ->
+        viewModel.datesLiveData.observe(this) { dates ->
             configureViewPager(dates)
 
             binding.monthlyReportProgressBar.visibility = View.GONE
             binding.monthlyReportContent.visibility = View.VISIBLE
-        })
-
-        viewModel.selectedPositionLiveData.observe(
-            this,
-            Observer { (position, date, isLatestMonth) ->
-                if (!ignoreNextPageSelectedEvent) {
-                    binding.monthlyReportViewPager.setCurrentItem(position, true)
-                }
-                ignoreNextPageSelectedEvent = false
-                // Last and first available month
-                val isFirstMonth = position == 0
-            })
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-
-        if (id == android.R.id.home) {
-            finish()
-            return true
         }
 
-        return super.onOptionsItemSelected(item)
+        viewModel.selectedPositionLiveData.observe(
+            this
+        ) { (position, _, _) ->
+            if (!ignoreNextPageSelectedEvent) {
+                binding.monthlyReportViewPager.setCurrentItem(position, true)
+            }
+            ignoreNextPageSelectedEvent = false
+            // Last and first available month
+            val isFirstMonth = position == 0
+        }
+    }
+
+    // ------------------------------------------>
+    /**
+     *
+     */
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+// ------------------------------------------>
+    /**
+     *
+     */
+    override fun onBackPressed() {
+        if (isAddedExpense) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finishAffinity()
+        } else {
+            finish()
+        }
     }
 
     /**
@@ -114,6 +134,20 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     }
 
     override fun onPageScrollStateChanged(state: Int) {}
+
+
+    /**
+     *
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == MainActivity.ADD_EXPENSE_ACTIVITY_CODE || requestCode == MainActivity.MANAGE_RECURRING_EXPENSE_ACTIVITY_CODE) {
+            if (resultCode == RESULT_OK) {
+                viewModel.loadData(intent.getBooleanExtra(FROM_NOTIFICATION_EXTRA, false))
+                isAddedExpense = true
+            }
+        }
+    }
 
     companion object {
         /**

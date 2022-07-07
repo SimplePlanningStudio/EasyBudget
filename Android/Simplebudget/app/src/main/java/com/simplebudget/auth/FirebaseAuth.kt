@@ -62,7 +62,7 @@ class FirebaseAuth(private val auth: com.google.firebase.auth.FirebaseAuth) : Au
 
             if (resultCode != Activity.RESULT_OK) {
                 val response = IdpResponse.fromResultIntent(data)
-                if( response != null ) {
+                if (response != null) {
                     Log.e(
                         "FirebaseAuth",
                         "Error while authenticating: ${response.error?.errorCode}: ${response.error?.localizedMessage}",
@@ -82,7 +82,7 @@ class FirebaseAuth(private val auth: com.google.firebase.auth.FirebaseAuth) : Au
 
     private fun getAuthState(): AuthState {
         val currentUser = auth.currentUser
-        return if( currentUser == null ) {
+        return if (currentUser == null) {
             AuthState.NotAuthenticated
         } else {
             AuthState.Authenticated(FirebaseCurrentUser(currentUser))

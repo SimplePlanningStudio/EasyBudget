@@ -1,0 +1,28 @@
+﻿{
+  "data": [
+    {
+      "title": "Simple QR and Barcode Scanner",
+      "message": "Scan and generate QR, Barcode easily.",
+      "imagelink": "ic_qr_and_barcode.png",
+      "store_link": "gplx.qr.barcode.scanner.generator"
+    },
+    {
+      "title": "Random Password Generator",
+      "message": "Generate random single and multiple passwords offline.",
+      "imagelink": "ic_random_password.png",
+      "store_link": "com.wavetechstudio.passwordgenerator"
+    },
+    {
+      "title": "Router Admin Page",
+      "message": "Configure router's settings instantly.",
+      "imagelink": "ic_router_app.png",
+      "store_link": "gplx.router.admin.page"
+    },
+    {
+      "title": "Mirror App",
+      "message": "Smallest, Efficient Hd Mirror App.",
+      "imagelink": "icon_mirror_app.png",
+      "store_link": "best.hd.mirror"
+    }
+  ]
+}

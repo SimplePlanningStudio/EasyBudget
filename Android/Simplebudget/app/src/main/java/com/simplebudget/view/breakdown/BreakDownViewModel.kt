@@ -36,13 +36,14 @@ class BreakDownViewModel(
     private val appPreferences: AppPreferences,
 ) : ViewModel() {
 
-    val monthlyReportDataLiveData = MutableLiveData<MonthlyBreakDownData>()
+    val monthlyReportDataLiveDataForAllTypesOfExpenses = MutableLiveData<MonthlyBreakDownData>()
     val expenses = mutableListOf<Expense>()
     val revenues = mutableListOf<Expense>()
     val allExpensesOfThisMonth = mutableListOf<CategoryWiseExpense>()
     var revenuesAmount = 0.0
     var expensesAmount = 0.0
     var balance = 0.0
+    var totalExpenses = 0.0
     val hashMap = hashMapOf<String, CustomTriple.Data>()
 
     data class CategoryWiseExpense(var category: String, var amountSpend: Double)
@@ -63,29 +64,35 @@ class BreakDownViewModel(
             val expensesAmount: Double,
             val revenuesAmount: Double,
             val totalExpenses: Double,
-            val balance: Double
+            val balance: Double,
+            var expenses: ArrayList<Expense>,
+            var revenues: ArrayList<Expense>
         ) : MonthlyBreakDownData()
     }
 
-    fun loadDataForMonth(month: Date) {
+    fun loadDataForMonth(month: Date, type: String) {
         viewModelScope.launch {
             val expensesForMonth = withContext(Dispatchers.Default) {
                 db.getExpensesForMonth(month)
             }
 
             if (expensesForMonth.isEmpty()) {
-                monthlyReportDataLiveData.value = MonthlyBreakDownData.Empty
+                monthlyReportDataLiveDataForAllTypesOfExpenses.value = MonthlyBreakDownData.Empty
                 return@launch
             }
 
             expenses.clear()
             revenues.clear()
+            allExpensesOfThisMonth.clear()
             revenuesAmount = 0.0
             expensesAmount = 0.0
 
             hashMap.clear()
             withContext(Dispatchers.Default) {
                 for (expense in expensesForMonth) {
+                    // Only allows to add only expenses till current date
+                    if (expense.date.after(Date())) break
+
                     // Adding category into map with empty list
                     if (!hashMap.containsKey(expense.category))
                         hashMap[expense.category] =
@@ -94,44 +101,58 @@ class BreakDownViewModel(
                     var tDebit: Double = hashMap[expense.category]?.totalDebit ?: 0.0
 
                     if (expense.isRevenue()) {
-                        revenues.add(expense)
-                        revenuesAmount -= expense.amount
-                        tCredit -= expense.amount
+                        if (type == TYPE.REVENUES.name || type == TYPE.ALL.name) {
+                            revenues.add(expense)
+                            revenuesAmount -= expense.amount
+                            tCredit -= expense.amount
+                        }
                     } else {
-                        expenses.add(expense)
-                        expensesAmount += expense.amount
-                        tDebit += expense.amount
+                        if (type == TYPE.EXPENSE.name || type == TYPE.ALL.name) {
+                            expenses.add(expense)
+                            expensesAmount += expense.amount
+                            tDebit += expense.amount
+                        }
                     }
                     hashMap[expense.category]?.totalCredit = tCredit
                     hashMap[expense.category]?.totalDebit = tDebit
                     hashMap[expense.category]?.expenses?.add(expense)
                 }
-            }
+                hashMap.keys.forEach { key ->
+                    val totalCredit = hashMap[key]?.totalCredit ?: 0.0
+                    val totalDebit = hashMap[key]?.totalDebit ?: 0.0
+                    var amountSpend =
+                        if (totalCredit > totalDebit) (totalCredit - totalDebit) else (totalDebit - totalCredit)
 
-            hashMap.keys.forEach { key ->
-                val totalCredit = hashMap[key]?.totalCredit ?: 0.0
-                val totalDebit = hashMap[key]?.totalDebit ?: 0.0
-                val amountSpend =
-                    if (totalCredit > totalDebit) (totalCredit - totalDebit) else (totalDebit - totalCredit)
-                allExpensesOfThisMonth.add(
-                    CategoryWiseExpense(
-                        hashMap[key]?.category!!,
-                        amountSpend
+                    if (type == TYPE.EXPENSE.name) {
+                        amountSpend = totalDebit
+                    } else if (type == TYPE.REVENUES.name) {
+                        amountSpend = totalCredit
+                    }
+                    if (amountSpend != 0.0) {
+                        allExpensesOfThisMonth.add(
+                            CategoryWiseExpense(
+                                hashMap[key]?.category!!,
+                                amountSpend
+                            )
+                        )
+                    }
+                }
+                balance = revenuesAmount - expensesAmount
+
+                totalExpenses = allExpensesOfThisMonth.sumOf { it.amountSpend }
+
+                monthlyReportDataLiveDataForAllTypesOfExpenses.postValue(
+                    MonthlyBreakDownData.Data(
+                        allExpensesOfThisMonth,
+                        expensesAmount,
+                        revenuesAmount,
+                        totalExpenses,
+                        balance,
+                        ArrayList(expenses),
+                        ArrayList(revenues)
                     )
                 )
             }
-            balance = revenuesAmount - expensesAmount
-
-            val totalExpenses = allExpensesOfThisMonth.sumOf { it.amountSpend }
-
-            monthlyReportDataLiveData.value =
-                MonthlyBreakDownData.Data(
-                    allExpensesOfThisMonth,
-                    expensesAmount,
-                    revenuesAmount,
-                    totalExpenses,
-                    balance
-                )
         }
     }
 

@@ -155,7 +155,7 @@ suspend fun restoreLatestDBBackup(
         backupFolder.mkdir()
         archive.extractAll(backupFolder.absolutePath)
 
-        val versionFile = File(backupFolder, BACKUP_VERSION_FILENAME)
+        //val versionFile = File(backupFolder, BACKUP_VERSION_FILENAME)
         val dbBackupFile = File(backupFolder, BACKUP_DB_FILENAME)
 
         restoreDBBackup(dbBackupFile, context)

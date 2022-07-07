@@ -53,6 +53,11 @@ class DBImpl(private val roomDB: RoomDB) : DB {
         return roomDB.categoryDao().getCategories().toCategories()
     }
 
+    override suspend fun deleteCategory(categoryName: String?) {
+        if (categoryName.isNullOrBlank()) return
+        roomDB.categoryDao().deleteCategory(categoryName)
+    }
+
     override suspend fun deleteCategory(category: Category) {
         if (category.id == null) {
             throw IllegalArgumentException("deleteCategory called with a category that has no id")
