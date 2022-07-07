@@ -5,8 +5,8 @@
     <item
         android:id="@+id/action_breakdown"
         android:orderInCategory="1"
-        android:title="@string/all_label"
-        app:actionLayout="@layout/custom_menu_view_breakdown"
+        android:title="@string/breakdown"
+        app:actionLayout="@layout/custom_menu_view_break_down"
         app:showAsAction="always" />
 
 </menu>

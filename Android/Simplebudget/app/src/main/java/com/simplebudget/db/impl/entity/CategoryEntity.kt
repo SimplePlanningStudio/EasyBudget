@@ -32,9 +32,4 @@ class CategoryEntity(
         id,
         catName
     )
-
-    fun toCategory(id: Long, catName: String) = CategoryEntity(
-        id,
-        catName
-    )
 }

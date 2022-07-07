@@ -34,9 +34,4 @@ interface CategoryDao {
 
     @Delete
     suspend fun deleteCategory(categoryEntity: CategoryEntity)
-
-
-    @Query("DELETE FROM category WHERE name = :categoryName")
-    suspend fun deleteCategory(categoryName: String)
-
 }

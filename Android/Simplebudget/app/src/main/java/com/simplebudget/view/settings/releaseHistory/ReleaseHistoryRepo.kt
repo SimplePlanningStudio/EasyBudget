@@ -9,13 +9,6 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
-            // 2.0.7
-            releaseList.add(ReleaseHistory("Version", "2.0.7", "New design added for category selection."))
-            releaseList.add(ReleaseHistory("Version", "2.0.7", "You can add or remove your categories from app settings."))
-            releaseList.add(ReleaseHistory("Version", "2.0.7", "Filters(All, Expenses and Incomes) added in breakdown."))
-            releaseList.add(ReleaseHistory("Version", "2.0.7", "Added intro and hint functionality for all expense/income switch."))
-            releaseList.add(ReleaseHistory("Version", "2.0.7", "UI enhancement and bug fixing."))
-
             // 2.0.6
             releaseList.add(ReleaseHistory("Version", "2.0.6", "Added functionality to check upcoming(Future) expenses and payments. You can access inside app settings. "))
             releaseList.add(ReleaseHistory("Version", "2.0.6", "Added monthly expenses break down (Pie Chart). You can access inside app settings. "))

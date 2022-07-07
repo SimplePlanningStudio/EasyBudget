@@ -96,7 +96,7 @@
             android:name="com.simplebudget.view.breakdown.base.BreakDownBaseActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
-            android:label="@string/breakdown"
+            android:label="@string/title_expenses_breakdown"
             android:screenOrientation="portrait" />
 
         <activity
@@ -167,11 +167,6 @@
 
         <activity
             android:name=".view.security.SecurityActivity"
-            android:exported="false"
-            android:theme="@style/Transparent" />
-
-        <activity
-            android:name=".view.category.CategoriesActivity"
             android:exported="false"
             android:theme="@style/Transparent" />
 

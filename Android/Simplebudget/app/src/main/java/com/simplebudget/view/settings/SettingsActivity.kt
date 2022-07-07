@@ -122,7 +122,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             override fun onAdDismissedFullScreenContent() {
             }
 
-            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+            override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
             }
 
             override fun onAdShowedFullScreenContent() {

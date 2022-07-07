@@ -30,17 +30,16 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.simplebudget.iab.Iab
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.getTelegramIntent
-import com.simplebudget.iab.Iab
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
-import com.simplebudget.view.category.CategoriesActivity
 import com.simplebudget.view.futurepayments.FutureBaseActivity
 import com.simplebudget.view.moreApps.MoreAppsActivity
 import com.simplebudget.view.premium.PremiumActivity
@@ -52,7 +51,6 @@ import com.simplebudget.view.settings.backup.BackupSettingsActivity
 import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
 import com.simplebudget.view.settings.releaseHistory.ReleaseHistoryTimelineActivity
 import org.koin.android.ext.android.inject
-
 
 /**
  * Fragment to display preferences
@@ -97,8 +95,6 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             "%s",
             BuildConfig.VERSION_NAME
         )
-
-
         /*
          * Rating button
          */
@@ -109,33 +105,6 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 }
                 false
             }
-
-        /*
-         * Manage categories
-         */
-        findPreference<Preference>(resources.getString(R.string.setting_category_manage_category_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                val startIntent = Intent(requireActivity(), CategoriesActivity::class.java)
-                startIntent.putExtra(CategoriesActivity.REQUEST_CODE_SELECT_CATEGORY, CategoriesActivity.MANAGE_CATEGORIES)
-                ActivityCompat.startActivity(requireActivity(), startIntent, null)
-                false
-            }
-
-        /*
-         * Change language button
-         */
-        /*findPreference<Preference>(resources.getString(R.string.setting_category_change_language_button_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                activity?.let { activity ->
-                    Languages.showLanguagesDialog(
-                        activity,
-                        appPreferences.getCurrentLanguage(),
-                        onLanguageSelected = { languageCode ->
-                            appPreferences.setCurrentLanguage(languageCode)
-                        })
-                }
-                false
-            }*/
 
         /*
          * Telegram channel button
@@ -368,7 +337,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                                 setLimitWarningPreferenceTitle(limitWarningPreference)
                             } catch (e: Exception) {
                                 AlertDialog.Builder(context)
-                                    .setTitle(R.string.oops)
+                                    .setTitle(R.string.adjust_limit_warning_error_title)
                                     .setMessage(resources.getString(R.string.adjust_limit_warning_error_message))
                                     .setPositiveButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }
                                     .show()

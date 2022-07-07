@@ -18,14 +18,11 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - Balance privacy on dashboard
 - Currency searching / UI Enhancements 
 - Starting weeks from any weekday
-- Version history timelines in settings
-- Category wise reports and total expensive for each category.
-- Manage (Add, Edit, Remove) Expenses categories. 
-- Future payments (You can view all upcoming expenses in future) 
-- Expenses breakdown chart (Percentage wise view of Expenses)
-- More apps / Privacy policy / Telegram Channel in settings.
 - App open, Banner and Interstitial Ads
-
+- Version history timelines in settings
+- More apps / Privacy policy / Telegram Channel in settings. 
+- Edit / Create own categories of expenses.
+- Category wise reports and total expensive for each category.
 
 ### Important (In order to run)
 

@@ -94,8 +94,7 @@ abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
                 dialog.cancel()
                 //Cancel notification.
                 (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).cancel(
-                    NOTIFICATION_ID_NEW_FEATURES
-                )
+                    NOTIFICATION_ID_NEW_FEATURES)
             }
             alert.show()
         } catch (e: java.lang.Exception) {

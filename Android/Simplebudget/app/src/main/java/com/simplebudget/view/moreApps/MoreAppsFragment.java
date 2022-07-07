@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -76,7 +77,7 @@ public class MoreAppsFragment extends Fragment {
             recyclerViewMoreApps.setLayoutManager(new GridLayoutManager(getContext(), mColumnCount));
         }
         Gson gson = new Gson();
-        AppModel appModel = gson.fromJson(MoreApps.INSTANCE.response(requireContext()), AppModel.class);
+        AppModel appModel = gson.fromJson(MoreApps.MY_APPS_RESPONSE, AppModel.class);
         recyclerViewMoreApps.setAdapter(new MoreAppsRecyclerViewAdapter(appModel.getData(), mListener, mColumnCount));
 
         return thisView;
@@ -86,7 +87,7 @@ public class MoreAppsFragment extends Fragment {
      *
      */
     @Override
-    public void onAttach(@NonNull Context context) {
+    public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnListFragmentInteractionListener) {
             mListener = (OnListFragmentInteractionListener) context;

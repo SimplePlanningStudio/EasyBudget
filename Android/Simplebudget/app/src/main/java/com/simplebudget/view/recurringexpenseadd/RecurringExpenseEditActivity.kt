@@ -29,7 +29,6 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -42,16 +41,12 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivityRecurringExpenseAddBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.capital
-import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.model.ExpenseCategories
 import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.hasUserSawSwitchExpenseHint
-import com.simplebudget.prefs.setUserSawSwitchExpenseHint
 import com.simplebudget.view.CategoriesViewModel
 import com.simplebudget.view.DatePickerDialogFragment
-import com.simplebudget.view.category.CategoriesActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
@@ -62,6 +57,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: RecurringExpenseEditViewModel by viewModel()
+    private val viewModelCategory: CategoriesViewModel by viewModel()
     private lateinit var receiver: BroadcastReceiver
     private var adView: AdView? = null
     private var categories: ArrayList<String> = ArrayList()
@@ -184,8 +180,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             progressDialog = null
 
             AlertDialog.Builder(this)
-                .setTitle(R.string.oops)
-                .setMessage(getString(R.string.error_occurred_try_again))
+                .setTitle(R.string.recurring_expense_add_error_title)
+                .setMessage(getString(R.string.recurring_expense_add_error_message))
                 .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
                 .show()
         }
@@ -199,7 +195,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                         getCurrentAmount(),
                         binding.descriptionEdittext.text.toString(),
                         getRecurringTypeFromSpinnerSelection(binding.expenseTypeSpinner.selectedItemPosition),
-                        binding.tvCategoryName.text?.toString()
+                        binding.categoriesSpinner.text?.toString()
                             ?: ExpenseCategoryType.MISCELLANEOUS.name
                     )
                 }
@@ -209,13 +205,16 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                 .show()
         }
 
-        //Handle category
-        binding.tvCategoryName.setOnClickListener {
-            handleCategoryLaunch()
+        //Load categories
+        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
+            categories.clear()
+            if (dbCat.isEmpty()) {
+                categories.addAll(ExpenseCategories.getCategoriesList())
+            } else {
+                categories.addAll(dbCat)
+            }
+            setCategoriesViews(existingExpenseCategory)
         }
-
-        //Show hint switch income / expense
-        showCaseChangeExpenseIncomeSwitch()
     }
 
     /**
@@ -264,11 +263,6 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             }
 
         }
-
-        val category = binding.tvCategoryName.text.toString()
-        if (category.trim().isEmpty())
-            binding.tvCategoryName.text = ExpenseCategoryType.MISCELLANEOUS.name.uppercase()
-
         return ok
     }
 
@@ -290,9 +284,10 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                     getCurrentAmount(),
                     binding.descriptionEdittext.text.toString(),
                     getRecurringTypeFromSpinnerSelection(binding.expenseTypeSpinner.selectedItemPosition),
-                    binding.tvCategoryName.text?.toString()?.uppercase()
+                    binding.categoriesSpinner.text?.toString()?.uppercase()
                         ?: ExpenseCategoryType.MISCELLANEOUS.name
                 )
+                viewModelCategory.saveCategory(binding.categoriesSpinner.text.toString())
             }
         }
     }
@@ -375,7 +370,30 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             binding.amountEdittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
         }
 
-        existingExpenseCategory = categoryType ?: ""
+        existingExpenseCategory = categoryType?:""
+    }
+
+    /**
+     *
+     */
+    private fun setCategoriesViews(categoryType: String) {
+        val adapterCategory =
+            ArrayAdapter(
+                this,
+                R.layout.spinner_item_categories,
+                categories
+            )
+        adapterCategory.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.categoriesSpinner.setAdapter(adapterCategory)
+        binding.categoriesSpinner.threshold = 1
+        //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
+        binding.categoriesSpinner.onItemClickListener =
+            AdapterView.OnItemClickListener { parent, _, position, _ ->
+                val selectedItem = parent.getItemAtPosition(position).toString()
+                binding.categoriesSpinner.setText(selectedItem.capital())
+            }
+        //Set category value if editing it would be other than MISCELLANEOUS or else MISCELLANEOUS
+        binding.categoriesSpinner.setText(categoryType.capital())
     }
 
     /**
@@ -459,7 +477,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             adContainerView.addView(adView)
             val actualAdRequest = AdRequest.Builder()
                 .build()
-            adView?.setAdSize(adSize)
+            adView?.adSize = adSize
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
                 override fun onAdLoaded() {}
@@ -487,39 +505,5 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
     override fun onDestroy() {
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
-    }
-
-
-    /**
-     * Start activity for result
-     */
-    private var securityActivityLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val category =
-                result.data?.getStringExtra(CategoriesActivity.REQUEST_CODE_SELECT_CATEGORY) ?: ""
-            binding.tvCategoryName.text = category
-        }
-
-    /**
-     * Launch Security Activity
-     */
-    private fun handleCategoryLaunch() {
-        securityActivityLauncher.launch(Intent(this, CategoriesActivity::class.java))
-    }
-
-    /**
-     * Show case Hint to switch income / expense
-     */
-    private fun showCaseChangeExpenseIncomeSwitch() {
-        if (appPreferences.hasUserSawSwitchExpenseHint().not()) {
-            showCaseView(
-                targetView = binding.expenseTypeSwitch,
-                title = getString(R.string.switch_expense_income_hint_title),
-                message = getString(R.string.switch_expense_income_hint_message),
-                handleGuideListener = {
-                    appPreferences.setUserSawSwitchExpenseHint()
-                }
-            )
-        }
     }
 }

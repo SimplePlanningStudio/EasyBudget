@@ -36,6 +36,10 @@ import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.BaseActivity
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.getMonthTitle
+import com.simplebudget.helper.showcaseviewlib.GuideView
+import com.simplebudget.helper.showcaseviewlib.config.DismissType
+import com.simplebudget.helper.showcaseviewlib.config.Gravity
+import com.simplebudget.helper.showcaseviewlib.config.PointerType
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.*
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
@@ -112,7 +116,7 @@ class FutureBaseActivity : BaseActivity<ActivityFutureExpensesBinding>(),
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_future, menu)
+        menuInflater.inflate(R.menu.menu_breakdown, menu)
         return true
     }
 
@@ -235,7 +239,7 @@ class FutureBaseActivity : BaseActivity<ActivityFutureExpensesBinding>(),
             binding.adViewContainer.addView(adView)
             val actualAdRequest = AdRequest.Builder()
                 .build()
-            adView?.setAdSize(adSize)
+            adView?.adSize = adSize
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
                 override fun onAdLoaded() {}

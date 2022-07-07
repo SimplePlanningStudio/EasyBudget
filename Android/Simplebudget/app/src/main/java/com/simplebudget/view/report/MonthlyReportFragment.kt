@@ -235,7 +235,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
             binding?.adViewContainer?.addView(adView)
             val actualAdRequest = AdRequest.Builder()
                 .build()
-            adView?.setAdSize(adSize)
+            adView?.adSize = adSize
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
                 override fun onAdLoaded() {}
@@ -318,7 +318,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                 exportSelectionDialog()
             }
 
-            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+            override fun onAdFailedToShowFullScreenContent(adError: AdError?) {
                 binding?.frameLayoutOpaque?.visibility = View.GONE
                 exportSelectionDialog()
             }

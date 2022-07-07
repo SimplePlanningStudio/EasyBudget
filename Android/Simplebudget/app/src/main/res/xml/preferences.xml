@@ -1,10 +1,6 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="@string/text_general">
-        <!--<Preference
-            app:key="@string/setting_category_change_language_button_key"
-            app:summary="@string/setting_category_language_change_button_message"
-            app:title="@string/setting_category_language_change_button_title" />-->
+    <PreferenceCategory app:title="@string/setting_category_general">
         <Preference
             app:key="@string/setting_category_currency_change_button_key"
             app:summary="@string/setting_category_currency_change_button_message" />
@@ -18,11 +14,6 @@
             app:key="@string/setting_category_start_day_of_week_key"
             app:summary="@string/setting_category_start_day_of_week_summary"
             app:title="@string/setting_category_start_day_of_week_title" />
-
-        <Preference
-            app:key="@string/setting_category_manage_category_key"
-            app:summary="@string/setting_category_manage_category_summary"
-            app:title="@string/setting_category_manage_category_title" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_reports_title">

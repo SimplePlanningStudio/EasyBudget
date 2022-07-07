@@ -176,15 +176,6 @@
                 android:textColor="@color/colorBlackLight"
                 android:textSize="@dimen/_12ssp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_2sdp"
-                android:text="@string/_8_localization"
-                android:visibility="gone"
-                android:textColor="@color/colorBlackLight"
-                android:textSize="@dimen/_12ssp" />
-
         </LinearLayout>
 
 

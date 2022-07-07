@@ -29,7 +29,7 @@ object RedeemPromo {
                     val promocode = voucherEditText.text.toString()
                     if (promocode.trim { it <= ' ' }.isEmpty()) {
                         AlertDialog.Builder(activity)
-                            .setTitle(R.string.oops)
+                            .setTitle(R.string.voucher_redeem_error_dialog_title)
                             .setMessage(R.string.voucher_redeem_error_code_invalid_dialog_message)
                             .setPositiveButton(R.string.ok) { dialog12, _ -> dialog12.dismiss() }
                             .show()
@@ -37,7 +37,7 @@ object RedeemPromo {
 
                     if (!launch(activity, promocode)) {
                         AlertDialog.Builder(activity)
-                            .setTitle(R.string.oops)
+                            .setTitle(R.string.iab_purchase_error_title)
                             .setMessage(
                                 activity.getString(
                                     R.string.iab_purchase_error_message,

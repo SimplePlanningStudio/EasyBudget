@@ -23,7 +23,6 @@ import android.widget.TextView
 
 import com.simplebudget.R
 import com.simplebudget.helper.CurrencyHelper
-import com.simplebudget.model.Expense
 import com.simplebudget.prefs.AppPreferences
 
 /**
@@ -31,8 +30,6 @@ import com.simplebudget.prefs.AppPreferences
  */
 class BreakDownRecyclerViewAdapter(
     private val allExpensesOfThisMonth: List<BreakDownViewModel.CategoryWiseExpense>,
-    private val allExpenses: ArrayList<Expense>,
-    private val allRevenues: ArrayList<Expense>,
     private val appPreferences: AppPreferences
 ) : RecyclerView.Adapter<BreakDownRecyclerViewAdapter.BreakDownViewHolder>() {
 

@@ -150,22 +150,20 @@
                     app:layout_constraintStart_toEndOf="@+id/guidelineMiddleForm"
                     app:layout_constraintTop_toBottomOf="@+id/description_inputlayout" />
 
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/tvCategoryName"
+                <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                    android:id="@+id/categories_spinner"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:minHeight="@dimen/_28sdp"
+                    android:layout_marginTop="8dp"
                     android:background="@drawable/expense_interval_spinner_background"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:hint="@string/select_category"
+                    android:hint="@string/enter_category"
                     android:inputType="textPersonName"
                     android:maxLength="20"
+                    android:paddingBottom="4dp"
                     android:text=""
                     android:textColor="@color/white"
                     android:textColorHint="@color/white"
-                    android:textSize="@dimen/_11ssp"
+                    android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/categories_title"
                     app:layout_constraintTop_toBottomOf="@+id/categories_title" />

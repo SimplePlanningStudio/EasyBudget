@@ -107,19 +107,19 @@ class SelectCurrencyFragment : DialogFragment() {
             recyclerView.layoutManager = LinearLayoutManager(v.context)
 
             viewModel.currenciesLiveData.observe(
-                this
-            ) { (availableCurrencies, otherAvailableCurrencies) ->
-                adapter = SelectCurrencyRecyclerViewAdapter(
-                    availableCurrencies,
-                    otherAvailableCurrencies,
-                    appPreferences
-                )
-                recyclerView.adapter = adapter
+                this,
+                { (availableCurrencies, otherAvailableCurrencies) ->
+                    adapter = SelectCurrencyRecyclerViewAdapter(
+                        availableCurrencies,
+                        otherAvailableCurrencies,
+                        appPreferences
+                    )
+                    recyclerView.adapter = adapter
 
-                if (adapter!!.selectedCurrencyPosition() > 1) {
-                    recyclerView.scrollToPosition(adapter!!.selectedCurrencyPosition() - 1)
-                }
-            }
+                    if (adapter!!.selectedCurrencyPosition() > 1) {
+                        recyclerView.scrollToPosition(adapter!!.selectedCurrencyPosition() - 1)
+                    }
+                })
 
             searchCurrency.afterTextChanged {
                 adapter?.filter?.filter(it)

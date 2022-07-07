@@ -15,7 +15,6 @@
  */
 package com.simplebudget.view.breakdown
 
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -23,11 +22,9 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
-import android.view.*
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -42,15 +39,13 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.FragmentBreakDownBinding
-import com.simplebudget.helper.*
-import com.simplebudget.helper.extensions.showCaseView
+import com.simplebudget.helper.AdSizeUtils
+import com.simplebudget.helper.BaseFragment
+import com.simplebudget.helper.extensions.alert
+import com.simplebudget.helper.extensions.positiveButton
+import com.simplebudget.helper.getMonthTitle
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.hasUserCompleteExpensesBreakDownCategoryShowCaseView
-import com.simplebudget.prefs.setUserCompleteExpensesBreakDownCategoryShowCaseView
-import com.simplebudget.view.expenseedit.ExpenseEditActivity
-import com.simplebudget.view.main.MainActivity
-import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
@@ -64,7 +59,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
      * The first date of the month at 00:00:00
      */
     private lateinit var date: Date
-    private var type: String = ""
+
     private val appPreferences: AppPreferences by inject()
     private val viewModel: BreakDownViewModel by viewModel()
     private var adView: AdView? = null
@@ -79,96 +74,21 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
     ): FragmentBreakDownBinding =
         FragmentBreakDownBinding.inflate(inflater, container, false)
 
-
-    /**
-     * Enable menu options handling
-     */
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
-    /**
-     *
-     */
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        // Inflate the menu; this adds items to the action bar.
-        inflater.inflate(R.menu.menu_breakdown, menu)
-        val menuItem = menu.findItem(R.id.action_breakdown)
-        val rootView = menuItem?.actionView as LinearLayout?
-        val customFutureExpenseMenu = rootView?.findViewById<TextView>(R.id.tvMenuBreakdown)
-        customFutureExpenseMenu?.let {
-            if (appPreferences.hasUserCompleteExpensesBreakDownCategoryShowCaseView().not()) {
-                activity?.showCaseView(
-                    targetView = it,
-                    title = getString(R.string.change_breakdown),
-                    message = getString(R.string.change_breakdown_details),
-                    handleGuideListener = {
-                        appPreferences.setUserCompleteExpensesBreakDownCategoryShowCaseView()
-                    }
-                )
-            }
-            it.setOnClickListener {
-                BreakdownType.showTypeDialog(
-                    requireActivity(),
-                    type,
-                    onLanguageSelected = { selectedType ->
-                        customFutureExpenseMenu.text = selectedType // Update label
-                        type = selectedType // Update the type to save it to locally
-                        val typeEnum = BreakdownType.getSelectedType(requireContext(), type)
-                        binding?.balancesContainer?.visibility =
-                            if (typeEnum == TYPE.ALL.name && lisOfExpenses.isNotEmpty()) View.VISIBLE else View.GONE
-                        viewModel.loadDataForMonth(
-                            date,
-                            typeEnum
-                        )
-                    })
-            }
-        }
-
-        return super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-    }
-
-    /**
-     *
-     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         date = requireArguments().getSerializable(ARG_DATE) as Date
-        type = getString(R.string.all_label)
 
-        viewModel.monthlyReportDataLiveDataForAllTypesOfExpenses.observe(viewLifecycleOwner) { result ->
+        viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
             binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
 
             when (result) {
                 BreakDownViewModel.MonthlyBreakDownData.Empty -> {
-                    lisOfExpenses.clear()
                     binding?.monthlyReportFragmentRecyclerView?.visibility = View.GONE
                     binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
-
-                    binding?.monthlyReportFragmentRevenuesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    binding?.monthlyReportFragmentExpensesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    binding?.monthlyReportFragmentBalanceTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    binding?.monthlyReportFragmentBalanceTv?.setTextColor(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            R.color.budget_green
-                        )
-                    )
-                    binding?.balancesContainer?.visibility = View.GONE
+                    showCaseViewForEmptyStateAddExpenses()
                 }
                 is BreakDownViewModel.MonthlyBreakDownData.Data -> {
-                    lisOfExpenses.clear()
-                    binding?.monthlyReportFragmentRecyclerView?.visibility = View.VISIBLE
-                    binding?.monthlyReportFragmentEmptyState?.visibility = View.GONE
                     lisOfExpenses.addAll(result.allExpensesOfThisMonth)
                     initChart()
 
@@ -176,38 +96,14 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                         binding?.monthlyReportFragmentRecyclerView!!,
                         BreakDownRecyclerViewAdapter(
                             result.allExpensesOfThisMonth,
-                            result.expenses,
-                            result.revenues,
                             appPreferences
                         )
                     )
-
-                    binding?.monthlyReportFragmentRevenuesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(
-                            appPreferences,
-                            result.revenuesAmount
-                        )
-                    binding?.monthlyReportFragmentExpensesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(
-                            appPreferences,
-                            result.expensesAmount
-                        )
-
-                    val balance = result.revenuesAmount - result.expensesAmount
-                    binding?.monthlyReportFragmentBalanceTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
-                    binding?.monthlyReportFragmentBalanceTv?.setTextColor(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            if (balance >= 0) R.color.budget_green else R.color.budget_red
-                        )
-                    )
-                    binding?.balancesContainer?.visibility =
-                        if (lisOfExpenses.isEmpty()) View.GONE else View.VISIBLE
                 }
             }
         }
-        viewModel.loadDataForMonth(date, BreakdownType.getSelectedType(requireContext(), type))
+
+        viewModel.loadDataForMonth(date)
         /**
          * Banner ads
          */
@@ -216,42 +112,8 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
         } else {
             loadAndDisplayBannerAds()
         }
-
-        /**
-         * Handle clicks for Add expenses
-         */
-        handleAddExpenses()
     }
 
-
-    /**
-     *
-     */
-    private fun handleAddExpenses() {
-        binding?.fabNewExpense?.setOnClickListener {
-            val startIntent = Intent(requireActivity(), ExpenseEditActivity::class.java)
-            startIntent.putExtra("date", Date().time)
-            startIntent.putExtra(MainActivity.ANIMATE_TRANSITION_KEY, false)
-            ActivityCompat.startActivityForResult(
-                requireActivity(),
-                startIntent,
-                MainActivity.ADD_EXPENSE_ACTIVITY_CODE,
-                null
-            )
-        }
-
-        binding?.fabNewRecurringExpense?.setOnClickListener {
-            val startIntent = Intent(requireActivity(), RecurringExpenseEditActivity::class.java)
-            startIntent.putExtra("dateStart", Date().time)
-            startIntent.putExtra(MainActivity.ANIMATE_TRANSITION_KEY, false)
-            ActivityCompat.startActivityForResult(
-                requireActivity(),
-                startIntent,
-                MainActivity.ADD_EXPENSE_ACTIVITY_CODE,
-                null
-            )
-        }
-    }
 
     /**
      * Configure recycler view LayoutManager & adapter
@@ -276,15 +138,12 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
     private fun initChart() {
         binding?.chart?.setUsePercentValues(true)
         binding?.chart?.description?.isEnabled = false
-        if (lisOfExpenses.isNotEmpty())
-            binding?.chart?.centerText = generateCenterSpannableText()
+        binding?.chart?.centerText = generateCenterSpannableText()
         binding?.chart?.setHoleColor(Color.WHITE)
         setData()
         binding?.chart?.setEntryLabelColor(Color.BLACK)
         binding?.chart?.setEntryLabelTextSize(12f)
         binding?.chart?.legend?.isEnabled = false
-        binding?.emptyExpensesRecyclerViewPlaceholder?.visibility =
-            if (lisOfExpenses.isEmpty()) View.VISIBLE else View.GONE
     }
 
     /**
@@ -331,6 +190,17 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
     }
 
     /**
+     * Show case view add expenses empty state
+     */
+    private fun showCaseViewForEmptyStateAddExpenses() {
+        requireActivity().alert {
+            setTitle(getString(R.string.no_expenses_found))
+            setMessage(getString(R.string.please_add_some_expenses))
+            positiveButton(text = getString(R.string.ok)) { requireActivity().finish() }
+        }
+    }
+
+    /**
      *
      */
     companion object {
@@ -356,7 +226,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
             binding?.adViewContainer?.addView(adView)
             val actualAdRequest = AdRequest.Builder()
                 .build()
-            adView?.setAdSize(adSize)
+            adView?.adSize = adSize
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
                 override fun onAdLoaded() {}

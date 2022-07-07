@@ -235,24 +235,20 @@
                 app:layout_constraintStart_toEndOf="@+id/guidelineStart"
                 app:layout_constraintTop_toBottomOf="@+id/expense_type_tv" />
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/tvCategoryName"
+            <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                android:id="@+id/categories_spinner"
                 android:layout_width="0dp"
                 android:layout_height="36dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/expense_interval_spinner_background"
-                android:clickable="true"
-                android:focusable="true"
-                android:focusableInTouchMode="false"
-                android:hint="@string/select_category"
-                android:inputType="textPersonName"
-                android:maxLength="20"
                 android:paddingStart="@dimen/_4sdp"
                 android:text=""
-                android:gravity="center_vertical"
-                android:textColor="@color/white"
+                android:hint="@string/enter_category"
                 android:textColorHint="@color/white"
-                android:textSize="@dimen/_11ssp"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:maxLength="20"
+                android:inputType="textPersonName"
                 app:layout_constraintEnd_toEndOf="@id/guidelineMiddle"
                 app:layout_constraintStart_toStartOf="@+id/categories_title"
                 app:layout_constraintTop_toBottomOf="@+id/categories_title" />
