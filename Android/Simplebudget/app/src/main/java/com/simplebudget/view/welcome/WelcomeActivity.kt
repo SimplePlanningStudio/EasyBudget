@@ -92,7 +92,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             }
 
             override fun onPageSelected(position: Int) {
-                ((binding.welcomeViewPager?.adapter as? FragmentStatePagerAdapter)?.getItem(position) as? OnboardingFragment<*>)?.let { fragment ->
+                ((binding.welcomeViewPager.adapter as? FragmentStatePagerAdapter)?.getItem(position) as? OnboardingFragment<*>)?.let { fragment ->
                     setStatusBarColor(fragment.statusBarColor)
                 }
 

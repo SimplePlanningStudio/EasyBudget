@@ -70,7 +70,7 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     loadingProgressDialog = null
 
                     AlertDialog.Builder(this)
-                        .setTitle(R.string.iab_purchase_error_title)
+                        .setTitle(R.string.oops)
                         .setMessage(getString(R.string.iab_purchase_error_message, status.reason))
                         .setPositiveButton(R.string.ok) { dialog, _ ->
                             dialog.dismiss()

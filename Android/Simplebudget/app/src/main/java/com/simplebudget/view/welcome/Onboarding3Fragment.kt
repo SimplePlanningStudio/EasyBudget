@@ -39,7 +39,7 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
                 val context = context ?: return 0.0
 
                 AlertDialog.Builder(context)
-                    .setTitle(R.string.adjust_balance_error_title)
+                    .setTitle(R.string.oops)
                     .setMessage(R.string.adjust_balance_error_message)
                     .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
                     .show()

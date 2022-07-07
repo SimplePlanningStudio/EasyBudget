@@ -393,7 +393,7 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
             binding.adViewContainer.addView(adView)
             val actualAdRequest = AdRequest.Builder()
                 .build()
-            adView?.adSize = adSize
+            adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
                 override fun onAdLoaded() {}

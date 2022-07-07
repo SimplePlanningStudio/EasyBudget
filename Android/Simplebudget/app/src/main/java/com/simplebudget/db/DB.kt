@@ -34,6 +34,8 @@ interface DB : Closeable {
 
     suspend fun deleteCategory(category: Category)
 
+    suspend fun deleteCategory(categoryName: String?)
+
     /**
      * Expenses
      */

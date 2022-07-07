@@ -56,6 +56,10 @@ class CachedDBImpl(
         wrappedDB.deleteCategory(category)
     }
 
+    override suspend fun deleteCategory(categoryName: String?) {
+        wrappedDB.deleteCategory(categoryName)
+    }
+
     /**
      * Expenses
      */

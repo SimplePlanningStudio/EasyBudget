@@ -116,6 +116,10 @@ private const val USER_SAW_HIDE_BALANCE_HINT_PARAMETERS_KEY = "user_saw_hide_bal
 private const val USER_SAW_ADD_SINGLE_EXPENSE_HINT_PARAMETERS_KEY =
     "user_saw_add_single_expense_hint"
 
+
+private const val USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY =
+    "user_saw_switch_expense_hint"
+
 private const val USER_SAW_ADD_RECURRING_EXPENSE_HINT_PARAMETERS_KEY =
     "user_saw_add_recurring_expense_hint"
 
@@ -150,9 +154,21 @@ private const val APP_LOCK = "app_lock"
 private const val SHOW_CASE_VIEW_FUTURE_EXPENSES = "future_expenses_menu_in_report"
 
 /**
+ * Break down expenses in Break Down Base activity
+ */
+private const val SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES =
+    "break_down_expenses_menu_in_break_down_activity"
+
+/**
  * Future expenses menu in report activity
  */
 private const val SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN = "expenses_break_menu_in_future"
+
+/**
+ * Language
+ */
+private const val KEY_CHANGE_LANGUAGE = "change_language"
+
 
 fun AppPreferences.getInitTimestamp(): Long {
     return getLong(INIT_DATE_PARAMETERS_KEY, 0L)
@@ -355,6 +371,18 @@ fun AppPreferences.setUserSawAddSingleExpenseHint() {
     putBoolean(USER_SAW_ADD_SINGLE_EXPENSE_HINT_PARAMETERS_KEY, true)
 }
 
+
+/**
+ * Hint switch expense / income
+ */
+fun AppPreferences.hasUserSawSwitchExpenseHint(): Boolean {
+    return getBoolean(USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawSwitchExpenseHint() {
+    putBoolean(USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY, true)
+}
+
 /**
  * Hint Add Recurring expense
  */
@@ -469,4 +497,20 @@ fun AppPreferences.hasUserCompleteExpensesBreakDownShowCaseView(): Boolean {
  */
 fun AppPreferences.setUserCompleteExpensesBreakDownShowCaseView() {
     putBoolean(SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN, true)
+}
+
+/**
+ * Has the user complete Future Expenses Break Down Category
+ *
+ * @return true if the user has already viewed, false otherwise
+ */
+fun AppPreferences.hasUserCompleteExpensesBreakDownCategoryShowCaseView(): Boolean {
+    return getBoolean(SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES, false)
+}
+
+/**
+ * Set that the user has complete Expenses Break Down Category
+ */
+fun AppPreferences.setUserCompleteExpensesBreakDownCategoryShowCaseView() {
+    putBoolean(SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES, true)
 }

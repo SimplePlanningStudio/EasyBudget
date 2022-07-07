@@ -21,7 +21,6 @@ import androidx.lifecycle.LiveData
 
 interface Auth {
     val state: LiveData<AuthState>
-
     fun startAuthentication(activity: Activity)
     fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
     fun logout()

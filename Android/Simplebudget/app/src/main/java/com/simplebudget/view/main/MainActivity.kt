@@ -55,6 +55,7 @@ import com.simplebudget.SimpleBudget
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.showCaseView
+import com.simplebudget.helper.language.Languages
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpenseDeleteType
@@ -191,6 +192,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 when (intent.action) {
+                    INTENT_EXPENSE_ADDED -> {
+                        viewModel.onExpenseAdded()
+                    }
                     INTENT_EXPENSE_DELETED -> {
                         val expense = intent.getParcelableExtra<Expense>("expense")!!
 
@@ -261,8 +265,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         viewModel.expenseDeletionErrorEventStream.observe(this, Observer {
             AlertDialog.Builder(this@MainActivity)
-                .setTitle(R.string.expense_delete_error_title)
-                .setMessage(R.string.expense_delete_error_message)
+                .setTitle(R.string.oops)
+                .setMessage(R.string.error_occurred_try_again)
                 .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
                 .show()
         })
@@ -294,7 +298,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     expenseDeletionDialog = null
 
                     AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.recurring_expense_delete_first_error_title)
+                        .setTitle(R.string.oops)
                         .setMessage(R.string.recurring_expense_delete_first_error_message)
                         .setNegativeButton(R.string.ok, null)
                         .show()
@@ -357,8 +361,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
                 is MainViewModel.RecurringExpenseRestoreProgressState.ErrorIO -> {
                     AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.recurring_expense_restore_error_title)
-                        .setMessage(resources.getString(R.string.recurring_expense_restore_error_message))
+                        .setTitle(R.string.oops)
+                        .setMessage(resources.getString(R.string.error_occurred_try_again))
                         .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
                         .show()
 
@@ -426,7 +430,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             Logger.error("Error while adjusting balance", exception)
 
             AlertDialog.Builder(this@MainActivity)
-                .setTitle(R.string.adjust_balance_error_title)
+                .setTitle(R.string.oops)
                 .setMessage(R.string.adjust_balance_error_message)
                 .setNegativeButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }
                 .show()
@@ -466,7 +470,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             Logger.error("An error occurred during balance", exception)
 
             AlertDialog.Builder(this@MainActivity)
-                .setTitle(R.string.adjust_balance_error_title)
+                .setTitle(R.string.oops)
                 .setMessage(R.string.adjust_balance_error_message)
                 .setNegativeButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }
                 .show()
@@ -844,6 +848,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 )
                 return true
             }
+            /*R.id.action_language -> {
+                Languages.showLanguagesDialog(
+                    this,
+                    appPreferences.getCurrentLanguage(),
+                    onLanguageSelected = { languageCode ->
+                        appPreferences.setCurrentLanguage(languageCode)
+                    })
+                return true
+            }*/
             else -> return super.onOptionsItemSelected(item)
         }
     }
@@ -1275,8 +1288,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun showGenericRecurringDeleteErrorDialog() {
         AlertDialog.Builder(this@MainActivity)
-            .setTitle(R.string.recurring_expense_delete_error_title)
-            .setMessage(R.string.recurring_expense_delete_error_message)
+            .setTitle(R.string.oops)
+            .setMessage(R.string.error_occurred_try_again)
             .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
             .show()
     }
@@ -1295,7 +1308,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             adContainerView.addView(adView)
             val actualAdRequest = AdRequest.Builder()
                 .build()
-            adView?.adSize = adSize
+            adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
                 override fun onAdLoaded() {}
@@ -1323,6 +1336,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val WELCOME_SCREEN_ACTIVITY_CODE = 103
         const val SETTINGS_SCREEN_ACTIVITY_CODE = 104
         const val INTENT_EXPENSE_DELETED = "intent.expense.deleted"
+        const val INTENT_EXPENSE_ADDED = "intent.expense.added"
         const val INTENT_RECURRING_EXPENSE_DELETED = "intent.expense.monthly.deleted"
         const val INTENT_SHOW_WELCOME_SCREEN = "intent.welcomscreen.show"
         const val INTENT_SHOW_ADD_EXPENSE = "intent.addexpense.show"

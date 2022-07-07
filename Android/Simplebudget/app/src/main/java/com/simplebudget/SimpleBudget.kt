@@ -12,7 +12,6 @@ import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.injection.appModule
 import com.simplebudget.injection.viewModelModule
-import com.simplebudget.notif.*
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
 import kotlinx.coroutines.runBlocking
@@ -21,7 +20,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import org.koin.java.KoinJavaComponent.get
 import java.util.*
 import com.simplebudget.view.main.MainActivity as MainActivity
 
@@ -104,7 +102,8 @@ class SimpleBudget : Application() {
         val initDate = appPreferences.getInitTimestamp()
         if (initDate <= 0) {
             appPreferences.setInitTimestamp(Date().time)
-            appPreferences.setUserCurrency(Currency.getInstance(Locale.getDefault())) // Set a default currency before onboarding
+            // Set a default currency before on boarding
+            appPreferences.setUserCurrency(appPreferences.getUserCurrency())
         }
 
         /*
