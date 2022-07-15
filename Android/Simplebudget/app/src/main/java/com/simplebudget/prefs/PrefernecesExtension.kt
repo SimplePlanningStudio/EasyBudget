@@ -165,6 +165,11 @@ private const val SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES =
 private const val SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN = "expenses_break_menu_in_future"
 
 /**
+ * Future expenses menu in select category
+ */
+private const val SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY = "manage_categories_in_select_category"
+
+/**
  * Language
  */
 private const val KEY_CHANGE_LANGUAGE = "change_language"
@@ -513,4 +518,21 @@ fun AppPreferences.hasUserCompleteExpensesBreakDownCategoryShowCaseView(): Boole
  */
 fun AppPreferences.setUserCompleteExpensesBreakDownCategoryShowCaseView() {
     putBoolean(SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES, true)
+}
+
+
+/**
+ * Has the user complete manage categories from select category while adding / editing expenses
+ *
+ * @return true if the user has already viewed, false otherwise
+ */
+fun AppPreferences.hasUserCompleteManageCategoriesFromSelectCategoryShowCaseView(): Boolean {
+    return getBoolean(SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY, false)
+}
+
+/**
+ * Set that the user has complete manage categories from select category while adding / editing expenses
+ */
+fun AppPreferences.setUserCompleteManageCategoriesFromSelectCategoryShowCaseView() {
+    putBoolean(SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY, true)
 }

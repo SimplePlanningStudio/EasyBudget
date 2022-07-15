@@ -52,6 +52,7 @@ import com.simplebudget.prefs.setUserSawSwitchExpenseHint
 import com.simplebudget.view.CategoriesViewModel
 import com.simplebudget.view.DatePickerDialogFragment
 import com.simplebudget.view.category.CategoriesActivity
+import com.simplebudget.view.category.CategoriesSearchActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
@@ -376,6 +377,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         }
 
         existingExpenseCategory = categoryType ?: ""
+        binding.tvCategoryName.text = existingExpenseCategory
     }
 
     /**
@@ -496,7 +498,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
     private var securityActivityLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val category =
-                result.data?.getStringExtra(CategoriesActivity.REQUEST_CODE_SELECT_CATEGORY) ?: ""
+                result.data?.getStringExtra(CategoriesSearchActivity.REQUEST_CODE_SELECTED_CATEGORY)
+                    ?: ""
             binding.tvCategoryName.text = category
         }
 
@@ -504,7 +507,12 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
      * Launch Security Activity
      */
     private fun handleCategoryLaunch() {
-        securityActivityLauncher.launch(Intent(this, CategoriesActivity::class.java))
+        securityActivityLauncher.launch(
+            Intent(this, CategoriesSearchActivity::class.java).putExtra(
+                CategoriesSearchActivity.REQUEST_CODE_CURRENT_EDIT_CATEGORY,
+                (binding.tvCategoryName.text?.toString() ?: existingExpenseCategory)
+            )
+        )
     }
 
     /**

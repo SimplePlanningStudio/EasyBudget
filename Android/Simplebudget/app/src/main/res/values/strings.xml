@@ -525,5 +525,13 @@
     <string name="done_with_editing">Done with editing</string>
     <string name="enter_new_category_or_choose_from_existing_categories">Enter new category or choose from existing categories.</string>
     <string name="type_new_category_or_search_existing">Enter or search category</string>
+    <string name="search_category">Search category</string>
     <string name="removed">Removed</string>
+    <string name="no_category_found">%s Not found</string>
+    <string name="category_not_found_do_you_want_add_now">Do you want to add it as a category?</string>
+    <string name="categories">Categories</string>
+    <string name="edit_categories">Edit Categories</string>
+    <string name="edit_categories_show_view_message">By clicking this you can manage (Add and Remove) categories.\nYou can also access it under app settings.</string>
+    <string name="skip">Skip</string>
+    <string name="add">Add</string>
 </resources>

@@ -175,6 +175,12 @@
             android:exported="false"
             android:theme="@style/Transparent" />
 
+        <activity
+            android:name=".view.category.CategoriesSearchActivity"
+            android:exported="false"
+            android:label="@string/categories"
+            android:screenOrientation="portrait" />
+
         <!-- Push -->
         <service
             android:name="com.simplebudget.push.MyFirebaseMessagingService"

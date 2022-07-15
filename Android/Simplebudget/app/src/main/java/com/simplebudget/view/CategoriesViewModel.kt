@@ -22,7 +22,6 @@ import com.simplebudget.db.impl.toCategoriesNamesList
 import com.simplebudget.helper.SingleLiveEvent
 import com.simplebudget.model.Category
 import com.simplebudget.model.ExpenseCategories
-import com.simplebudget.model.ExpenseCategoryType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,13 +40,15 @@ class CategoriesViewModel(private val db: DB) : ViewModel() {
     /**
      *
      */
-    private fun loadCategories() {
+    private fun loadCategories(currentCategories: ArrayList<String>) {
         viewModelScope.launch {
             categories.clear()
             withContext(Dispatchers.Default) {
                 db.getCategories().toCategoriesNamesList().let {
                     categories.addAll(it)
                 }
+                //If changes in categories added / deleted during selection just reverse so that user can see newly added records
+                if (currentCategories.isNotEmpty() && categories.size > currentCategories.size) categories.reverse()
                 categoriesLiveData.postValue(categories)
                 //Save categories into DB
                 if (categories.isEmpty()) {
@@ -55,6 +56,13 @@ class CategoriesViewModel(private val db: DB) : ViewModel() {
                 }
             }
         }
+    }
+
+    /**
+     * Reload categories if you have added or remove some categories call this
+     */
+    fun reloadCategories(currentCategories: ArrayList<String>) {
+        loadCategories(currentCategories)
     }
 
     /**
@@ -112,6 +120,6 @@ class CategoriesViewModel(private val db: DB) : ViewModel() {
 
 
     init {
-        loadCategories()
+        loadCategories(ArrayList())
     }
 }
