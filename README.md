@@ -27,6 +27,9 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - In app reviews
 - Monthly Breakdown and PiChart
 - Future Payements 
+- Category search new design added while adding/editing expenses
+- Voice search added for category
+
 
 
 ### For any query related to SimpleBudget
