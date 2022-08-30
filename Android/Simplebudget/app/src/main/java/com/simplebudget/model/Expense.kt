@@ -68,6 +68,8 @@ data class Expense(
 
     fun isRevenue() = amount < 0
 
+    fun isFutureExpense() = date.after(Date())
+
     fun isRecurring() = associatedRecurringExpense != null
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

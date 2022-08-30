@@ -99,6 +99,11 @@ private const val USER_SAW_MONTHLY_REPORT_HINT_PARAMETERS_KEY =
 private const val USER_SAW_BREAK_DOWN_HINT_PARAMETERS_KEY = "user_saw_break_down_hint"
 
 /**
+ * Search hint
+ */
+private const val USER_SAW_SEARCH_HINT_PARAMETERS_KEY = "user_saw_search_hint"
+
+/**
  * Future expenses hint
  */
 private const val USER_SAW_FUTURE_EXPENSES_HINT_PARAMETERS_KEY = "user_saw_future_expenses_hint"
@@ -333,6 +338,17 @@ fun AppPreferences.setUserSawBreakDownHint() {
 }
 
 /**
+ * Search Hint
+ */
+fun AppPreferences.hasUserSawSearchHint(): Boolean {
+    return getBoolean(USER_SAW_SEARCH_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawSearchHint() {
+    putBoolean(USER_SAW_SEARCH_HINT_PARAMETERS_KEY, true)
+}
+
+/**
  * Future expenses hint
  */
 fun AppPreferences.hasUserSawFutureExpensesHint(): Boolean {
@@ -386,6 +402,9 @@ fun AppPreferences.hasUserSawSwitchExpenseHint(): Boolean {
 
 fun AppPreferences.setUserSawSwitchExpenseHint() {
     putBoolean(USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY, true)
+}
+fun AppPreferences.resetUserSawSwitchExpenseHint() {
+    putBoolean(USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY, false)
 }
 
 /**

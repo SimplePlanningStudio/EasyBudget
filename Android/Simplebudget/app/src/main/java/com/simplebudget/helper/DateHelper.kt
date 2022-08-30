@@ -15,7 +15,13 @@
  */
 package com.simplebudget.helper
 
+import android.app.Activity
 import android.content.Context
+import android.view.View
+import androidx.core.util.Pair
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import com.google.android.material.datepicker.MaterialDatePicker
 
 import com.simplebudget.R
 import com.simplebudget.prefs.AppPreferences
@@ -71,7 +77,7 @@ object DateHelper {
         cal.set(Calendar.MINUTE, 0)
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.DAY_OF_MONTH, 1)
-       // cal.add(Calendar.MONTH, 1) // To take only future months, Adding one month in advance.
+        // cal.add(Calendar.MONTH, 1) // To take only future months, Adding one month in advance.
 
         val months = ArrayList<Date>()
         for (i in 1..10) {
@@ -94,4 +100,38 @@ fun Date.getMonthTitle(context: Context): String {
         Locale.getDefault()
     )
     return format.format(this)
+}
+
+
+/**
+ * Single Material date picker
+ * Your app or activity theme must be material in order to use this date picker
+ */
+fun FragmentActivity.pickSingleDate(onDateSet: (Date) -> Unit) {
+    val datePicker: MaterialDatePicker<Long> = MaterialDatePicker
+        .Builder
+        .datePicker()
+        .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+        .setTitleText("Pick a date")
+        .build()
+    datePicker.isCancelable = false
+    datePicker.show(this.supportFragmentManager, "DATE_PICKER")
+    datePicker.addOnPositiveButtonClickListener { long ->
+        onDateSet.invoke(Date(long))
+    }
+}
+
+/**
+ * Your app or activity theme must be material in order to use this date picker
+ */
+fun FragmentActivity.pickDateRange(onDateSet: (Pair<Date, Date>) -> Unit) {
+    val dateRange: MaterialDatePicker<Pair<Long, Long>> = MaterialDatePicker
+        .Builder
+        .dateRangePicker()
+        .setTitleText("Select date range")
+        .build()
+    dateRange.show(this.supportFragmentManager, "DATE_RANGE_PICKER")
+    dateRange.addOnPositiveButtonClickListener { dates ->
+        onDateSet.invoke(Pair(Date(dates.first), Date(dates.second)))
+    }
 }

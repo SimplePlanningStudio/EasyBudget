@@ -68,6 +68,7 @@ import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
 import com.simplebudget.view.futurepayments.FutureBaseActivity
+import com.simplebudget.view.search.base.SearchBaseActivity
 import com.simplebudget.view.security.SecurityActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity
@@ -723,14 +724,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.futureExpenseHintButton.setOnClickListener {
                 appPreferences.setUserSawFutureExpensesHint()
                 binding.futureExpenseHint.visibility = View.GONE
-                binding.breakdownHint.visibility = View.VISIBLE
+                binding.searchHint.visibility = View.VISIBLE
             }
         }
 
-        if (!appPreferences.hasUserSawBreakDownHint()) {
-            binding.breakdownHintButton.setOnClickListener {
-                appPreferences.setUserSawBreakDownHint()
-                binding.breakdownHint.visibility = View.GONE
+        if (!appPreferences.hasUserSawSearchHint()) {
+            binding.searchHintButton.setOnClickListener {
+                appPreferences.setUserSawSearchHint()
+                binding.searchHint.visibility = View.GONE
                 binding.settingsHint.visibility = View.VISIBLE
             }
         }
@@ -840,10 +841,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
                 return true
             }
-            R.id.action_future_expenses -> {
+            R.id.action_search_expenses -> {
                 ActivityCompat.startActivity(
                     this@MainActivity,
-                    Intent(this, FutureBaseActivity::class.java),
+                    Intent(this, SearchBaseActivity::class.java),
                     null
                 )
                 return true

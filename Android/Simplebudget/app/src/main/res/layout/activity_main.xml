@@ -407,7 +407,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/breakdown_hint"
+        android:id="@+id/search_hint"
         android:layout_width="220dp"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
@@ -433,12 +433,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/breakdown_hint"
+                android:text="@string/search_dialog_hint"
                 android:textColor="@android:color/black"
                 android:textSize="15sp" />
 
             <Button
-                android:id="@+id/breakdown_hint_button"
+                android:id="@+id/search_hint_button"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:text="@string/ok"

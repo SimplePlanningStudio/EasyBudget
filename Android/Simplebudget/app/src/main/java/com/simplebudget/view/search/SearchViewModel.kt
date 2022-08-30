@@ -15,12 +15,14 @@
  */
 package com.simplebudget.view.search
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplebudget.model.Expense
 import com.simplebudget.db.DB
+import com.simplebudget.model.Expense
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.getInitTimestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,104 +34,113 @@ import kotlin.collections.ArrayList
  */
 
 class SearchViewModel(
-    private val db: DB,
-    private val appPreferences: AppPreferences,
+    private val db: DB
 ) : ViewModel() {
 
-    val monthlyReportDataLiveData = MutableLiveData<MonthlyReportData>()
-    val expenses = mutableListOf<Expense>()
-    val revenues = mutableListOf<Expense>()
-    val allExpensesOfThisMonth = mutableListOf<SuperParent>()
-    var revenuesAmount = 0.0
-    var expensesAmount = 0.0
-    var balance = 0.0
-    val hashMap = hashMapOf<String, CustomTriple.Data>()
+    private val allExpensesLiveData = MutableLiveData<List<Expense>>()
+    val expenses: LiveData<List<Expense>> = allExpensesLiveData
 
-    open class SuperParent()
-    data class Parent(var category: String, var totalCredit: Double, var totalDebit: Double) :
-        SuperParent()
+    private val loadingMutableLiveData = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean> = loadingMutableLiveData
 
-    data class Child(var expense: Expense) : SuperParent()
 
-    sealed class CustomTriple {
-        class Data(
-            var category: String,
-            var totalCredit: Double,
-            var totalDebit: Double,
-            var expenses: ArrayList<Expense>
-        ) : CustomTriple()
+    init {
+        loadThisMonthExpenses()
     }
 
-    sealed class MonthlyReportData {
-        object Empty : MonthlyReportData()
-        class Data(
-            val expenses: List<Expense>,
-            val revenues: List<Expense>,
-            val allExpensesOfThisMonth: List<SuperParent>,
-            val expensesAmount: Double,
-            val revenuesAmount: Double
-        ) : MonthlyReportData()
-    }
-
-    fun loadDataForMonth(dayDate: Date, endDate: Date) {
+    /**
+     * Search expenses
+     */
+    fun searchExpenses(search_query: String) {
+        loadingMutableLiveData.value = true
         viewModelScope.launch {
-            val expensesForMonth = withContext(Dispatchers.Default) {
-                db.getAllExpenses(dayDate, endDate)
-            }
+            allExpensesLiveData.postValue(db.searchExpenses(search_query))
+            loadingMutableLiveData.postValue(false)
+        }
+    }
 
-            if (expensesForMonth.isEmpty()) {
-                monthlyReportDataLiveData.value = MonthlyReportData.Empty
-                return@launch
-            }
+    /**
+     * Load Today's expenses
+     */
+    fun loadTodayExpenses() {
+        loadExpensesForADate(Date())
+    }
 
-            expenses.clear()
-            revenues.clear()
-            revenuesAmount = 0.0
-            expensesAmount = 0.0
+    /**
+     * Load Yesterday's expenses
+     */
+    fun loadYesterdayExpenses() {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = Date().time // Set today date
+        cal.add(Calendar.DAY_OF_MONTH, -1) // Go to 1 day back to get Yesterday
+        loadExpensesForADate(cal.time)
+    }
 
-            hashMap.clear()
-            withContext(Dispatchers.Default) {
-                for (expense in expensesForMonth) {
-                    // Adding category into map with empty list
-                    if (!hashMap.containsKey(expense.category))
-                        hashMap[expense.category] =
-                            CustomTriple.Data(expense.category, 0.0, 0.0, ArrayList<Expense>())
-                    var tCredit: Double = hashMap[expense.category]?.totalCredit ?: 0.0
-                    var tDebit: Double = hashMap[expense.category]?.totalDebit ?: 0.0
+    /**
+     * Load expenses for this week
+     */
+    fun loadThisWeekExpenses() {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.DAY_OF_WEEK, 1)
+        val d1 = cal.time
+        loadExpensesForGivenDates(d1, Date()) // Starting week to Today's date
+    }
 
-                    if (expense.isRevenue()) {
-                        revenues.add(expense)
-                        revenuesAmount -= expense.amount
-                        tCredit -= expense.amount
-                    } else {
-                        expenses.add(expense)
-                        expensesAmount += expense.amount
-                        tDebit += expense.amount
-                    }
-                    hashMap[expense.category]?.totalCredit = tCredit
-                    hashMap[expense.category]?.totalDebit = tDebit
-                    hashMap[expense.category]?.expenses?.add(expense)
-                }
-            }
+    /**
+     * Load expenses for this month
+     */
+    fun loadThisMonthExpenses() {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+        cal.add(Calendar.DAY_OF_MONTH, -1)
+        loadingMutableLiveData.value = true
+        val startDate = cal.time
+        viewModelScope.launch {
+            allExpensesLiveData.postValue(db.getExpensesForMonth(startDate))
+            loadingMutableLiveData.postValue(false)
+        }
+    }
 
-            hashMap.keys.forEach { key ->
-                allExpensesOfThisMonth.add(
-                    Parent(
-                        hashMap[key]?.category!!,
-                        hashMap[key]?.totalCredit ?: 0.0,
-                        hashMap[key]?.totalDebit ?: 0.0
-                    )
-                )
-                hashMap[key]?.expenses?.forEach { expense ->
-                    allExpensesOfThisMonth.add(Child(expense))
-                }
-            }
-            balance = revenuesAmount - expensesAmount
+    /**
+     * Load expenses for last week
+     */
+    fun loadLastWeekExpenses() {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.DAY_OF_WEEK, 1)
+        val d1 = cal.time
+        cal.add(Calendar.WEEK_OF_MONTH, -1)
+        loadExpensesForGivenDates(cal.time, d1)
+    }
 
-            monthlyReportDataLiveData.value =
-                MonthlyReportData.Data(
-                    expenses, revenues, allExpensesOfThisMonth, expensesAmount, revenuesAmount
-                )
+    /**
+     * Load Tomorrow's expenses
+     */
+    fun loadTomorrowExpenses() {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = Date().time // Set today date
+        cal.add(Calendar.DAY_OF_MONTH, 1) // Go to 1 day ahead to get Tomorrow
+        loadExpensesForADate(cal.time)
+    }
+
+    /**
+     *
+     */
+    fun loadExpensesForADate(date: Date) {
+        loadingMutableLiveData.value = true
+        viewModelScope.launch {
+            allExpensesLiveData.postValue(db.getExpensesForDay(date))
+            loadingMutableLiveData.postValue(false)
+        }
+    }
+
+    /**
+     *
+     */
+    fun loadExpensesForGivenDates(startDate: Date, endDate: Date) {
+        loadingMutableLiveData.value = true
+        viewModelScope.launch {
+            allExpensesLiveData.postValue(db.getAllExpenses(startDate, endDate))
+            loadingMutableLiveData.postValue(false)
         }
     }
 

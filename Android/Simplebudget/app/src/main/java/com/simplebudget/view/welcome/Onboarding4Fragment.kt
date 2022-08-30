@@ -25,6 +25,9 @@ class Onboarding4Fragment : OnboardingFragment<FragmentOnboarding4Binding>() {
         super.onViewCreated(view, savedInstanceState)
 
         binding?.onboardingScreen4NextButton?.setOnClickListener {
+            activity?.let {
+                (it as WelcomeActivity).loading(true)
+            }
             done()
         }
     }

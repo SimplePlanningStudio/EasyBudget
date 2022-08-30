@@ -65,7 +65,7 @@ val viewModelModule = module {
     /**
      * Search Expenses
      */
-    viewModel { SearchViewModel(get(), get()) }
+    viewModel { SearchViewModel(get()) }
     viewModel { SearchBaseViewModel(get()) }
 
     /**

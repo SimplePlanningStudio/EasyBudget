@@ -270,6 +270,7 @@
     <string name="adjust_balance_hint">You can adjust balance from here!</string>
     <string name="future_expense_hint">You can access future expenses from here!</string>
     <string name="breakdown_hint">You can access monthly expenses breakdown from here!</string>
+    <string name="search_dialog_hint">You can quickly search expenses from here!</string>
     <string name="settings_hint">You can access app settings from here!</string>
 
     <string name="backup_settings_activity_title">Data Backup</string>
@@ -488,6 +489,7 @@
     <string name="next_month">Next</string>
     <string name="previous_month">Back</string>
     <string name="future_expenses">Future Expenses</string>
+    <string name="future_expense">Future Expense</string>
     <string name="future_expenses_show_view_message">By clicking this you can see upcoming future expenses.\nYou can also access it under app settings.</string>
     <string name="expenses_breakdown_show_view_message">By clicking this you can see current month expenses breakdown.\nYou can also access it under app settings.</string>
     <string name="no_expenses_found">No Expenses Found</string>
@@ -534,4 +536,9 @@
     <string name="edit_categories_show_view_message">By clicking this you can manage (Add and Remove) categories.\nYou can also access it under app settings.</string>
     <string name="skip">Skip</string>
     <string name="add">Add</string>
+    <string name="top_search">Top searches 🔥</string>
+    <string name="search_results_for_">Search results for \'%s\'</string>
+    <string name="search_results_for_range">Search results from \'%s\' -  \'%s\'</string>
+    <string name="reset">Reset</string>
+    <string name="sum_of_expenses_by_categories">Expenses for this month</string>
 </resources>

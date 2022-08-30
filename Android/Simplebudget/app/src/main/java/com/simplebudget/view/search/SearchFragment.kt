@@ -15,26 +15,30 @@
  */
 package com.simplebudget.view.search
 
-import android.graphics.Color
 import android.os.Bundle
-import android.view.*
-import android.widget.EditText
-import androidx.appcompat.widget.SearchView
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.ads.*
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.material.chip.Chip
 import com.simplebudget.R
 import com.simplebudget.databinding.FragmentSearchBinding
 import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.getInitTimestamp
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.text.SimpleDateFormat
 import java.util.*
-
-
-private const val ARG_DATE = "arg_date"
 
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
@@ -44,6 +48,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private val appPreferences: AppPreferences by inject()
     private val viewModel: SearchViewModel by viewModel()
     private var adView: AdView? = null
+    private val dayFormatter = SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault())
 
 // ---------------------------------->
 
@@ -55,93 +60,37 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         FragmentSearchBinding.inflate(inflater, container, false)
 
     /**
-     * Enable menu options handling
-     */
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true);
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        // Inflate the menu; this adds items to the action bar.
-        inflater.inflate(R.menu.menu_search, menu)
-        val item = menu.findItem(R.id.action_search);
-        val searchView = item?.actionView as SearchView
-        // Customize search view text and hint colors
-        val searchEditId = androidx.appcompat.R.id.search_src_text
-        val et: EditText = searchView.findViewById<View>(searchEditId) as EditText
-        et.setTextColor(Color.WHITE)
-        et.setHintTextColor(Color.WHITE)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let {
-                }
-                return true
-            }
-
-            override fun onQueryTextChange(query: String?): Boolean {
-                return true
-            }
-        })
-
-        //Expand Collapse listener
-        item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionCollapse(p0: MenuItem?): Boolean {
-                //Action Collapse
-                return true
-            }
-
-            override fun onMenuItemActionExpand(p0: MenuItem?): Boolean {
-                //Action Expand
-                return true
-            }
-        })
-        return super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-
-    }
-
-    /**
      *
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
-            binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
+        viewModel.expenses.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
+            if (result.isEmpty()) {
+                binding?.recyclerViewSearch?.visibility = View.GONE
+                binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
+            } else {
+                binding?.recyclerViewSearch?.visibility = View.VISIBLE
+                binding?.monthlyReportFragmentEmptyState?.visibility = View.GONE
 
-            when (result) {
-                SearchViewModel.MonthlyReportData.Empty -> {
-                    binding?.monthlyReportFragmentRecyclerView?.visibility = View.GONE
-                    binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
-                }
-                is SearchViewModel.MonthlyReportData.Data -> {
-                    configureRecyclerView(
-                        binding?.monthlyReportFragmentRecyclerView!!,
-                        SearchRecyclerViewAdapter(
-                            result.expenses,
-                            result.revenues,
-                            result.allExpensesOfThisMonth,
-                            appPreferences
-                        )
-                    )
-                }
+                binding?.recyclerViewSearch?.layoutManager =
+                    LinearLayoutManager(activity)
+                binding?.recyclerViewSearch?.adapter = SearchRecyclerViewAdapter(
+                    result,
+                    appPreferences
+                )
             }
         }
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = appPreferences.getInitTimestamp()
-        cal.set(Calendar.MILLISECOND, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-        val today = Date()
-        val startDate = cal.time
-        viewModel.loadDataForMonth(startDate, today)
+
+        /**
+         * Loading
+         */
+        viewModel.loading.observe(viewLifecycleOwner) { loading ->
+            binding?.searchExpensesProgressBar?.visibility =
+                if (loading) View.VISIBLE else View.GONE
+        }
+
         /**
          * Banner ads
          */
@@ -150,25 +99,144 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         } else {
             loadAndDisplayBannerAds()
         }
+
+        /**
+         * Handle search expenses
+         */
+        binding?.searchEditText?.doOnTextChanged { text, _, _, _ ->
+            val query = text.toString()
+            binding?.ivClearTick?.visibility = if (query.isEmpty()) View.GONE else View.VISIBLE
+            if (query.isEmpty()) viewModel.loadThisMonthExpenses()
+        }
+
+        /**
+         * Clear search
+         */
+        binding?.ivClearTick?.setOnClickListener {
+            binding?.searchEditText?.text?.clear()
+            resetToDefaultChipThisMonth()
+        }
+
+
+        /**
+         * Handle action done for search expenses
+         */
+        binding?.searchEditText?.setOnEditorActionListener(TextView.OnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val query = binding?.searchEditText?.text.toString().trim()
+                viewModel.searchExpenses(query)
+                Keyboard.hideSoftKeyboard(requireContext(), binding?.searchEditText!!)
+                binding?.chipReset?.visibility = View.GONE
+                binding?.chipGroup?.clearCheck()
+                binding?.searchResultsFor?.visibility = View.VISIBLE
+                binding?.searchResultsFor?.text =
+                    String.format(getString(R.string.search_results_for_), query)
+                return@OnEditorActionListener true
+            }
+            false
+        })
+
+        binding?.searchResultsFor?.visibility = View.VISIBLE
+        binding?.searchResultsFor?.text =
+            String.format(getString(R.string.search_results_for_), SearchUtil.THIS_MONTH)
+        //Add top searches
+        SearchUtil.getTopSearches().forEach {
+            addChipsForTopSearches(it)
+        }
+        /**
+         *
+         */
+        binding?.chipReset?.setOnClickListener {
+            resetToDefaultChipThisMonth()
+            viewModel.loadThisMonthExpenses()
+        }
     }
 
     /**
-     * Configure recycler view LayoutManager & adapter
+     * Call this for clear / reset chip click
      */
-    private fun configureRecyclerView(
-        recyclerView: RecyclerView,
-        adapter: SearchRecyclerViewAdapter
-    ) {
-        recyclerView.layoutManager = LinearLayoutManager(activity)
-        recyclerView.adapter = adapter
+    private fun resetToDefaultChipThisMonth() {
+        binding?.chipReset?.visibility = View.GONE
+        binding?.chipGroup?.clearCheck()
+        binding?.searchResultsFor?.visibility = View.VISIBLE
+        binding?.searchResultsFor?.text =
+            String.format(getString(R.string.search_results_for_), SearchUtil.THIS_MONTH)
+        binding?.chipGroup?.findViewWithTag<Chip>(SearchUtil.THIS_MONTH)?.let {
+            it.isChecked = true
+        }
+        binding?.searchEditText?.text?.clear()
     }
 
-    companion object {
-        fun newInstance(date: Date): SearchFragment = SearchFragment().apply {
-            arguments = Bundle().apply {
-                putSerializable(ARG_DATE, date)
+
+    /**
+     * Add hardcoded chips for Top searches
+     */
+    private fun addChipsForTopSearches(
+        chipText: String,
+        showClose: Boolean = false,
+        isChecked: Boolean = false
+    ) {
+        val chip = Chip(requireContext())
+        chip.text = chipText
+        chip.tag = chipText
+        chip.chipIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_download_app)
+        chip.isChipIconVisible = false
+        chip.isCloseIconVisible = (showClose && chipText != ExpenseCategoryType.MISCELLANEOUS.name)
+        // necessary to get single selection working
+        chip.isClickable = true
+        binding?.chipGroup?.isSingleSelection = !showClose
+        chip.isCheckable = !showClose
+        chip.isChecked = if (chipText == SearchUtil.THIS_MONTH) true else isChecked
+        binding?.chipGroup?.addView(chip as View)
+
+        chip.setOnClickListener {
+            val clickChipText = (it as Chip).text ?: ""
+            binding?.searchResultsFor?.visibility = View.VISIBLE
+            binding?.chipReset?.visibility = View.VISIBLE
+            binding?.searchResultsFor?.text =
+                String.format(getString(R.string.search_results_for_), clickChipText)
+            when (clickChipText) {
+                SearchUtil.TODAY -> viewModel.loadTodayExpenses()
+                SearchUtil.YESTERDAY -> viewModel.loadYesterdayExpenses()
+                SearchUtil.TOMORROW -> viewModel.loadTomorrowExpenses()
+                SearchUtil.THIS_WEEK -> viewModel.loadThisWeekExpenses()
+                SearchUtil.LAST_WEEK -> viewModel.loadLastWeekExpenses()
+                SearchUtil.THIS_MONTH -> viewModel.loadThisMonthExpenses()
+                SearchUtil.PICK_A_DATE -> {
+                    requireActivity().pickSingleDate(onDateSet = { date ->
+                        viewModel.loadExpensesForADate(date)
+                        binding?.searchResultsFor?.visibility = View.VISIBLE
+                        binding?.searchResultsFor?.text =
+                            String.format(
+                                getString(R.string.search_results_for_),
+                                dayFormatter.format(date)
+                            )
+                    })
+                }
+                SearchUtil.PICK_A_DATE_RANGE -> {
+                    requireActivity().pickDateRange(onDateSet = { dates ->
+                        val cal = Calendar.getInstance()
+                        cal.time = dates.second
+                        cal.add(Calendar.DAY_OF_MONTH, 1)
+                        viewModel.loadExpensesForGivenDates(dates.first, cal.time)
+                        binding?.searchResultsFor?.visibility = View.VISIBLE
+                        binding?.searchResultsFor?.text =
+                            String.format(
+                                getString(R.string.search_results_for_range),
+                                dayFormatter.format(dates.first),
+                                dayFormatter.format(dates.second)
+                            )
+                    })
+                }
             }
         }
+    }
+
+    /**
+     * SearchFragment
+     */
+    companion object {
+        fun newInstance(): SearchFragment = SearchFragment()
     }
 
     /**

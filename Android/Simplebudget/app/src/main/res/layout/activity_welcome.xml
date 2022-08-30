@@ -16,4 +16,19 @@
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="10dp" />
 
+    <FrameLayout
+        android:id="@+id/loader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.6"
+        android:background="@color/colorBlack"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="@dimen/_80sdp"
+            android:layout_height="@dimen/_80sdp"
+            android:layout_gravity="center" />
+
+    </FrameLayout>
+
 </FrameLayout>

@@ -143,13 +143,12 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
 
         viewModel.monthlyReportDataLiveDataForAllTypesOfExpenses.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
-            binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
 
             when (result) {
                 BreakDownViewModel.MonthlyBreakDownData.Empty -> {
                     lisOfExpenses.clear()
-                    binding?.monthlyReportFragmentRecyclerView?.visibility = View.GONE
-                    binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
+                    binding?.breakDownEmptyState?.visibility = View.VISIBLE
+                    binding?.llRecyclerViewContents?.visibility = View.GONE
 
                     binding?.monthlyReportFragmentRevenuesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
@@ -167,11 +166,10 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                 }
                 is BreakDownViewModel.MonthlyBreakDownData.Data -> {
                     lisOfExpenses.clear()
-                    binding?.monthlyReportFragmentRecyclerView?.visibility = View.VISIBLE
-                    binding?.monthlyReportFragmentEmptyState?.visibility = View.GONE
+                    binding?.breakDownEmptyState?.visibility = View.GONE
+                    binding?.llRecyclerViewContents?.visibility = View.VISIBLE
                     lisOfExpenses.addAll(result.allExpensesOfThisMonth)
                     initChart()
-
                     configureRecyclerView(
                         binding?.monthlyReportFragmentRecyclerView!!,
                         BreakDownRecyclerViewAdapter(
@@ -181,7 +179,6 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                             appPreferences
                         )
                     )
-
                     binding?.monthlyReportFragmentRevenuesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(
                             appPreferences,
@@ -276,23 +273,27 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
     private fun initChart() {
         binding?.chart?.setUsePercentValues(true)
         binding?.chart?.description?.isEnabled = false
-        if (lisOfExpenses.isNotEmpty())
-            binding?.chart?.centerText = generateCenterSpannableText()
+        val sortedListOfExpenses =
+            lisOfExpenses.sortedBy { expense -> expense.amountSpend }.takeLast(5)
+        binding?.chart?.centerText =
+            generateCenterSpannableText(sortedListOfExpenses.size, lisOfExpenses.size)
         binding?.chart?.setHoleColor(Color.WHITE)
-        setData()
+        setData(sortedListOfExpenses)
         binding?.chart?.setEntryLabelColor(Color.BLACK)
         binding?.chart?.setEntryLabelTextSize(12f)
         binding?.chart?.legend?.isEnabled = false
-        binding?.emptyExpensesRecyclerViewPlaceholder?.visibility =
+        binding?.breakDownEmptyState?.visibility =
             if (lisOfExpenses.isEmpty()) View.VISIBLE else View.GONE
+        binding?.llRecyclerViewContents?.visibility =
+            if (lisOfExpenses.isEmpty()) View.GONE else View.VISIBLE
     }
 
     /**
      * Set data
      */
-    private fun setData() {
+    private fun setData(sortedList: List<BreakDownViewModel.CategoryWiseExpense>) {
         val values = ArrayList<PieEntry>()
-        lisOfExpenses.forEach {
+        sortedList.forEach {
             values.add(PieEntry(it.amountSpend.toFloat(), it.category, it.amountSpend))
         }
         val dataSet = PieDataSet(values, "")
@@ -322,11 +323,23 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
     /**
      *
      */
-    private fun generateCenterSpannableText(): SpannableString {
-        val s = SpannableString(date.getMonthTitle(requireContext()))
+    private fun generateCenterSpannableText(
+        topExpensesSize: Int,
+        actualSize: Int
+    ): SpannableString {
+        if (topExpensesSize == 0) return SpannableString("")
+        val expenseLabel = if (type == getString(R.string.all_label)) "Expenses" else type
+        val info = when (actualSize) {
+            in 1..5 -> "\nPercentage of $expenseLabel."
+            else -> "\nPercentage of top\n$topExpensesSize $expenseLabel."
+        }
+        val s = SpannableString("${date.getMonthTitle(requireContext())}$info")
         s.setSpan(RelativeSizeSpan(1.7f), 0, s.length, 0)
         s.setSpan(ForegroundColorSpan(Color.BLACK), 0, s.length, 0)
         s.setSpan(StyleSpan(Typeface.ITALIC), 0, s.length, 0)
+        s.setSpan(RelativeSizeSpan(.7f), s.length - info.length, s.length, 0)
+        s.setSpan(StyleSpan(Typeface.ITALIC), s.length - info.length, s.length, 0)
+        s.setSpan(ForegroundColorSpan(Color.GRAY), s.length - info.length, s.length, 0)
         return s
     }
 

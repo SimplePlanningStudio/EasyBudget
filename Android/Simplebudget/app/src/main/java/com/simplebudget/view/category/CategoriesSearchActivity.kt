@@ -50,7 +50,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     private val appPreferences: AppPreferences by inject()
 
     companion object {
-        const val REQUEST_CODE_CURRENT_EDIT_CATEGORY = "CURRENT__EDIT_CATEGORY"
+        const val REQUEST_CODE_CURRENT_EDIT_CATEGORY = "CURRENT_EDIT_CATEGORY"
         const val REQUEST_CODE_SELECTED_CATEGORY = "SELECTED_CATEGORY"
     }
 

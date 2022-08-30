@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
@@ -62,6 +63,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
     private lateinit var receiver: BroadcastReceiver
     private var adView: AdView? = null
     private var existingExpenseCategory: String = ""
+    private var isEdit: Boolean = false
+    private var isRevenue: Boolean = false
 
 
     override fun createBinding(): ActivityExpenseEditBinding =
@@ -141,6 +144,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         binding.dateButton.removeButtonBorder()
 
         viewModel.editTypeLiveData.observe(this) { (isRevenue, isEdit) ->
+            this.isEdit = isEdit
+            this.isRevenue = isRevenue
             setExpenseTypeTextViewLayout(isRevenue, isEdit)
         }
 
@@ -410,6 +415,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      */
     private fun showCaseChangeExpenseIncomeSwitch() {
         if (appPreferences.hasUserSawSwitchExpenseHint().not()) {
+            switchDemo()
             showCaseView(
                 targetView = binding.expenseTypeSwitch,
                 title = getString(R.string.switch_expense_income_hint_title),
@@ -418,6 +424,23 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
                     appPreferences.setUserSawSwitchExpenseHint()
                 }
             )
+        }
+    }
+
+    /**
+     * Switch expense demo for Hint
+     */
+    private fun switchDemo() {
+        if (!isEdit) {
+            object : CountDownTimer(4000, 2000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    setExpenseTypeTextViewLayout(!isRevenue, isEdit)
+                }
+
+                override fun onFinish() {
+                    setExpenseTypeTextViewLayout(isRevenue, isEdit)
+                }
+            }.start()
         }
     }
 

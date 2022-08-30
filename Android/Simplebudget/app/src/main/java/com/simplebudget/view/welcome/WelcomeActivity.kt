@@ -213,7 +213,15 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
          */
         const val PAGER_DONE_INTENT = "welcome.pager.done"
     }
+
+    /**
+     *
+     */
+    fun loading(show: Boolean) {
+        binding.loader.visibility = if (show) View.VISIBLE else View.GONE
+    }
 }
+
 
 /**
  * The current onboarding step (int)

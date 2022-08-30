@@ -24,9 +24,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,17 +41,14 @@ import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityRecurringExpenseAddBinding
 import com.simplebudget.helper.*
-import com.simplebudget.helper.extensions.capital
 import com.simplebudget.helper.extensions.showCaseView
-import com.simplebudget.model.ExpenseCategories
 import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.hasUserSawSwitchExpenseHint
+import com.simplebudget.prefs.resetUserSawSwitchExpenseHint
 import com.simplebudget.prefs.setUserSawSwitchExpenseHint
-import com.simplebudget.view.CategoriesViewModel
 import com.simplebudget.view.DatePickerDialogFragment
-import com.simplebudget.view.category.CategoriesActivity
 import com.simplebudget.view.category.CategoriesSearchActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -59,14 +56,18 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
 
+/**
+ *
+ */
 class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBinding>() {
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: RecurringExpenseEditViewModel by viewModel()
     private lateinit var receiver: BroadcastReceiver
     private var adView: AdView? = null
-    private var categories: ArrayList<String> = ArrayList()
     private var existingExpenseCategory: String = ""
+    private var isEdit: Boolean = false
+    private var isRevenue: Boolean = false
 
     /**
      *
@@ -133,6 +134,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         binding.dateButton.removeButtonBorder() // Remove border
 
         viewModel.editTypeLiveData.observe(this) { (isRevenue, isEditing) ->
+            this.isEdit = isEditing
+            this.isRevenue = isRevenue
             setExpenseTypeTextViewLayout(isRevenue, isEditing)
         }
 
@@ -520,6 +523,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
      */
     private fun showCaseChangeExpenseIncomeSwitch() {
         if (appPreferences.hasUserSawSwitchExpenseHint().not()) {
+            switchDemo()
             showCaseView(
                 targetView = binding.expenseTypeSwitch,
                 title = getString(R.string.switch_expense_income_hint_title),
@@ -528,6 +532,24 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                     appPreferences.setUserSawSwitchExpenseHint()
                 }
             )
+        }
+    }
+
+
+    /**
+     * Switch expense demo for Hint
+     */
+    private fun switchDemo() {
+        if (!isEdit) {
+            object : CountDownTimer(4000, 2000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    setExpenseTypeTextViewLayout(!isRevenue, isEdit)
+                }
+
+                override fun onFinish() {
+                    setExpenseTypeTextViewLayout(isRevenue, isEdit)
+                }
+            }.start()
         }
     }
 }
