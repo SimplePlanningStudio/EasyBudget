@@ -17,12 +17,6 @@
       "message": "Configure router's settings instantly.",
       "imagelink": "ic_router_app.png",
       "store_link": "gplx.router.admin.page"
-    },
-    {
-      "title": "Mirror App",
-      "message": "Smallest, Efficient Hd Mirror App.",
-      "imagelink": "icon_mirror_app.png",
-      "store_link": "best.hd.mirror"
     }
   ]
 }

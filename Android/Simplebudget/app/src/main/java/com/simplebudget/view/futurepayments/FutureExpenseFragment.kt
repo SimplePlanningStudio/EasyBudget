@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,16 +19,12 @@ import android.os.Bundle
 import android.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.ads.*
-import com.simplebudget.R
 import com.simplebudget.databinding.FragmentFutureExpenseBinding
 import com.simplebudget.helper.*
-import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.getInitTimestamp
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.*
+import java.time.LocalDate
 
 
 private const val ARG_DATE = "arg_date"
@@ -37,7 +33,7 @@ class FutureExpenseFragment : BaseFragment<FragmentFutureExpenseBinding>() {
     /**
      * The first date of the month at 00:00:00
      */
-    private lateinit var date: Date
+    private lateinit var date: LocalDate
     private val appPreferences: AppPreferences by inject()
     private val viewModel: FutureExpenseViewModel by viewModel()
 
@@ -56,7 +52,7 @@ class FutureExpenseFragment : BaseFragment<FragmentFutureExpenseBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        date = requireArguments().getSerializable(ARG_DATE) as Date
+        date = requireArguments().getSerializable(ARG_DATE) as LocalDate
 
         viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
@@ -95,7 +91,7 @@ class FutureExpenseFragment : BaseFragment<FragmentFutureExpenseBinding>() {
     }
 
     companion object {
-        fun newInstance(date: Date): FutureExpenseFragment = FutureExpenseFragment().apply {
+        fun newInstance(date: LocalDate): FutureExpenseFragment = FutureExpenseFragment().apply {
             arguments = Bundle().apply {
                 putSerializable(ARG_DATE, date)
             }

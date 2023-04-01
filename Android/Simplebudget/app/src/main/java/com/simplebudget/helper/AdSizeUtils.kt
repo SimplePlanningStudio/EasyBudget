@@ -12,7 +12,7 @@ object AdSizeUtils {
      *
      * @return Ad size for Adaptive Ads
      */
-    fun getAdSize(context: Context, display: Display): AdSize? {
+    fun getAdSize(context: Context, display: Display): AdSize {
         // Step 2 - Determine the screen width (less decorations) to use for the ad width.
         val outMetrics = DisplayMetrics()
         display.getMetrics(outMetrics)

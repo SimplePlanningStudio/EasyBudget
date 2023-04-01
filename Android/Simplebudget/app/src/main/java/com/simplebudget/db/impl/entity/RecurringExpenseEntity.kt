@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@ package com.simplebudget.db.impl.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpense
 import com.simplebudget.model.RecurringExpenseType
-import java.util.*
+import java.time.LocalDate
 
 @Entity(tableName = "monthlyexpense")
 class RecurringExpenseEntity(
@@ -33,7 +32,7 @@ class RecurringExpenseEntity(
     @ColumnInfo(name = "amount")
     val originalAmount: Long,
     @ColumnInfo(name = "recurringDate")
-    val recurringDate: Date,
+    val recurringDate: LocalDate,
     @ColumnInfo(name = "modified")
     val modified: Boolean,
     @ColumnInfo(name = "type")

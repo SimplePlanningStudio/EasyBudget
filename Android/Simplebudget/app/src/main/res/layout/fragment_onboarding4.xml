@@ -94,7 +94,7 @@
         app:layout_constraintTop_toBottomOf="@+id/card1" />
 
 
-    <com.google.android.material.button.MaterialButton
+    <TextView
         android:id="@+id/onboarding_screen4_next_button"
         style="@style/BlueButton"
         android:layout_width="@dimen/_99sdp"
@@ -102,13 +102,12 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="@dimen/_20sdp"
         android:background="@drawable/ic_small_button"
-        android:backgroundTint="@color/accent"
-        android:ellipsize="end"
-        android:maxLines="1"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless"
         android:text="@string/onboarding_screen_4_cta"
         android:textAllCaps="false"
         android:textSize="@dimen/_12ssp"
-        app:backgroundTint="@color/accent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

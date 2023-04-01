@@ -6,14 +6,14 @@
     android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/tvMenuFutureExpense"
+        android:id="@+id/tvMenuCurrentMonth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginEnd="@dimen/_6sdp"
         android:drawablePadding="@dimen/_4sdp"
         android:gravity="center_vertical"
-        android:text="@string/future_expenses"
+        android:text="Current Month"
         android:textAllCaps="true"
         android:textColor="@color/white"
         app:drawableEndCompat="@drawable/ic_menu_future_expenses" />

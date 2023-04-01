@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -61,6 +61,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         ActivityWelcomeBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val isAndroid13OrMore = Build.VERSION.SDK_INT >= 33
+
         // Reinit step to 0 if already completed
         if (step == STEP_COMPLETED) {
             step = 0
@@ -71,17 +74,27 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
         ) {
             override fun getItem(position: Int): Fragment {
-                when (position) {
-                    0 -> return Onboarding1Fragment()
-                    1 -> return Onboarding2Fragment()
-                    2 -> return Onboarding3Fragment()
-                    3 -> return Onboarding4Fragment()
+                if (isAndroid13OrMore) {
+                    when (position) {
+                        0 -> return Onboarding1Fragment()
+                        1 -> return Onboarding2Fragment()
+                        2 -> return Onboarding3Fragment()
+                        3 -> return OnboardingPushPermissionFragment()
+                        4 -> return Onboarding4Fragment()
+                    }
+                } else {
+                    when (position) {
+                        0 -> return Onboarding1Fragment()
+                        1 -> return Onboarding2Fragment()
+                        2 -> return Onboarding3Fragment()
+                        3 -> return Onboarding4Fragment()
+                    }
                 }
 
                 throw IllegalStateException("unknown position $position")
             }
 
-            override fun getCount(): Int = 4
+            override fun getCount(): Int = if (Build.VERSION.SDK_INT >= 33) 5 else 4
         }
         binding.welcomeViewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(
@@ -182,6 +195,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         super.onDestroy()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (binding.welcomeViewPager.currentItem > 0) {
             binding.welcomeViewPager.setCurrentItem(binding.welcomeViewPager.currentItem - 1, true)

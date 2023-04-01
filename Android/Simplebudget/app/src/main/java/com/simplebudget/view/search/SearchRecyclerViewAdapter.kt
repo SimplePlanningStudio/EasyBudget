@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -27,8 +27,7 @@ import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpenseType
-
-import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -44,7 +43,7 @@ class SearchRecyclerViewAdapter(
     /**
      * Formatter to get day number for each date
      */
-    private val dayFormatter = SimpleDateFormat("E,dd/MMM/yyyy", Locale.getDefault())
+    private val dayFormatter = DateTimeFormatter.ofPattern("E,dd/MMM/yyyy", Locale.getDefault())
 
 // --------------------------------------->
 

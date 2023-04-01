@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.simplebudget.db.impl.entity.ExpenseEntity
 import com.simplebudget.db.impl.entity.RecurringExpenseEntity
 import com.simplebudget.helper.Logger
 import com.simplebudget.model.Category
+import java.time.LocalDate
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.ceil
@@ -74,27 +75,20 @@ class DBImpl(private val roomDB: RoomDB) : DB {
         return expense.copy(id = newId)
     }
 
-    override suspend fun hasExpenseForDay(dayDate: Date): Boolean {
-        val (startDate, endDate) = dayDate.getDayDatesRange()
-        return roomDB.expenseDao().hasExpenseForDay(startDate, endDate) > 0
+    override suspend fun hasExpenseForDay(dayDate: LocalDate): Boolean {
+        return roomDB.expenseDao().hasExpenseForDay(dayDate) > 0
     }
 
-    override suspend fun getExpensesForDay(dayDate: Date): List<Expense> {
-        val (startDate, endDate) = dayDate.getDayDatesRange()
-        return roomDB.expenseDao().getExpensesForDay(startDate, endDate).toExpenses(this)
+    override suspend fun getExpensesForDay(dayDate: LocalDate): List<Expense> {
+        return roomDB.expenseDao().getExpensesForDay(dayDate).toExpenses(this)
     }
 
-    override suspend fun getExpensesForMonth(monthStartDate: Date): List<Expense> {
-        val (firstDayStartDate) = monthStartDate.getDayDatesRange()
+    override suspend fun getExpensesForMonth(monthStartDate: LocalDate): List<Expense> {
+        val monthEndDate = monthStartDate
+            .plusMonths(1)
+            .minusDays(1)
 
-        val cal = Calendar.getInstance()
-        cal.time = monthStartDate
-        cal.add(Calendar.MONTH, 1)
-        cal.add(Calendar.DAY_OF_MONTH, -1)
-
-        val (_, lastDayEndDate) = cal.time.getDayDatesRange()
-
-        return roomDB.expenseDao().getExpensesForMonth(firstDayStartDate, lastDayEndDate)
+        return roomDB.expenseDao().getExpensesForMonth(monthStartDate, monthEndDate)
             .toExpenses(this)
     }
 
@@ -103,7 +97,7 @@ class DBImpl(private val roomDB: RoomDB) : DB {
             .toExpenses(this)
     }
 
-    override suspend fun getAllExpenses(startDate: Date, endDate: Date): List<Expense> {
+    override suspend fun getAllExpenses(startDate: LocalDate, endDate: LocalDate): List<Expense> {
         return roomDB.expenseDao().getAllExpenses(startDate, endDate).toExpenses(this)
     }
 
@@ -111,10 +105,8 @@ class DBImpl(private val roomDB: RoomDB) : DB {
         return roomDB.expenseDao().getAllExpenses().toExpenses(this)
     }
 
-    override suspend fun getBalanceForDay(dayDate: Date): Double {
-        val (_, endDate) = dayDate.getDayDatesRange()
-
-        return roomDB.expenseDao().getBalanceForDay(endDate).getRealValueFromDB()
+    override suspend fun getBalanceForDay(dayDate: LocalDate): Double {
+        return roomDB.expenseDao().getBalanceForDay(dayDate).getRealValueFromDB()
     }
 
     override suspend fun persistRecurringExpense(recurringExpense: RecurringExpense): RecurringExpense {
@@ -156,7 +148,7 @@ class DBImpl(private val roomDB: RoomDB) : DB {
 
     override suspend fun deleteAllExpenseForRecurringExpenseFromDate(
         recurringExpense: RecurringExpense,
-        fromDate: Date
+        fromDate: LocalDate
     ) {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("deleteAllExpenseForRecurringExpenseFromDate called with a recurring expense that has no id")
@@ -167,7 +159,7 @@ class DBImpl(private val roomDB: RoomDB) : DB {
 
     override suspend fun getAllExpensesForRecurringExpenseFromDate(
         recurringExpense: RecurringExpense,
-        fromDate: Date
+        fromDate: LocalDate
     ): List<Expense> {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("getAllExpensesForRecurringExpenseFromDate called with a recurring expense that has no id")
@@ -179,7 +171,7 @@ class DBImpl(private val roomDB: RoomDB) : DB {
 
     override suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(
         recurringExpense: RecurringExpense,
-        beforeDate: Date
+        beforeDate: LocalDate
     ) {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("deleteAllExpenseForRecurringExpenseBeforeDate called with a recurring expense that has no id")
@@ -190,7 +182,7 @@ class DBImpl(private val roomDB: RoomDB) : DB {
 
     override suspend fun getAllExpensesForRecurringExpenseBeforeDate(
         recurringExpense: RecurringExpense,
-        beforeDate: Date
+        beforeDate: LocalDate
     ): List<Expense> {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("getAllExpensesForRecurringExpenseBeforeDate called with a recurring expense that has no id")
@@ -202,7 +194,7 @@ class DBImpl(private val roomDB: RoomDB) : DB {
 
     override suspend fun hasExpensesForRecurringExpenseBeforeDate(
         recurringExpense: RecurringExpense,
-        beforeDate: Date
+        beforeDate: LocalDate
     ): Boolean {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("hasExpensesForRecurringExpenseBeforeDate called with a recurring expense that has no id")
@@ -271,27 +263,6 @@ private fun RecurringExpense.toRecurringExpenseEntity() = RecurringExpenseEntity
     type.name,
     category
 )
-
-private data class DayDateRange(val dayStartDate: Date, val dayEndDate: Date)
-
-private fun Date.getDayDatesRange(): DayDateRange {
-    val cal = Calendar.getInstance()
-    cal.time = this
-
-    cal.set(Calendar.MILLISECOND, 0)
-    cal.set(Calendar.SECOND, 0)
-    cal.set(Calendar.MINUTE, 0)
-    cal.set(Calendar.HOUR_OF_DAY, 0)
-
-    val start = cal.time
-    cal.add(Calendar.HOUR_OF_DAY, 23)
-    cal.add(Calendar.MINUTE, 59)
-    cal.set(Calendar.SECOND, 59)
-    cal.set(Calendar.MILLISECOND, 999)
-    val end = cal.time
-
-    return DayDateRange(start, end)
-}
 
 /**
  * Return the integer value of the double * 100 to store it as integer in DB. This is an ugly

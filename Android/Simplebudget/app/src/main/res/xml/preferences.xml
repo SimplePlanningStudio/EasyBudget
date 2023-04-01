@@ -23,6 +23,14 @@
             app:key="@string/setting_category_manage_category_key"
             app:summary="@string/setting_category_manage_category_summary"
             app:title="@string/setting_category_manage_category_title" />
+
+        <Preference
+            app:key="@string/setting_enable_app_protection_key"
+            app:title="@string/setting_enable_app_protection_general" />
+
+        <Preference
+            app:key="@string/setting_enable_app_notifications_key"
+            app:title="@string/setting_enable_app_notification_general" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_reports_title">
@@ -32,20 +40,9 @@
             app:title="@string/setting_monthly_reports_title" />
 
         <Preference
-            app:key="@string/setting_future_expenses_key"
-            app:summary="@string/setting_future_expenses_summary"
-            app:title="@string/setting_future_expenses_title" />
-
-        <Preference
             app:key="@string/setting_monthly_breakdown_key"
             app:summary="@string/setting_monthly_breakdown_summary"
             app:title="@string/setting_monthly_breakdown_title" />
-    </PreferenceCategory>
-
-    <PreferenceCategory app:title="@string/setting_category_security_title">
-        <Preference
-            app:key="@string/setting_enable_app_protection_key"
-            app:title="@string/setting_enable_app_protection_general" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_data_backup_title">
@@ -69,7 +66,6 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_app_title">
-
         <Preference
             app:key="@string/setting_category_rate_button_key"
             app:summary="@string/setting_category_rate_button_message"
@@ -81,25 +77,25 @@
             app:title="@string/setting_category_share_app_title" />
 
         <Preference
-            app:key="@string/setting_category_feedback_app_key"
-            app:summary="@string/setting_category_feedback_app_message"
-            app:title="@string/setting_category_rate_app_title" />
-
-        <Preference
             app:key="@string/setting_more_apps_key"
             app:summary="@string/setting_more_apps_summary"
             app:title="@string/setting_more_apps_title" />
 
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/setting_category_app_support_and_help">
+        <Preference
+            app:key="@string/setting_category_faq_key"
+            app:summary="@string/setting_category_faq_message"
+            app:title="@string/setting_category_faq_title" />
+        <Preference
+            app:key="@string/setting_category_feedback_app_key"
+            app:summary="@string/setting_category_feedback_app_message"
+            app:title="@string/setting_category_rate_app_title" />
         <Preference
             app:key="@string/setting_telegram_channel_key"
             app:summary="@string/setting_telegram_channel_summary"
             app:title="@string/setting_telegram_channel_title" />
-
-        <Preference
-            app:key="@string/setting_app_version_key"
-            app:summary="@string/setting_app_version"
-            app:title="@string/setting_app_version" />
-
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_copyrights_title">
@@ -113,4 +109,11 @@
             app:title="@string/text_open_source" />
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/release_history">
+
+        <Preference
+            app:key="@string/setting_app_version_key"
+            app:summary="@string/setting_app_version"
+            app:title="@string/setting_app_version" />
+    </PreferenceCategory>
 </PreferenceScreen>

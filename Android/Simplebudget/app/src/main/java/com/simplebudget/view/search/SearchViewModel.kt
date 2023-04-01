@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,12 +20,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
+import com.simplebudget.helper.CurrencyHelper
+import com.simplebudget.helper.DateHelper
 import com.simplebudget.model.Expense
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.getInitTimestamp
+import com.simplebudget.view.report.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -34,14 +41,26 @@ import kotlin.collections.ArrayList
  */
 
 class SearchViewModel(
-    private val db: DB
+    private val db: DB,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
 
     private val allExpensesLiveData = MutableLiveData<List<Expense>>()
-    val expenses: LiveData<List<Expense>> = allExpensesLiveData
+    val allExpenses: LiveData<List<Expense>> = allExpensesLiveData
 
     private val loadingMutableLiveData = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> = loadingMutableLiveData
+
+
+    val monthlyReportDataLiveData = MutableLiveData<DataModels.MonthlyReportData>()
+    val expenses = mutableListOf<Expense>()
+    val revenues = mutableListOf<Expense>()
+    private val allExpensesOfThisMonth = mutableListOf<DataModels.SuperParent>()
+    private val allExpensesParentList = mutableListOf<DataModels.CustomTriple.Data>()
+    var revenuesAmount = 0.0
+    var expensesAmount = 0.0
+    var balance = 0.0
+    val hashMap = hashMapOf<String, DataModels.CustomTriple.Data>()
 
 
     init {
@@ -54,8 +73,13 @@ class SearchViewModel(
     fun searchExpenses(search_query: String) {
         loadingMutableLiveData.value = true
         viewModelScope.launch {
-            allExpensesLiveData.postValue(db.searchExpenses(search_query))
+            val results = withContext(Dispatchers.Default) {
+                db.searchExpenses(search_query)
+            }
+            allExpensesLiveData.postValue(results)
             loadingMutableLiveData.postValue(false)
+
+            loadDataForReports(results)
         }
     }
 
@@ -63,41 +87,35 @@ class SearchViewModel(
      * Load Today's expenses
      */
     fun loadTodayExpenses() {
-        loadExpensesForADate(Date())
+        loadExpensesForADate(DateHelper.today)
     }
 
     /**
      * Load Yesterday's expenses
      */
     fun loadYesterdayExpenses() {
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = Date().time // Set today date
-        cal.add(Calendar.DAY_OF_MONTH, -1) // Go to 1 day back to get Yesterday
-        loadExpensesForADate(cal.time)
+        loadExpensesForADate(DateHelper.yesterday)
     }
 
     /**
      * Load expenses for this week
      */
     fun loadThisWeekExpenses() {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_WEEK, 1)
-        val d1 = cal.time
-        loadExpensesForGivenDates(d1, Date()) // Starting week to Today's date
+        // Starting of week to Today's date
+        loadExpensesForGivenDates(DateHelper.firstDayOfThisWeek, DateHelper.today)
     }
 
     /**
      * Load expenses for this month
      */
     fun loadThisMonthExpenses() {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_MONTH, 1)
-        cal.add(Calendar.DAY_OF_MONTH, -1)
-        loadingMutableLiveData.value = true
-        val startDate = cal.time
         viewModelScope.launch {
-            allExpensesLiveData.postValue(db.getExpensesForMonth(startDate))
+            val results = withContext(Dispatchers.Default) {
+                db.getExpensesForMonth(DateHelper.startDayOfMonth)
+            }
+            allExpensesLiveData.postValue(results)
             loadingMutableLiveData.postValue(false)
+            loadDataForReports(results)
         }
     }
 
@@ -105,42 +123,351 @@ class SearchViewModel(
      * Load expenses for last week
      */
     fun loadLastWeekExpenses() {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.DAY_OF_WEEK, 1)
-        val d1 = cal.time
-        cal.add(Calendar.WEEK_OF_MONTH, -1)
-        loadExpensesForGivenDates(cal.time, d1)
+        loadExpensesForGivenDates(DateHelper.firstDayOfLastWeek, DateHelper.lastDayOfLastWeek)
     }
 
     /**
      * Load Tomorrow's expenses
      */
     fun loadTomorrowExpenses() {
-        val cal = Calendar.getInstance()
-        cal.timeInMillis = Date().time // Set today date
-        cal.add(Calendar.DAY_OF_MONTH, 1) // Go to 1 day ahead to get Tomorrow
-        loadExpensesForADate(cal.time)
+        loadExpensesForADate(DateHelper.tomorrow)
     }
 
     /**
      *
      */
-    fun loadExpensesForADate(date: Date) {
+    fun loadExpensesForADate(date: LocalDate) {
         loadingMutableLiveData.value = true
         viewModelScope.launch {
-            allExpensesLiveData.postValue(db.getExpensesForDay(date))
+            val results = withContext(Dispatchers.Default) {
+                db.getExpensesForDay(date)
+            }
+            allExpensesLiveData.postValue(results)
             loadingMutableLiveData.postValue(false)
+            loadDataForReports(results)
         }
     }
 
     /**
      *
      */
-    fun loadExpensesForGivenDates(startDate: Date, endDate: Date) {
+    fun loadExpensesForGivenDates(startDate: LocalDate, endDate: LocalDate) {
         loadingMutableLiveData.value = true
         viewModelScope.launch {
-            allExpensesLiveData.postValue(db.getAllExpenses(startDate, endDate))
+            val results = withContext(Dispatchers.Default) {
+                db.getAllExpenses(startDate, endDate)
+            }
+            allExpensesLiveData.postValue(results)
             loadingMutableLiveData.postValue(false)
+            loadDataForReports(results)
+        }
+    }
+
+
+    private val exportStatus: MutableLiveData<ExportStatus> = MutableLiveData()
+    val observeExportStatus: LiveData<ExportStatus> = exportStatus
+
+    /**
+     *
+     */
+    fun exportCSV(currency: Currency, month: LocalDate, file: File) {
+        try {
+            if (expenses.isEmpty() && revenues.isEmpty()) {
+                exportStatus.value = ExportStatus(
+                    false,
+                    "Please add expenses of this month to generate report.",
+                    "",
+                    file
+                )
+                return
+            }
+            val format = DateTimeFormatter.ofPattern(
+                "dd MMM yyyy",
+                Locale.getDefault()
+            )
+
+            val monthFormat = DateTimeFormatter.ofPattern(
+                "MMM yyyy",
+                Locale.getDefault()
+            )
+
+            var fileWriter: FileWriter? = null
+            try {
+                file.createNewFile()
+                fileWriter = FileWriter(file)
+
+                // Month Title
+                fileWriter.append(",")
+                fileWriter.append(String.format("Report of %s", monthFormat.format(month)))
+                fileWriter.append(",")
+                fileWriter.append("\n")
+
+                // Incomes Total
+                fileWriter.append("$CSV_TITLE_INCOMES_TOTAL (${currency.symbol ?: currency.displayName})")
+                fileWriter.append(",")
+                fileWriter.append(CurrencyHelper.getFormattedAmountValue(revenuesAmount))
+                fileWriter.append("\n")
+
+                // Expense Total
+                fileWriter.append("$CSV_TITLE_EXPENSE_TOTAL (${currency.symbol ?: currency.displayName})")
+                fileWriter.append(",")
+                fileWriter.append(CurrencyHelper.getFormattedAmountValue(expensesAmount))
+                fileWriter.append("\n")
+
+                // Balance Total
+                fileWriter.append("$CSV_TITLE_BALANCE (${currency.symbol ?: currency.displayName})")
+                fileWriter.append(",")
+                fileWriter.append(CurrencyHelper.getFormattedAmountValue(balance))
+                fileWriter.append("\n")
+                fileWriter.append("\n")
+
+                // Incomes
+                fileWriter.append(CSV_HEADER_INCOMES)
+                fileWriter.append("\n")
+                fileWriter.append("Title,Amount(${currency.symbol ?: currency.displayName}),Date,Category")
+                fileWriter.append("\n")
+
+                for (data in revenues) {
+                    fileWriter.append(data.title)
+                    fileWriter.append(",")
+                    fileWriter.append(CurrencyHelper.getFormattedAmountValue(-data.amount))
+                    fileWriter.append(",")
+                    fileWriter.append(String.format("%s", format.format(data.date)))
+                    fileWriter.append(",")
+                    fileWriter.append(data.category)
+                    fileWriter.append("\n")
+                }
+                fileWriter.append("\n\n")
+
+                // Expenses
+                fileWriter.append(CSV_HEADER_EXPENSE)
+                fileWriter.append("\n")
+                for (data in expenses) {
+                    fileWriter.append(data.title)
+                    fileWriter.append(",")
+                    fileWriter.append(CurrencyHelper.getFormattedAmountValue(-data.amount))
+                    fileWriter.append(",")
+                    fileWriter.append(String.format("%s", format.format(data.date)))
+                    fileWriter.append(",")
+                    fileWriter.append(data.category)
+                    fileWriter.append("\n")
+                }
+                exportStatus.value =
+                    ExportStatus(true, "Successfully exported file!", file.absolutePath, file)
+            } catch (e: Exception) {
+                exportStatus.value =
+                    ExportStatus(
+                        false,
+                        "An error occurred while exporting CSV file ${e.localizedMessage}",
+                        "",
+                        file
+                    )
+                e.printStackTrace()
+            } finally {
+                try {
+                    fileWriter?.flush()
+                    fileWriter?.close()
+                } catch (e: IOException) {
+                    exportStatus.value =
+                        ExportStatus(
+                            false,
+                            "An error occurred while exporting CSV file ${e.localizedMessage}",
+                            "",
+                            file
+                        )
+                    e.printStackTrace()
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
+    data class SearchReport(val html: String, val isEmpty: Boolean)
+
+    private val generatePDFReport: MutableLiveData<SearchReport> = MutableLiveData()
+    val observeGeneratePDFReport: LiveData<SearchReport> = generatePDFReport
+
+    /**
+     * This method will load data into lists.
+     * So we can use this for printing / downloading reports.
+     */
+    private suspend fun loadDataForReports(expensesResults: List<Expense>) {
+        if (expensesResults.isEmpty()) {
+            monthlyReportDataLiveData.value = DataModels.MonthlyReportData.Empty
+            return
+        }
+        expenses.clear()
+        revenues.clear()
+        allExpensesParentList.clear()
+        allExpensesOfThisMonth.clear()
+        revenuesAmount = 0.0
+        expensesAmount = 0.0
+
+        hashMap.clear()
+        withContext(Dispatchers.Default) {
+            for (expense in expensesResults) {
+                // Adding category into map with empty list
+                if (!hashMap.containsKey(expense.category))
+                    hashMap[expense.category] =
+                        DataModels.CustomTriple.Data(
+                            expense.category,
+                            0.0,
+                            0.0,
+                            ArrayList<Expense>()
+                        )
+                var tCredit: Double = hashMap[expense.category]?.totalCredit ?: 0.0
+                var tDebit: Double = hashMap[expense.category]?.totalDebit ?: 0.0
+
+                if (expense.isRevenue()) {
+                    revenues.add(expense)
+                    revenuesAmount -= expense.amount
+                    tCredit -= expense.amount
+                } else {
+                    expenses.add(expense)
+                    expensesAmount += expense.amount
+                    tDebit += expense.amount
+                }
+                hashMap[expense.category]?.totalCredit = tCredit
+                hashMap[expense.category]?.totalDebit = tDebit
+                hashMap[expense.category]?.expenses?.add(expense)
+            }
+        }
+
+        hashMap.keys.forEach { key ->
+            allExpensesOfThisMonth.add(
+                DataModels.Parent(
+                    hashMap[key]?.category!!,
+                    hashMap[key]?.totalCredit ?: 0.0,
+                    hashMap[key]?.totalDebit ?: 0.0
+                )
+            )
+            allExpensesParentList.add(
+                DataModels.CustomTriple.Data(
+                    hashMap[key]?.category!!,
+                    hashMap[key]?.totalCredit ?: 0.0,
+                    hashMap[key]?.totalDebit ?: 0.0,
+                    hashMap[key]?.expenses ?: ArrayList()
+
+                )
+            )
+            hashMap[key]?.expenses?.forEach { expense ->
+                allExpensesOfThisMonth.add(DataModels.Child(expense))
+            }
+        }
+        balance = revenuesAmount - expensesAmount
+
+        monthlyReportDataLiveData.value =
+            DataModels.MonthlyReportData.Data(
+                expenses,
+                revenues,
+                allExpensesOfThisMonth,
+                allExpensesParentList,
+                expensesAmount,
+                revenuesAmount
+            )
+    }
+
+    /**
+     * Generate HTML for printing a PDF report
+     */
+    fun generateHtml(currency: Currency, month: LocalDate) {
+        viewModelScope.launch {
+            val contents: StringBuilder = StringBuilder()
+
+            val format = DateTimeFormatter.ofPattern(
+                "dd MMM yyyy",
+                Locale.getDefault()
+            )
+
+            val monthFormat = DateTimeFormatter.ofPattern(
+                "MMM yyyy",
+                Locale.getDefault()
+            )
+
+            // Table start
+            contents.append("<html><head><body>")
+            contents.append("<p>")
+            // Month Title
+            contents.append(
+                "<h1 style=\"color:black;\">${
+                    (String.format(
+                        "Budget Report Of %s",
+                        monthFormat.format(month)
+                    ))
+                }</h1>"
+            )
+            contents.append("<hr>")
+
+            // Incomes Total
+            val revTotalFormattedAmount =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, revenuesAmount)
+            contents.append(
+                "<h2 style=\"color:green;\">${("$CSV_TITLE_INCOMES_TOTAL (${currency.symbol ?: currency.displayName}) = ")}" +
+                        "<b style=\"color:black;\">${revTotalFormattedAmount}</b></h2>"
+            )
+
+            // Expense Total
+            val expTotalFormattedAmount =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, expensesAmount)
+            contents.append(
+                "<h2 style=\"color:red;\">${"$CSV_TITLE_EXPENSE_TOTAL (${currency.symbol ?: currency.displayName}) = "}" +
+                        "<b style=\"color:black;\">${expTotalFormattedAmount}</b></h2>"
+            )
+
+            // Balance Total
+            val balanceColor = if (balance > 0) "green" else "red"
+            val balanceFormattedAmount =
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
+            contents.append(
+                "<h2 style=\"color:${balanceColor};\">${"$CSV_TITLE_BALANCE (${currency.symbol ?: currency.displayName}) = "}" +
+                        "<b style=\"color:black;\">${balanceFormattedAmount}</b></h2>"
+            )
+            // All expenses
+            for (data in allExpensesOfThisMonth) {
+                if (data is DataModels.Parent) {
+                    val amountSpend =
+                        CurrencyHelper.getFormattedCurrencyString(
+                            appPreferences,
+                            (if (data.totalCredit > data.totalDebit) (data.totalCredit - data.totalDebit) else (data.totalDebit - data.totalCredit))
+                        )
+                    contents.append("<h2 style=\"color:white;background-color:mediumblue\">${data.category} ($amountSpend)</h2>")
+                } else {
+                    if (data is DataModels.Child) {
+                        val formattedAmount = CurrencyHelper.getFormattedCurrencyString(
+                            appPreferences,
+                            -(data.expense.amount)
+                        )
+                        val expenseColor = if (data.expense.isRevenue()) "green" else "red"
+                        val futureExpense =
+                            if (data.expense.date.isAfter(LocalDate.now())) "/(Upcoming expense)" else ""
+                        contents.append(
+                            "<p style=\"font-size:140%;color:black\"><b>${(data.expense.title)}</b></p>" +
+                                    "<p style=\"font-size:140%;color:grey\">${
+                                        (String.format(
+                                            "%s",
+                                            format.format(data.expense.date)
+                                        ))
+                                    } / ${(data.expense.category)} ${futureExpense}</p>" +
+                                    "<p style=\"font-size:140%;color:$expenseColor\">${
+                                        formattedAmount
+                                    }</p>"
+                        )
+                        contents.append("<hr>")
+                    }
+                }
+            }
+            // Table end
+            contents.append("</p>")
+            contents.append("<br><br>")
+            contents.append("<p style=\"font-size:120%;color:grey;text-align:center;\">Generated with SimpleBudget!</b>")
+            contents.append("<p style=\"font-size:140%;color:black;text-align:center;\"><b>------------------THANK YOU------------------</b></p>")
+            contents.append("</body>")
+            contents.append("</html>")
+
+            generatePDFReport.value = SearchReport(contents.toString(), expenses.isEmpty())
         }
     }
 

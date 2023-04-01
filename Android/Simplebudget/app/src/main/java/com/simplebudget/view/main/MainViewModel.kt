@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,20 +20,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
-import com.simplebudget.db.impl.toCategoriesNamesList
 import com.simplebudget.helper.SingleLiveEvent
 import com.simplebudget.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
-import kotlin.collections.ArrayList
+import java.time.LocalDate
 
 class MainViewModel(
     private val db: DB,
     private val iab: Iab
 ) : ViewModel() {
-    private var selectedDate: Date = Date()
+    private var selectedDate: LocalDate = LocalDate.now()
 
     val premiumStatusLiveData = MutableLiveData<Boolean>()
     val selectedDateChangeLiveData = MutableLiveData<SelectedDateExpensesData>()
@@ -295,7 +293,7 @@ class MainViewModel(
     fun onAdjustCurrentBalanceClicked() {
         viewModelScope.launch {
             val balance = withContext(Dispatchers.Default) {
-                -db.getBalanceForDay(Date())
+                -db.getBalanceForDay(LocalDate.now())
             }
 
             startCurrentBalanceEditorEventStream.value = balance
@@ -306,7 +304,7 @@ class MainViewModel(
         viewModelScope.launch {
             try {
                 val currentBalance = withContext(Dispatchers.Default) {
-                    -db.getBalanceForDay(Date())
+                    -db.getBalanceForDay(LocalDate.now())
                 }
 
                 if (newBalance == currentBalance) {
@@ -318,7 +316,7 @@ class MainViewModel(
 
                 // Look for an existing balance for the day
                 val existingExpense = withContext(Dispatchers.Default) {
-                    db.getExpensesForDay(Date()).find { it.title == balanceExpenseTitle }
+                    db.getExpensesForDay(LocalDate.now()).find { it.title == balanceExpenseTitle }
                 }
 
                 if (existingExpense != null) { // If the adjust balance exists, just add the diff and persist it
@@ -334,7 +332,7 @@ class MainViewModel(
                             Expense(
                                 balanceExpenseTitle,
                                 -diff,
-                                Date(),
+                                LocalDate.now(),
                                 ExpenseCategoryType.BALANCE.name
                             )
                         )
@@ -375,7 +373,7 @@ class MainViewModel(
         premiumStatusLiveData.value = iab.isUserPremium()
     }
 
-    fun onSelectDate(date: Date) {
+    fun onSelectDate(date: LocalDate) {
         selectedDate = date
         refreshDataForDate(date)
     }
@@ -384,7 +382,7 @@ class MainViewModel(
         refreshDataForDate(selectedDate)
     }
 
-    private fun refreshDataForDate(date: Date) {
+    private fun refreshDataForDate(date: LocalDate) {
         viewModelScope.launch {
             val (balance, expenses) = withContext(Dispatchers.Default) {
                 Pair(getBalanceForDay(date), db.getExpensesForDay(date))
@@ -394,14 +392,14 @@ class MainViewModel(
         }
     }
 
-    private suspend fun getExpenseForDay(date: Date): Double {
+    private suspend fun getExpenseForDay(date: LocalDate): Double {
         var balance = 0.0 // Just to keep a positive number if balance == 0
         balance -= db.getBalanceForDay(date)
 
         return balance
     }
 
-    private suspend fun getBalanceForDay(date: Date): Double {
+    private suspend fun getBalanceForDay(date: LocalDate): Double {
         var balance = 0.0 // Just to keep a positive number if balance == 0
         balance -= db.getBalanceForDay(date)
 
@@ -409,7 +407,7 @@ class MainViewModel(
     }
 
     fun onDayChanged() {
-        selectedDate = Date()
+        selectedDate = LocalDate.now()
         refreshDataForDate(selectedDate)
     }
 
@@ -425,13 +423,12 @@ class MainViewModel(
 
     override fun onCleared() {
         db.close()
-
         super.onCleared()
     }
 }
 
 data class SelectedDateExpensesData(
-    val date: Date,
+    val date: LocalDate,
     val balance: Double,
     val expenses: List<Expense>
 )

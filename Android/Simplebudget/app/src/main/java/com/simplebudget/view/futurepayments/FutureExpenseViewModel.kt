@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.simplebudget.prefs.AppPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -68,7 +69,7 @@ class FutureExpenseViewModel(
         ) : MonthlyReportData()
     }
 
-    fun loadDataForMonth(monthStartDate: Date) {
+    fun loadDataForMonth(monthStartDate: LocalDate) {
         viewModelScope.launch {
             val expensesForMonth = withContext(Dispatchers.Default) {
                 db.getExpensesForMonth(monthStartDate)
@@ -88,7 +89,7 @@ class FutureExpenseViewModel(
             withContext(Dispatchers.Default) {
                 for (expense in expensesForMonth) {
                     // If expenses are before Today date just ignore than as we are dealing future expenses only
-                    if (expense.date.before(Date())) continue
+                    if (expense.date.isBefore(LocalDate.now())) continue
                     // Adding category into map with empty list
                     if (!hashMap.containsKey(expense.category))
                         hashMap[expense.category] =

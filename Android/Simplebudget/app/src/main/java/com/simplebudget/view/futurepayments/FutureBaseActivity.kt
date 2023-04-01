@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ import com.simplebudget.prefs.*
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.*
+import java.time.LocalDate
 import kotlin.collections.ArrayList
 
 
@@ -49,7 +49,7 @@ class FutureBaseActivity : BaseActivity<ActivityFutureExpensesBinding>(),
     ViewPager.OnPageChangeListener {
 
     private val viewModel: FutureBaseViewModel by viewModel()
-    private var dates: ArrayList<Date> = ArrayList()
+    private var dates: ArrayList<LocalDate> = ArrayList()
     private val appPreferences: AppPreferences by inject()
     private var adView: AdView? = null
 
@@ -153,9 +153,9 @@ class FutureBaseActivity : BaseActivity<ActivityFutureExpensesBinding>(),
                 finish()
                 true
             }
-            R.id.action_future_expenses -> {
+            R.id.action_breakdown -> {
                 ActivityCompat.startActivity(
-                    this, Intent(this, FutureBaseActivity::class.java),
+                    this, Intent(this, BreakDownBaseActivity::class.java),
                     null
                 )
                 true
@@ -169,7 +169,7 @@ class FutureBaseActivity : BaseActivity<ActivityFutureExpensesBinding>(),
     /**
      * Configure the [.pager] adapter and listener.
      */
-    private fun configureViewPager(dates: List<Date>) {
+    private fun configureViewPager(dates: List<LocalDate>) {
         binding.monthlyReportViewPager.offscreenPageLimit = 0
         binding.monthlyReportViewPager.adapter = object :
             FragmentPagerAdapter(supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {

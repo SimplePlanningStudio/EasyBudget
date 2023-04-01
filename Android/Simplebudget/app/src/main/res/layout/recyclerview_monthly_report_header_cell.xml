@@ -1,18 +1,52 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:alpha="9"
-    android:background="@color/divider_grey">
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/monthly_recycler_view_header_tv"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/headerCardView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:paddingLeft="16dp"
-        android:paddingTop="5dp"
-        android:paddingRight="16dp"
-        android:paddingBottom="5dp"
-        android:textColor="@color/colorBlack"
-        android:textSize="@dimen/_11ssp" />
-</FrameLayout>
+        android:layout_height="@dimen/_36sdp"
+        android:layout_margin="@dimen/_6sdp"
+        app:cardCornerRadius="6dp"
+        app:cardElevation="6dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/monthly_recycler_view_header_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:gravity="center_vertical"
+                android:textColor="@color/colorBlack"
+                android:textSize="@dimen/_11ssp" />
+
+            <ImageView
+                android:id="@+id/ivExpandableIcon"
+                android:layout_width="@dimen/_24sdp"
+                android:layout_height="@dimen/_24sdp"
+                android:layout_alignParentRight="true"
+                android:layout_margin="@dimen/_4sdp" />
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSubItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/monthly_recycler_view_header_tv"
+        tools:listitem="@layout/recyclerview_monthly_report_expense_cell" />
+</LinearLayout>

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.facebook.shimmer.ShimmerFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/pare"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:contentDescription="@string/content_description"
-    app:shimmer_auto_start="true">
+    android:contentDescription="@string/content_description">
 
     <ImageView
         android:id="@+id/imageView"
@@ -25,6 +24,6 @@
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/splash_wallet_animation" />
 
-</com.facebook.shimmer.ShimmerFrameLayout>
+</FrameLayout>
 
 

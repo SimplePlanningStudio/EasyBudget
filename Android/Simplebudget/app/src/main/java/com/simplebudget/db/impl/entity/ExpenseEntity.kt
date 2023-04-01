@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import androidx.room.PrimaryKey
 import com.simplebudget.model.Expense
 import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpense
+import java.time.LocalDate
 import java.util.*
 
 @Entity(
@@ -37,7 +38,7 @@ class ExpenseEntity(
     @ColumnInfo(name = "amount")
     val amount: Long,
     @ColumnInfo(name = "date")
-    val date: Date,
+    val date: LocalDate,
     @ColumnInfo(name = "monthly_id")
     val associatedRecurringExpenseId: Long?,
     @ColumnInfo(name = "category")

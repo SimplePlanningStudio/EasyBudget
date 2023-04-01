@@ -1,5 +1,6 @@
 package com.simplebudget.helper.extensions
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 
@@ -18,6 +19,15 @@ fun Intent.addExtrasForDownloadCampaign(packageId: String): Intent {
 /**
  * Telegram channel page
  */
-fun Intent.getTelegramIntent(): Intent {
-    return Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/$TELEGRAM_SUPPORT_PAGE_ID"))
+fun Intent.getTelegramIntent(context: Context): Intent {
+    try {
+        try {
+            context.packageManager.getPackageInfo("org.telegram.messenger", 0)//Check for Telegram Messenger App
+        } catch (e : Exception){
+            context.packageManager.getPackageInfo("org.thunderdog.challegram", 0)//Check for Telegram X App
+        }
+        return  Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=${TELEGRAM_SUPPORT_PAGE_ID}"))
+    }catch (e : Exception){ //App not found open in browser
+        return Intent(Intent.ACTION_VIEW, Uri.parse("http://www.telegram.me/$TELEGRAM_SUPPORT_PAGE_ID"))
+    }
 }

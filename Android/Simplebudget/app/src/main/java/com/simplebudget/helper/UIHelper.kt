@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@ package com.simplebudget.helper
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
@@ -37,7 +37,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import com.google.android.material.textfield.TextInputEditText
 import com.simplebudget.view.main.MainActivity
-import java.util.*
 import kotlin.math.max
 
 /**
@@ -116,7 +115,6 @@ fun View.animateFABAppearance() {
  */
 fun EditText.setFocus() {
     requestFocus()
-
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
 }
@@ -138,15 +136,14 @@ fun Activity.animateActivityEnter(listener: Animator.AnimatorListener) {
     if (viewTreeObserver.isAlive) {
         viewTreeObserver.addOnGlobalLayoutListener(object :
             ViewTreeObserver.OnGlobalLayoutListener {
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             override fun onGlobalLayout() {
                 rootView.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
                 // get the center for the clipping circle
                 val cx = intent?.getIntExtra(MainActivity.CENTER_X_KEY, rootView.width / 2)
-                    ?: rootView.width / 2
+                    ?: (rootView.width / 2)
                 val cy = intent?.getIntExtra(MainActivity.CENTER_Y_KEY, rootView.height / 2)
-                    ?: rootView.height / 2
+                    ?: (rootView.height / 2)
 
                 // get the final radius for the clipping circle
                 val finalRadius = max(rootView.width, rootView.height)
@@ -223,14 +220,6 @@ fun AlertDialog.centerButtons() {
     }
 }
 
-fun Date.computeCalendarMinDateFromInitDate(): Date {
-    val minDateCalendar = Calendar.getInstance()
-    minDateCalendar.time = this
-    minDateCalendar.add(Calendar.YEAR, -1)
-    return minDateCalendar.time
-}
-
-
 /**
  * TextWatcher Function
  */
@@ -274,10 +263,9 @@ object MultiClick {
     fun avoid(view: View) {
         try {
             view.isClickable = false
-            Handler().postDelayed({
+            Handler(Looper.getMainLooper()).postDelayed({
                 view.isClickable = true
             }, 1000)
-
         } catch (c: Exception) {
             view.isClickable = true
             c.printStackTrace()

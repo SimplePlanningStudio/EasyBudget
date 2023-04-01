@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -24,11 +24,14 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.simplebudget.databinding.ActivityBreakdownExpensesBinding
 import com.simplebudget.helper.BaseActivity
+import com.simplebudget.helper.getMonthTitleWithPastAndFuture
+import com.simplebudget.helper.removeButtonBorder
 import com.simplebudget.prefs.*
 import com.simplebudget.view.breakdown.BreakDownFragment
 import com.simplebudget.view.main.MainActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.time.LocalDate
 import java.util.*
 
 
@@ -36,7 +39,6 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     ViewPager.OnPageChangeListener {
 
     private val viewModel: BreakDownBaseViewModel by viewModel()
-    private var ignoreNextPageSelectedEvent: Boolean = false
     private var isAddedExpense: Boolean = false
 
     /**
@@ -57,25 +59,35 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         if (savedInstanceState == null) {
-            viewModel.loadData(intent.getBooleanExtra(FROM_NOTIFICATION_EXTRA, false))
+            viewModel.loadData()
         }
+
+        binding.monthlyBreakdownPreviousMonthButton.text = "<"
+        binding.monthlyBreakdownNextMonthButton.text = ">"
+
+        binding.monthlyBreakdownPreviousMonthButton.setOnClickListener {
+            viewModel.onPreviousMonthButtonClicked()
+        }
+
+        binding.monthlyBreakdownNextMonthButton.setOnClickListener {
+            viewModel.onNextMonthButtonClicked()
+        }
+        binding.monthlyBreakdownPreviousMonthButton.removeButtonBorder()
+        binding.monthlyBreakdownNextMonthButton.removeButtonBorder()
 
         viewModel.datesLiveData.observe(this) { dates ->
             configureViewPager(dates)
-
             binding.monthlyReportProgressBar.visibility = View.GONE
             binding.monthlyReportContent.visibility = View.VISIBLE
         }
+        viewModel.selectedPositionLiveData.observe(this) { (position, date, isLastMonth) ->
+            binding.monthlyReportViewPager.setCurrentItem(position, true)
+            binding.monthlyBreakdownMonthTitleTv.text = date.getMonthTitleWithPastAndFuture(this)
 
-        viewModel.selectedPositionLiveData.observe(
-            this
-        ) { (position, _, _) ->
-            if (!ignoreNextPageSelectedEvent) {
-                binding.monthlyReportViewPager.setCurrentItem(position, true)
-            }
-            ignoreNextPageSelectedEvent = false
-            // Last and first available month
-            val isFirstMonth = position == 0
+            binding.monthlyBreakdownNextMonthButton.visibility =
+                if (isLastMonth) View.GONE else View.VISIBLE
+            binding.monthlyBreakdownPreviousMonthButton.visibility =
+                if (position == 0) View.GONE else View.VISIBLE
         }
     }
 
@@ -96,6 +108,7 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     /**
      *
      */
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (isAddedExpense) {
             startActivity(Intent(this, MainActivity::class.java))
@@ -108,7 +121,7 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     /**
      * Configure the [.pager] adapter and listener.
      */
-    private fun configureViewPager(dates: List<Date>) {
+    private fun configureViewPager(dates: List<LocalDate>) {
         binding.monthlyReportViewPager.offscreenPageLimit = 0
         binding.monthlyReportViewPager.adapter = object :
             FragmentPagerAdapter(supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
@@ -128,8 +141,6 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
 
     override fun onPageSelected(position: Int) {
-        ignoreNextPageSelectedEvent = true
-
         viewModel.onPageSelected(position)
     }
 
@@ -143,7 +154,7 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == MainActivity.ADD_EXPENSE_ACTIVITY_CODE || requestCode == MainActivity.MANAGE_RECURRING_EXPENSE_ACTIVITY_CODE) {
             if (resultCode == RESULT_OK) {
-                viewModel.loadData(intent.getBooleanExtra(FROM_NOTIFICATION_EXTRA, false))
+                viewModel.loadData()
                 isAddedExpense = true
             }
         }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ import com.simplebudget.helper.DateHelper.getListOfFutureMonthsAvailableForUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.time.LocalDate
 
 class FutureBaseViewModel() : ViewModel() {
     /**
      * The current selected position
      */
     val selectedPositionLiveData = MutableLiveData<FutureSelectedPosition>()
-    val datesLiveData = MutableLiveData<List<Date>>()
+    val datesLiveData = MutableLiveData<List<LocalDate>>()
 
     fun loadData() {
         viewModelScope.launch {
@@ -74,7 +74,7 @@ class FutureBaseViewModel() : ViewModel() {
 
 data class FutureSelectedPosition(
     val position: Int,
-    val date: Date,
+    val date: LocalDate,
     val showNextButton: Boolean,
     val showPreviousButton: Boolean
 )

@@ -134,8 +134,11 @@
 
     <string name="setting_category_general">General</string>
     <string name="setting_category_app_title">App</string>
+    <string name="setting_category_app_support_and_help">Help and Support</string>
     <string name="setting_category_rate_button_title">Rate the app?</string>
+    <string name="setting_category_faq_title">FAQ</string>
     <string name="setting_category_rate_button_message">Let me know what you think</string>
+    <string name="setting_category_faq_message">Frequently asked questioned</string>
     <string name="setting_category_bug_report_send_button_title">Report a bug</string>
     <string name="bug_report_email" translatable="false">wavetechstudio@gmail.com</string>
     <string name="setting_category_bug_report_send_subject" translatable="false">SimpleBudget - Bug report</string>
@@ -164,7 +167,7 @@
     <string name="setting_category_data_backup_title">Manage Backup</string>
     <string name="setting_category_security_title">Security</string>
     <string name="setting_category_premium_status_title">You are premium!</string>
-    <string name="setting_category_premium_status_message">You have access to premium features without Ads.</string>
+    <string name="setting_category_premium_status_message">You have lifetime access to all features without Ads.</string>
     <string name="setting_category_premium_redeem_title">Promo code</string>
     <string name="setting_category_premium_redeem_message">Redeem a promo code</string>
     <string name="text_redeem_a_promo_code"><u>Redeem a promo code?</u></string>
@@ -173,7 +176,7 @@
     <string name="setting_category_notifications_daily_title">Daily reminder</string>
     <string name="setting_category_notifications_daily_message">Receive a notification at the end of the day if you didn\'t enter your expenses</string>
     <string name="setting_category_not_premium_status_title">Remove Ads</string>
-    <string name="setting_category_not_premium_status_message">Lifetime access of all premium and non-premium features without Ads.</string>
+    <string name="setting_category_not_premium_status_message">Lifetime access of all features without Ads.</string>
     <string name="setting_category_notifications_weekly_title">Weekly reports</string>
     <string name="setting_category_notifications_monthly_message">Receive a notification when a new monthly report is complete</string>
     <string name="setting_category_theme_title">Theme</string>
@@ -193,7 +196,7 @@
     <string name="premium_popup_not_premium_feature_more_dark_theme">4. Dark theme support!</string>
     <string name="premium_popup_not_premium_feature_more_backup_title">2. Backup</string>
     <string name="premium_popup_not_premium_feature_more_backup_message">Automatic backup of your data in the cloud! No need to worry about losing your budget anymore.</string>
-    <string name="premium_popup_not_premium_feature_more_title">… and more premium features that will be added soon!</string>
+    <string name="premium_popup_not_premium_feature_more_title">… and more features that would be added soon!</string>
     <string name="premium_popup_not_premium_cta">Buy</string>
     <string name="premium_popup_become_title">Become a premium user</string>
     <string name="premium_popup_become_message">It seems that you like using SimpleBudget!\nWould you like to take it to next level and discover premium features?</string>
@@ -202,7 +205,7 @@
     <string name="premium_popup_become_not_ask_again">Don\'t ask me again</string>
 
     <string name="iab_purchase_success_title">Thank you</string>
-    <string name="iab_purchase_success_message">Thank you so much for your support! You can now enjoy the premium features.</string>
+    <string name="iab_purchase_success_message">Thank you so much for your support! You can now enjoy all the features without ads.</string>
     <string name="iab_purchase_wait_title">Purchasing</string>
     <string name="iab_purchase_wait_message">Please wait</string>
     <string name="iab_purchase_error_title">Oops</string>
@@ -326,6 +329,7 @@
     <string name="setting_category_currency_change_button_key" translatable="false">change_currency</string>
     <string name="setting_category_dev_key" translatable="false">dev_category</string>
     <string name="setting_category_rate_button_key" translatable="false">rate</string>
+    <string name="setting_category_faq_key" translatable="false">faq</string>
     <string name="setting_category_app_version_key" translatable="false">app_version</string>
     <string name="setting_category_share_app_key" translatable="false">share_app</string>
     <string name="setting_category_feedback_app_key" translatable="false">feedback_app</string>
@@ -342,6 +346,7 @@
     <string name="setting_category_start_day_of_week_key" translatable="false">start_day_of_week</string>
     <string name="setting_category_manage_category_key" translatable="false">manage_category</string>
     <string name="setting_enable_app_protection_key" translatable="false">enable_app_protection</string>
+    <string name="setting_enable_app_notifications_key" translatable="false">enable_app_notification</string>
 
     <string name="setting_category_reports_title">Reports</string>
     <string name="setting_monthly_reports_key" translatable="false">monthly_reports</string>
@@ -360,6 +365,7 @@
     <string name="setting_app_version_key" translatable="false">app_version</string>
     <string name="setting_enable_app_protection_off">Enable app password protection</string>
     <string name="setting_enable_app_protection_general">App password protection</string>
+    <string name="setting_enable_app_notification_general">Notifications permission</string>
     <string name="setting_category_backup" translatable="false">backup</string>
     <string name="enter_amount">Enter amount</string>
     <string name="share">Share</string>
@@ -368,6 +374,7 @@
     <string name="proceed">Proceed</string>
     <string name="next">Next</string>
     <string name="release_history">Release History</string>
+    <string name="faq">FAQ</string>
 
     <string name="setting_privacy_policy_key" translatable="false">privacy_policy</string>
     <string name="setting_privacy_policy_title" translatable="false">Privacy Policy</string>
@@ -478,7 +485,7 @@
     <string name="generate_this_month_report">Generate this month report</string>
     <string name="print_download_as_pdf">Print / Download as PDF</string>
     <string name="proceed_with_adding_expenses">Proceed with adding expenses!</string>
-    <string name="iab_success_message">Thank you so much for your support! You can enjoy the premium features lifetime without ads.</string>
+    <string name="iab_success_message">Thank you so much for your support! You can enjoy all the features lifetime without ads.</string>
     <string name="category">Category</string>
     <string name="save">Save</string>
     <string name="today">Today:</string>
@@ -486,11 +493,9 @@
     <string name="enter_category">Enter category</string>
     <string name="content_description">Simple Budget Content Description</string>
     <string name="search_hint">Search Expenses</string>
+    <string name="future_expense">Future Expense</string>
     <string name="next_month">Next</string>
     <string name="previous_month">Back</string>
-    <string name="future_expenses">Future Expenses</string>
-    <string name="future_expense">Future Expense</string>
-    <string name="future_expenses_show_view_message">By clicking this you can see upcoming future expenses.\nYou can also access it under app settings.</string>
     <string name="expenses_breakdown_show_view_message">By clicking this you can see current month expenses breakdown.\nYou can also access it under app settings.</string>
     <string name="no_expenses_found">No Expenses Found</string>
     <string name="please_add_some_expenses">Please add some expenses to see breakdown.</string>
@@ -528,6 +533,7 @@
     <string name="enter_new_category_or_choose_from_existing_categories">Enter new category or choose from existing categories.</string>
     <string name="type_new_category_or_search_existing">Enter or search category</string>
     <string name="search_category">Search category</string>
+    <string name="search_faq">Search…</string>
     <string name="removed">Removed</string>
     <string name="no_category_found">%s Not found</string>
     <string name="category_not_found_do_you_want_add_now">Do you want to add it as a category?</string>
@@ -541,4 +547,18 @@
     <string name="search_results_for_range">Search results from \'%s\' -  \'%s\'</string>
     <string name="reset">Reset</string>
     <string name="sum_of_expenses_by_categories">Expenses for this month</string>
+
+
+    <string name="onboarding_screen_push_permission_title">Notifications?</string>
+    <string name="onboarding_screen_push_permission_message">To receive important notifications about your budget.\n\nPlease allow notifications permission.</string>
+    <string name="onboarding_screen_push_permission_only_essential">✅ Only essential</string>
+    <string name="onboarding_screen_push_permission_no_spam">✅ No spam</string>
+    <string name="onboarding_screen_push_permission_accept_cta">Allow</string>
+    <string name="onboarding_screen_push_permission_not_now_cta">Not now</string>
+
+    <string name="setting_notification_permission_rejected_dialog_title">Notifications permission denied</string>
+    <string name="setting_notification_permission_rejected_dialog_description">To receive your daily and monthly reminders, you need to allow notifications. Do you want to receive notifications?</string>
+    <string name="setting_notification_permission_rejected_dialog_accept_cta">Allow</string>
+    <string name="setting_notification_permission_rejected_dialog_not_now_cta">Not now</string>
+
 </resources>

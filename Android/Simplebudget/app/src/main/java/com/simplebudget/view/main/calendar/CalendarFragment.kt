@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,12 +19,11 @@ import com.simplebudget.db.DB
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidGridAdapter
 import org.koin.android.ext.android.inject
-
-import java.util.Date
+import java.time.LocalDate
 
 
 class CalendarFragment : CaldroidFragment() {
-    private var mSelectedDate = Date()
+    private var mSelectedDate = LocalDate.now()
 
     private val db: DB by inject()
 
@@ -36,17 +35,18 @@ class CalendarFragment : CaldroidFragment() {
 
     override fun onDestroy() {
         db.close()
-
         super.onDestroy()
     }
 
-    override fun setSelectedDates(fromDate: Date, toDate: Date) {
-        this.mSelectedDate = fromDate
-        super.setSelectedDates(fromDate, toDate)
+    override fun setSelectedDate(date: LocalDate) {
+        this.mSelectedDate = date
+
+        super.clearSelectedDates()
+        super.setSelectedDate(date)
 
         try {
             // Exception that occurs if we call this code before the calendar being initialized
-            super.moveToDate(fromDate)
+            super.moveToDate(date)
         } catch (ignored: Exception) {
         }
     }
@@ -60,6 +60,14 @@ class CalendarFragment : CaldroidFragment() {
             weekdayGridView.adapter = weekdaysAdapter
             nextMonth()
             prevMonth()
+        }
+    }
+
+    fun goToCurrentMonth() {
+        try {
+            // Exception that occurs if we call this code before the calendar being initialized
+            super.moveToDate(LocalDate.now())
+        } catch (ignored: Exception) {
         }
     }
 }

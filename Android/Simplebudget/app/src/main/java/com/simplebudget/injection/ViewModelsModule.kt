@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR / Waheed Nazir
+ *   Copyright 2023 Benoit LETONDOR / Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.simplebudget.view.breakdown.BreakDownViewModel
 import com.simplebudget.view.futurepayments.FutureBaseViewModel
 import com.simplebudget.view.futurepayments.FutureExpenseViewModel
 import com.simplebudget.view.search.SearchViewModel
-import com.simplebudget.view.search.base.SearchBaseViewModel
 import com.simplebudget.view.selectcurrency.SelectCurrencyViewModel
 import com.simplebudget.view.settings.backup.BackupSettingsViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -65,8 +64,7 @@ val viewModelModule = module {
     /**
      * Search Expenses
      */
-    viewModel { SearchViewModel(get()) }
-    viewModel { SearchBaseViewModel(get()) }
+    viewModel { SearchViewModel(get(), get()) }
 
     /**
      * Future Expenses

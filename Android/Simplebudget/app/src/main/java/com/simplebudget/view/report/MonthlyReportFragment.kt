@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -41,10 +41,12 @@ import com.simplebudget.databinding.FragmentMonthlyReportBinding
 import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.view.report.adapter.MainAdapter
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
-import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -59,7 +61,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     /**
      * The first date of the month at 00:00:00
      */
-    private lateinit var date: Date
+    private lateinit var date: LocalDate
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: MonthlyReportViewModel by viewModel()
@@ -87,14 +89,14 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        date = requireArguments().getSerializable(ARG_DATE) as Date
+        date = requireArguments().getSerializable(ARG_DATE) as LocalDate
 
         viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
             binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
 
             when (result) {
-                MonthlyReportViewModel.MonthlyReportData.Empty -> {
+                DataModels.MonthlyReportData.Empty -> {
                     binding?.monthlyReportFragmentRecyclerView?.visibility = View.GONE
                     binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
 
@@ -111,15 +113,19 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                         )
                     )
                 }
-                is MonthlyReportViewModel.MonthlyReportData.Data -> {
+                is DataModels.MonthlyReportData.Data -> {
                     configureRecyclerView(
                         binding?.monthlyReportFragmentRecyclerView!!,
-                        MonthlyReportRecyclerViewAdapter(
+                        MainAdapter(
+                            result.allExpensesParentList,
+                            appPreferences
+                        )
+                        /*MonthlyReportRecyclerViewAdapter(
                             result.expenses,
                             result.revenues,
                             result.allExpensesOfThisMonth,
                             appPreferences
-                        )
+                        )*/
                     )
 
                     binding?.monthlyReportFragmentRevenuesTotalTv?.text =
@@ -206,14 +212,15 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
      */
     private fun configureRecyclerView(
         recyclerView: RecyclerView,
-        adapter: MonthlyReportRecyclerViewAdapter
+        /*adapter: MonthlyReportRecyclerViewAdapter*/
+        adapter: MainAdapter
     ) {
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
     }
 
     companion object {
-        fun newInstance(date: Date): MonthlyReportFragment = MonthlyReportFragment().apply {
+        fun newInstance(date: LocalDate): MonthlyReportFragment = MonthlyReportFragment().apply {
             arguments = Bundle().apply {
                 putSerializable(ARG_DATE, date)
             }
@@ -415,7 +422,10 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
             "Download or print pdf",
             "Share spreadsheet"
         )
-        val monthFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+        val monthFormat = DateTimeFormatter.ofPattern(
+            "MMM yyyy",
+            Locale.getDefault()
+        )
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(String.format("Budget report of %s", monthFormat.format(date)))
             .setItems(weeks) { dialog, which ->
@@ -439,7 +449,10 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     private fun exportExcel() {
         when {
             isStoragePermissionsGranted() -> {
-                val fileNameDateFormat = SimpleDateFormat("MMMyyyy", Locale.getDefault())
+                val fileNameDateFormat = DateTimeFormatter.ofPattern(
+                    "MMMyyyy",
+                    Locale.getDefault()
+                )
                 val file: File = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val exportDir = getAppSpecificDocumentStorageDirAboveAndEqualToAPI29()
                     if (!exportDir.isDirectory) exportDir.mkdirs()

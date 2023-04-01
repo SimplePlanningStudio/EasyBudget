@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package com.simplebudget.model
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.ColumnInfo
-import java.util.*
+import java.time.LocalDate
 
 data class RecurringExpense(
     val id: Long?,
     val title: String,
     val amount: Double,
-    val recurringDate: Date,
+    val recurringDate: LocalDate,
     val modified: Boolean,
     val type: RecurringExpenseType,
     val category: String
@@ -34,7 +34,7 @@ data class RecurringExpense(
         parcel.readValue(Long::class.java.classLoader) as? Long,
         parcel.readString() ?: "",
         parcel.readDouble(),
-        Date(parcel.readLong()),
+        LocalDate.ofEpochDay(parcel.readLong()),
         parcel.readByte() != 0.toByte(),
         RecurringExpenseType.values()[parcel.readInt()],
         parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name,
@@ -43,7 +43,7 @@ data class RecurringExpense(
     constructor(
         title: String,
         originalAmount: Double,
-        recurringDate: Date,
+        recurringDate: LocalDate,
         type: RecurringExpenseType,
         category: String
     ) : this(null, title, originalAmount, recurringDate, false, type, category)
@@ -52,7 +52,7 @@ data class RecurringExpense(
         parcel.writeValue(id)
         parcel.writeString(title)
         parcel.writeDouble(amount)
-        parcel.writeLong(recurringDate.time)
+        parcel.writeLong(recurringDate.toEpochDay())
         parcel.writeByte(if (modified) 1 else 0)
         parcel.writeInt(type.ordinal)
         parcel.writeString(category)

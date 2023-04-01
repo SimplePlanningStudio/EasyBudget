@@ -85,20 +85,38 @@
                 android:textColor="@color/colorBlack"
                 android:textSize="@dimen/_14ssp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipReset"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_marginHorizontal="@dimen/_6sdp"
-                android:checkable="false"
-                android:checked="false"
-                android:text="@string/reset"
-                android:textColor="@color/white"
-                android:visibility="gone"
-                app:chipBackgroundColor="@color/budget_red"
-                app:chipIcon="@drawable/ic_clear"
-                app:chipIconTint="@color/white" />
+                android:layout_marginHorizontal="@dimen/_8sdp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/exportReport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:layout_marginHorizontal="@dimen/_2sdp"
+                    android:contentDescription="@string/export"
+                    android:src="@drawable/ic_export_report" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipReset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/_2sdp"
+                    android:checkable="false"
+                    android:checked="false"
+                    android:visibility="gone"
+                    android:text="@string/reset"
+                    android:textColor="@color/white"
+                    app:chipBackgroundColor="@color/budget_red"
+                    app:chipIcon="@drawable/ic_clear"
+                    app:chipIconTint="@color/white" />
+            </LinearLayout>
+
         </RelativeLayout>
 
         <com.google.android.material.chip.ChipGroup
@@ -140,6 +158,14 @@
             android:layout_marginStart="@dimen/_8sdp"
             android:textColor="@color/colorBlack"
             android:textSize="@dimen/_12ssp" />
+
+        <TextView
+            android:id="@+id/totalSearchRecords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:textColor="@color/track_deactivated"
+            android:textSize="@dimen/_10ssp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewSearch"

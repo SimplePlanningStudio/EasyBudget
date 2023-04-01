@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.simplebudget.iab.IabImpl
 import com.simplebudget.model.Expense
 import com.simplebudget.prefs.AppPreferences
 import org.koin.dsl.module
+import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -43,8 +44,8 @@ val appModule = module {
 
     single<CacheDBStorage> {
         object : CacheDBStorage {
-            override val expenses: MutableMap<Date, List<Expense>> = ArrayMap()
-            override val balances: MutableMap<Date, Double> = ArrayMap()
+            override val expenses: MutableMap<LocalDate, List<Expense>> = ArrayMap()
+            override val balances: MutableMap<LocalDate, Double> = ArrayMap()
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,42 +20,66 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.helper.getListOfMonthsAvailableForUser
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.view.search.base.SearchSelectedPosition
+import com.simplebudget.view.report.base.MonthlyReportSelectedPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.time.LocalDate
 
 class BreakDownBaseViewModel(private val appPreferences: AppPreferences) : ViewModel() {
     /**
      * The current selected position
      */
     val selectedPositionLiveData = MutableLiveData<BreakDownSelectedPosition>()
-    val datesLiveData = MutableLiveData<List<Date>>()
+    val datesLiveData = MutableLiveData<List<LocalDate>>()
 
-    fun loadData(fromNotification: Boolean) {
+    fun loadData() {
         viewModelScope.launch {
-            val dates = withContext(Dispatchers.IO) {
+            val pair = withContext(Dispatchers.IO) {
                 return@withContext appPreferences.getListOfMonthsAvailableForUser()
             }
 
-            datesLiveData.value = dates
-            if (!fromNotification || dates.size == 1) {
-                selectedPositionLiveData.value =
-                    BreakDownSelectedPosition(dates.size - 1, dates[dates.size - 1], true)
-            } else {
-                selectedPositionLiveData.value =
-                    BreakDownSelectedPosition(dates.size - 2, dates[dates.size - 2], false)
-            }
+            datesLiveData.value = pair.first
+            selectedPositionLiveData.value =
+                BreakDownSelectedPosition(
+                    pair.second,
+                    pair.first[pair.second],
+                    (pair.second == pair.first.size - 1)
+                )
+        }
+    }
+
+    fun onPreviousMonthButtonClicked() {
+        val dates = datesLiveData.value ?: return
+        val (selectedPosition) = selectedPositionLiveData.value ?: return
+
+        if (selectedPosition > 0) {
+            selectedPositionLiveData.value = BreakDownSelectedPosition(
+                selectedPosition - 1,
+                dates[selectedPosition - 1],
+                (selectedPosition - 1 == dates.size - 1)
+            )
+        }
+    }
+
+    fun onNextMonthButtonClicked() {
+        val dates = datesLiveData.value ?: return
+        val (selectedPosition) = selectedPositionLiveData.value ?: return
+
+        if (selectedPosition < dates.size - 1) {
+            selectedPositionLiveData.value = BreakDownSelectedPosition(
+                selectedPosition + 1,
+                dates[selectedPosition + 1],
+                (selectedPosition + 1 == dates.size - 1)
+            )
         }
     }
 
     fun onPageSelected(position: Int) {
         val dates = datesLiveData.value ?: return
-
         selectedPositionLiveData.value =
-            BreakDownSelectedPosition(position, dates[position], dates.size == position + 1)
+            BreakDownSelectedPosition(position, dates[position], (position == dates.size - 1))
     }
 }
 
-data class BreakDownSelectedPosition(val position: Int, val date: Date, val latest: Boolean)
+data class BreakDownSelectedPosition(val position: Int, val date: LocalDate, val latest: Boolean)

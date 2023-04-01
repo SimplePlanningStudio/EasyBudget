@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.simplebudget.db.impl
 import androidx.room.*
 import com.simplebudget.db.impl.entity.ExpenseEntity
 import com.simplebudget.db.impl.entity.RecurringExpenseEntity
-import java.util.*
 import androidx.sqlite.db.SupportSQLiteQuery
 import androidx.room.RawQuery
+import java.time.LocalDate
 
 @Dao
 interface ExpenseDao {
@@ -28,29 +28,20 @@ interface ExpenseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun persistExpense(expenseEntity: ExpenseEntity): Long
 
-    @Query("SELECT COUNT(*) FROM expense WHERE date >= :dayStartDate AND date <= :dayEndDate LIMIT 1")
-    suspend fun hasExpenseForDay(dayStartDate: Date, dayEndDate: Date): Int
+    @Query("SELECT COUNT(*) FROM expense WHERE date = :dayDate LIMIT 1")
+    suspend fun hasExpenseForDay(dayDate: LocalDate): Int
 
-    @Query("SELECT * FROM expense WHERE date >= :dayStartDate AND date <= :dayEndDate")
-    suspend fun getExpensesForDay(dayStartDate: Date, dayEndDate: Date): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE date = :dayDate")
+    suspend fun getExpensesForDay(dayDate: LocalDate): List<ExpenseEntity>
 
     @Query("SELECT * FROM expense WHERE date >= :monthStartDate AND date <= :monthEndDate")
-    suspend fun getExpensesForMonth(monthStartDate: Date, monthEndDate: Date): List<ExpenseEntity>
+    suspend fun getExpensesForMonth(
+        monthStartDate: LocalDate,
+        monthEndDate: LocalDate
+    ): List<ExpenseEntity>
 
-    @Query("SELECT * FROM expense WHERE title OR category LIKE '%' || :search_query || '%'")
-    suspend fun searchExpenses(search_query: String): List<ExpenseEntity>
-
-    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate")
-    suspend fun getAllExpenses(startDate: Date, endDate: Date): List<ExpenseEntity>
-
-    @Query("SELECT * FROM expense")
-    suspend fun getAllExpenses(): List<ExpenseEntity>
-
-    @Query("SELECT * FROM expense WHERE date > :todayDate")
-    suspend fun getAllFutureExpenses(todayDate: Date): List<ExpenseEntity>
-
-    @Query("SELECT SUM(amount) FROM expense WHERE date <= :dayEndDate")
-    suspend fun getBalanceForDay(dayEndDate: Date): Long?
+    @Query("SELECT SUM(amount) FROM expense WHERE date <= :dayDate")
+    suspend fun getBalanceForDay(dayDate: LocalDate): Long?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun persistRecurringExpense(recurringExpenseEntity: RecurringExpenseEntity): Long
@@ -70,31 +61,31 @@ interface ExpenseDao {
     @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId AND date > :fromDate")
     suspend fun deleteAllExpenseForRecurringExpenseFromDate(
         recurringExpenseId: Long,
-        fromDate: Date
+        fromDate: LocalDate
     )
 
     @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date > :fromDate")
     suspend fun getAllExpensesForRecurringExpenseFromDate(
         recurringExpenseId: Long,
-        fromDate: Date
+        fromDate: LocalDate
     ): List<ExpenseEntity>
 
     @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate")
     suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(
         recurringExpenseId: Long,
-        beforeDate: Date
+        beforeDate: LocalDate
     )
 
     @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate")
     suspend fun getAllExpensesForRecurringExpenseBeforeDate(
         recurringExpenseId: Long,
-        beforeDate: Date
+        beforeDate: LocalDate
     ): List<ExpenseEntity>
 
     @Query("SELECT count(*) FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate LIMIT 1")
     suspend fun hasExpensesForRecurringExpenseBeforeDate(
         recurringExpenseId: Long,
-        beforeDate: Date
+        beforeDate: LocalDate
     ): Int
 
     @Query("SELECT * FROM monthlyexpense WHERE _expense_id = :recurringExpenseId LIMIT 1")
@@ -105,4 +96,16 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expense ORDER BY date LIMIT 1")
     suspend fun getOldestExpense(): ExpenseEntity?
+
+    @Query("SELECT * FROM expense WHERE title OR category LIKE '%' || :search_query || '%'")
+    suspend fun searchExpenses(search_query: String): List<ExpenseEntity>
+
+    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate")
+    suspend fun getAllExpenses(startDate: LocalDate, endDate: LocalDate): List<ExpenseEntity>
+
+    @Query("SELECT * FROM expense")
+    suspend fun getAllExpenses(): List<ExpenseEntity>
+
+    @Query("SELECT * FROM expense WHERE date > :todayDate")
+    suspend fun getAllFutureExpenses(todayDate: LocalDate): List<ExpenseEntity>
 }

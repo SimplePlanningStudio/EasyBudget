@@ -31,9 +31,8 @@ import com.antonyt.infiniteviewpager.InfinitePagerAdapter;
 import com.antonyt.infiniteviewpager.InfiniteViewPager;
 import com.caldroid.R;
 
-import java.lang.reflect.Field;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Formatter;
@@ -120,8 +119,8 @@ public class CaldroidFragment extends DialogFragment {
     /**
      * Caldroid view components
      */
-    private Button leftArrowButton;
-    private Button rightArrowButton;
+    private TextView leftArrowButton;
+    private TextView rightArrowButton;
     private TextView monthTitleTextView;
     private GridView weekdayGridView;
     private InfiniteViewPager dateViewPager;
@@ -239,6 +238,7 @@ public class CaldroidFragment extends DialogFragment {
 
     /**
      * Retrieve current month
+     *
      * @return
      */
     public int getMonth() {
@@ -247,6 +247,7 @@ public class CaldroidFragment extends DialogFragment {
 
     /**
      * Retrieve current year
+     *
      * @return
      */
     public int getYear() {
@@ -316,11 +317,11 @@ public class CaldroidFragment extends DialogFragment {
     /**
      * To let user customize the navigation buttons
      */
-    public Button getLeftArrowButton() {
+    public TextView getLeftArrowButton() {
         return leftArrowButton;
     }
 
-    public Button getRightArrowButton() {
+    public TextView getRightArrowButton() {
         return rightArrowButton;
     }
 
@@ -590,12 +591,7 @@ public class CaldroidFragment extends DialogFragment {
         return pageChangeListener.getCurrent(currentPage);
     }
 
-    /**
-     * Move calendar to the specified date
-     *
-     * @param date
-     */
-    public void moveToDate(Date date) {
+    public void moveToDate(LocalDate date) {
         moveToDateTime(CalendarHelper.convertDateToDateTime(date));
     }
 
@@ -752,67 +748,17 @@ public class CaldroidFragment extends DialogFragment {
         selectedDates.clear();
     }
 
-    /**
-     * Select the dates from fromDate to toDate. By default the background color
-     * is holo_blue_light, and the text color is black. You can customize the
-     * background by changing CaldroidFragment.selectedBackgroundDrawable, and
-     * change the text color CaldroidFragment.selectedTextColor before call this
-     * method. This method does not refresh view, need to call refreshView()
-     *
-     * @param fromDate
-     * @param toDate
-     */
-    public void setSelectedDates(Date fromDate, Date toDate) {
-        // Ensure fromDate is before toDate
-        if (fromDate == null || toDate == null || fromDate.after(toDate)) {
-            return;
-        }
-
-        selectedDates.clear();
-
-        DateTime fromDateTime = CalendarHelper.convertDateToDateTime(fromDate);
-        DateTime toDateTime = CalendarHelper.convertDateToDateTime(toDate);
-
-        DateTime dateTime = fromDateTime;
-        while (dateTime.lt(toDateTime)) {
-            selectedDates.add(dateTime);
-            dateTime = dateTime.plusDays(1);
-        }
-        selectedDates.add(toDateTime);
-    }
-
-    /**
-     * Convenient method to select dates from String
-     *
-     * @param fromDateString
-     * @param toDateString
-     * @param dateFormat
-     * @throws ParseException
-     */
-    public void setSelectedDateStrings(String fromDateString,
-                                       String toDateString, String dateFormat) throws ParseException {
-
-        Date fromDate = CalendarHelper.getDateFromString(fromDateString,
-                dateFormat);
-        Date toDate = CalendarHelper
-                .getDateFromString(toDateString, dateFormat);
-        setSelectedDates(fromDate, toDate);
-    }
-    
-    /**
-     * Select single date
-     * @author Alov Maxim <alovmax@yandex.ru>
-     */
-    public void setSelectedDate(Date date) {
+    public void setSelectedDate(LocalDate date) {
         if (date == null) {
             return;
         }
         DateTime dateTime = CalendarHelper.convertDateToDateTime(date);
         selectedDates.add(dateTime);
     }
-    
+
     /**
      * Clear selection of the specified date
+     *
      * @author Alov Maxim <alovmax@yandex.ru>
      */
     public void clearSelectedDate(Date date) {
@@ -822,9 +768,10 @@ public class CaldroidFragment extends DialogFragment {
         DateTime dateTime = CalendarHelper.convertDateToDateTime(date);
         selectedDates.remove(dateTime);
     }
-    
+
     /**
      * Checks whether the specified date is selected
+     *
      * @author Alov Maxim <alovmax@yandex.ru>
      */
     public boolean isSelectedDate(Date date) {
@@ -879,7 +826,7 @@ public class CaldroidFragment extends DialogFragment {
      *
      * @param minDate
      */
-    public void setMinDate(Date minDate) {
+    public void setMinDate(LocalDate minDate) {
         if (minDate == null) {
             minDateTime = null;
         } else {
@@ -977,7 +924,7 @@ public class CaldroidFragment extends DialogFragment {
                             }
                         }
 
-                        Date date = CalendarHelper
+                        LocalDate date = CalendarHelper
                                 .convertDateTimeToDate(dateTime);
                         caldroidListener.onSelectDate(date, view);
                     }
@@ -1014,7 +961,7 @@ public class CaldroidFragment extends DialogFragment {
                                 return false;
                             }
                         }
-                        Date date = CalendarHelper
+                        LocalDate date = CalendarHelper
                                 .convertDateTimeToDate(dateTime);
                         caldroidListener.onLongClickDate(date, view);
                     }
@@ -1073,7 +1020,6 @@ public class CaldroidFragment extends DialogFragment {
             // Refresh view
             adapter.notifyDataSetChanged();
         }
-
     }
 
     /**
@@ -1262,8 +1208,8 @@ public class CaldroidFragment extends DialogFragment {
                 .findViewById(R.id.calendar_month_year_textview);
 
         // For the left arrow button
-        leftArrowButton = (Button) view.findViewById(R.id.calendar_left_arrow);
-        rightArrowButton = (Button) view
+        leftArrowButton = (TextView) view.findViewById(R.id.calendar_left_arrow);
+        rightArrowButton = (TextView) view
                 .findViewById(R.id.calendar_right_arrow);
 
         // Navigate to previous month when user click
@@ -1301,18 +1247,18 @@ public class CaldroidFragment extends DialogFragment {
         return view;
     }
 
-	@Override
-	public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-		// Inform client that all views are created and not null
-		// Client should perform customization for buttons and textviews here
-		if (caldroidListener != null) {
-			caldroidListener.onCaldroidViewCreated();
-		}
-	}
+        // Inform client that all views are created and not null
+        // Client should perform customization for buttons and textviews here
+        if (caldroidListener != null) {
+            caldroidListener.onCaldroidViewCreated();
+        }
+    }
 
-	/**
+    /**
      * This method can be used to provide different gridview.
      *
      * @return
@@ -1426,14 +1372,14 @@ public class CaldroidFragment extends DialogFragment {
     protected ArrayList<String> getDaysOfWeek() {
         ArrayList<String> list = new ArrayList<String>();
 
-        SimpleDateFormat fmt = new SimpleDateFormat("EEE", Locale.getDefault());
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("EEE", Locale.getDefault());
 
         // 17 Feb 2013 is Sunday
         DateTime sunday = new DateTime(2013, 2, 17, 0, 0, 0, 0);
         DateTime nextDay = sunday.plusDays(startDayOfWeek - SUNDAY);
 
         for (int i = 0; i < 7; i++) {
-            Date date = CalendarHelper.convertDateTimeToDate(nextDay);
+            LocalDate date = CalendarHelper.convertDateTimeToDate(nextDay);
             list.add(fmt.format(date).toUpperCase());
             nextDay = nextDay.plusDays(1);
         }

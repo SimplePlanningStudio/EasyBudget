@@ -13,7 +13,7 @@ import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
-import java.util.*
+import java.time.LocalDate
 
 /**
  * Onboarding step 3 fragment
@@ -58,7 +58,7 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
 
         launch {
             val amount = withContext(Dispatchers.Default) {
-                -db.getBalanceForDay(Date())
+                -db.getBalanceForDay(LocalDate.now())
             }
 
             binding?.onboardingScreen3InitialAmountEt?.setText(if (amount == 0.0) "" else amount.toString())
@@ -70,7 +70,7 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
         binding?.onboardingScreen3NextButton?.setOnClickListener {
             launch {
                 withContext(Dispatchers.Default) {
-                    val currentBalance = -db.getBalanceForDay(Date())
+                    val currentBalance = -db.getBalanceForDay(LocalDate.now())
                     val newBalance = amountValue
 
                     if (newBalance != currentBalance) {
@@ -79,7 +79,7 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
                         val expense = Expense(
                             resources.getString(R.string.adjust_balance_expense_title),
                             -diff,
-                            Date(),
+                            LocalDate.now(),
                             ExpenseCategoryType.BALANCE.name
                         )
                         db.persistExpense(expense)

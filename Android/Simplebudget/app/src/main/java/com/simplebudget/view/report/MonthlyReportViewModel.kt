@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
-import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -49,54 +50,31 @@ class MonthlyReportViewModel(
     private val appPreferences: AppPreferences,
 ) : ViewModel() {
 
-    val monthlyReportDataLiveData = MutableLiveData<MonthlyReportData>()
+    val monthlyReportDataLiveData = MutableLiveData<DataModels.MonthlyReportData>()
     val expenses = mutableListOf<Expense>()
     val revenues = mutableListOf<Expense>()
-    val allExpensesOfThisMonth = mutableListOf<SuperParent>()
+    private val allExpensesOfThisMonth = mutableListOf<DataModels.SuperParent>()
+    private val allExpensesParentList = mutableListOf<DataModels.CustomTriple.Data>()
     var revenuesAmount = 0.0
     var expensesAmount = 0.0
     var balance = 0.0
-    val hashMap = hashMapOf<String, CustomTriple.Data>()
+    val hashMap = hashMapOf<String, DataModels.CustomTriple.Data>()
 
-    open class SuperParent()
-    data class Parent(var category: String, var totalCredit: Double, var totalDebit: Double) :
-        SuperParent()
 
-    data class Child(var expense: Expense) : SuperParent()
-
-    sealed class CustomTriple {
-        class Data(
-            var category: String,
-            var totalCredit: Double,
-            var totalDebit: Double,
-            var expenses: ArrayList<Expense>
-        ) : CustomTriple()
-    }
-
-    sealed class MonthlyReportData {
-        object Empty : MonthlyReportData()
-        class Data(
-            val expenses: List<Expense>,
-            val revenues: List<Expense>,
-            val allExpensesOfThisMonth: List<SuperParent>,
-            val expensesAmount: Double,
-            val revenuesAmount: Double
-        ) : MonthlyReportData()
-    }
-
-    fun loadDataForMonth(month: Date) {
+    fun loadDataForMonth(month: LocalDate) {
         viewModelScope.launch {
             val expensesForMonth = withContext(Dispatchers.Default) {
                 db.getExpensesForMonth(month)
             }
 
             if (expensesForMonth.isEmpty()) {
-                monthlyReportDataLiveData.value = MonthlyReportData.Empty
+                monthlyReportDataLiveData.value = DataModels.MonthlyReportData.Empty
                 return@launch
             }
-
             expenses.clear()
             revenues.clear()
+            allExpensesParentList.clear()
+            allExpensesOfThisMonth.clear()
             revenuesAmount = 0.0
             expensesAmount = 0.0
 
@@ -106,7 +84,7 @@ class MonthlyReportViewModel(
                     // Adding category into map with empty list
                     if (!hashMap.containsKey(expense.category))
                         hashMap[expense.category] =
-                            CustomTriple.Data(expense.category, 0.0, 0.0, ArrayList<Expense>())
+                            DataModels.CustomTriple.Data(expense.category, 0.0, 0.0, ArrayList())
                     var tCredit: Double = hashMap[expense.category]?.totalCredit ?: 0.0
                     var tDebit: Double = hashMap[expense.category]?.totalDebit ?: 0.0
 
@@ -127,21 +105,34 @@ class MonthlyReportViewModel(
 
             hashMap.keys.forEach { key ->
                 allExpensesOfThisMonth.add(
-                    Parent(
+                    DataModels.Parent(
                         hashMap[key]?.category!!,
                         hashMap[key]?.totalCredit ?: 0.0,
                         hashMap[key]?.totalDebit ?: 0.0
                     )
                 )
+                allExpensesParentList.add(
+                    DataModels.CustomTriple.Data(
+                        hashMap[key]?.category!!,
+                        hashMap[key]?.totalCredit ?: 0.0,
+                        hashMap[key]?.totalDebit ?: 0.0,
+                        hashMap[key]?.expenses ?: ArrayList()
+                    )
+                )
                 hashMap[key]?.expenses?.forEach { expense ->
-                    allExpensesOfThisMonth.add(Child(expense))
+                    allExpensesOfThisMonth.add(DataModels.Child(expense))
                 }
             }
             balance = revenuesAmount - expensesAmount
 
             monthlyReportDataLiveData.value =
-                MonthlyReportData.Data(
-                    expenses, revenues, allExpensesOfThisMonth, expensesAmount, revenuesAmount
+                DataModels.MonthlyReportData.Data(
+                    expenses,
+                    revenues,
+                    allExpensesOfThisMonth,
+                    allExpensesParentList,
+                    expensesAmount,
+                    revenuesAmount
                 )
         }
     }
@@ -152,7 +143,7 @@ class MonthlyReportViewModel(
     /**
      *
      */
-    fun exportCSV(currency: Currency, month: Date, file: File) {
+    fun exportCSV(currency: Currency, month: LocalDate, file: File) {
         try {
             if (expenses.isEmpty() && revenues.isEmpty()) {
                 exportStatus.value = ExportStatus(
@@ -163,8 +154,15 @@ class MonthlyReportViewModel(
                 )
                 return
             }
-            val format = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-            val monthFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+            val format = DateTimeFormatter.ofPattern(
+                "dd MMM yyyy",
+                Locale.getDefault()
+            )
+
+            val monthFormat = DateTimeFormatter.ofPattern(
+                "MMM yyyy",
+                Locale.getDefault()
+            )
 
             var fileWriter: FileWriter? = null
             try {
@@ -267,11 +265,20 @@ class MonthlyReportViewModel(
     /**
      * Generate HTML for printing a PDF report
      */
-    fun generateHtml(currency: Currency, month: Date) {
+    fun generateHtml(currency: Currency, month: LocalDate) {
         viewModelScope.launch {
             val contents: StringBuilder = StringBuilder()
-            val format = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-            val monthFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
+
+
+            val format = DateTimeFormatter.ofPattern(
+                "dd MMM yyyy",
+                Locale.getDefault()
+            )
+
+            val monthFormat = DateTimeFormatter.ofPattern(
+                "MMM yyyy",
+                Locale.getDefault()
+            )
 
             // Table start
             contents.append("<html><head><body>")
@@ -313,7 +320,7 @@ class MonthlyReportViewModel(
             )
             // All expenses
             for (data in allExpensesOfThisMonth) {
-                if (data is Parent) {
+                if (data is DataModels.Parent) {
                     val amountSpend =
                         CurrencyHelper.getFormattedCurrencyString(
                             appPreferences,
@@ -321,12 +328,14 @@ class MonthlyReportViewModel(
                         )
                     contents.append("<h2 style=\"color:white;background-color:mediumblue\">${data.category} ($amountSpend)</h2>")
                 } else {
-                    if (data is Child) {
+                    if (data is DataModels.Child) {
                         val formattedAmount = CurrencyHelper.getFormattedCurrencyString(
                             appPreferences,
                             -(data.expense.amount)
                         )
-                        val color = if (data.expense.isRevenue()) "green" else "red"
+                        val expenseColor = if (data.expense.isRevenue()) "green" else "red"
+                        val futureExpense =
+                            if (data.expense.date.isAfter(LocalDate.now())) "/(Upcoming expense)" else ""
                         contents.append(
                             "<p style=\"font-size:140%;color:black\"><b>${(data.expense.title)}</b></p>" +
                                     "<p style=\"font-size:140%;color:grey\">${
@@ -334,8 +343,8 @@ class MonthlyReportViewModel(
                                             "%s",
                                             format.format(data.expense.date)
                                         ))
-                                    } / ${(data.expense.category)}</p>" +
-                                    "<p style=\"font-size:140%;color:$color\">${
+                                    } / ${(data.expense.category)} ${futureExpense}</p>" +
+                                    "<p style=\"font-size:140%;color:$expenseColor\">${
                                         formattedAmount
                                     }</p>"
                         )

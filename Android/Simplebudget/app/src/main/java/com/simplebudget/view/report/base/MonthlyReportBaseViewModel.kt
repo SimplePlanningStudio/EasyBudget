@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,29 +23,27 @@ import com.simplebudget.prefs.AppPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.time.LocalDate
 
 class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : ViewModel() {
     /**
      * The current selected position
      */
     val selectedPositionLiveData = MutableLiveData<MonthlyReportSelectedPosition>()
-    val datesLiveData = MutableLiveData<List<Date>>()
+    val datesLiveData = MutableLiveData<List<LocalDate>>()
 
-    fun loadData(fromNotification: Boolean) {
+    fun loadData() {
         viewModelScope.launch {
-            val dates = withContext(Dispatchers.IO) {
+            val pair = withContext(Dispatchers.IO) {
                 return@withContext appPreferences.getListOfMonthsAvailableForUser()
             }
-
-            datesLiveData.value = dates
-            if (!fromNotification || dates.size == 1) {
-                selectedPositionLiveData.value =
-                    MonthlyReportSelectedPosition(dates.size - 1, dates[dates.size - 1], true)
-            } else {
-                selectedPositionLiveData.value =
-                    MonthlyReportSelectedPosition(dates.size - 2, dates[dates.size - 2], false)
-            }
+            datesLiveData.value = pair.first
+            selectedPositionLiveData.value =
+                MonthlyReportSelectedPosition(
+                    pair.second,
+                    pair.first[pair.second],
+                    (pair.second == pair.first.size - 1)
+                )
         }
     }
 
@@ -57,7 +55,7 @@ class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : V
             selectedPositionLiveData.value = MonthlyReportSelectedPosition(
                 selectedPosition - 1,
                 dates[selectedPosition - 1],
-                false
+                (selectedPosition - 1 == dates.size - 1)
             )
         }
     }
@@ -70,7 +68,7 @@ class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : V
             selectedPositionLiveData.value = MonthlyReportSelectedPosition(
                 selectedPosition + 1,
                 dates[selectedPosition + 1],
-                dates.size == selectedPosition + 2
+                (selectedPosition + 1 == dates.size - 1)
             )
         }
     }
@@ -79,8 +77,12 @@ class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : V
         val dates = datesLiveData.value ?: return
 
         selectedPositionLiveData.value =
-            MonthlyReportSelectedPosition(position, dates[position], dates.size == position + 1)
+            MonthlyReportSelectedPosition(position, dates[position], (position == dates.size - 1))
     }
 }
 
-data class MonthlyReportSelectedPosition(val position: Int, val date: Date, val latest: Boolean)
+data class MonthlyReportSelectedPosition(
+    val position: Int,
+    val date: LocalDate,
+    val isLastMonth: Boolean
+)

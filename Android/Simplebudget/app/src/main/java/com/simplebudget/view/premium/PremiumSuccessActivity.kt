@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -70,9 +70,10 @@ class PremiumSuccessActivity : BaseActivity<ActivitySuccessPremiumBinding>() {
     /**
      *
      */
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (isBackEnabled) {
-            super.onBackPressed()
+            finish()
         } else {
             finishAffinity()
             startActivity(Intent(this, SplashActivity::class.java))

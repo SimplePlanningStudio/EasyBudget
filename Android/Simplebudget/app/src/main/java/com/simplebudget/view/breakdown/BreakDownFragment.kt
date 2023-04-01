@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import com.simplebudget.view.main.MainActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.time.LocalDate
 import java.util.*
 
 
@@ -63,7 +64,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
     /**
      * The first date of the month at 00:00:00
      */
-    private lateinit var date: Date
+    private lateinit var date: LocalDate
     private var type: String = ""
     private val appPreferences: AppPreferences by inject()
     private val viewModel: BreakDownViewModel by viewModel()
@@ -138,7 +139,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        date = requireArguments().getSerializable(ARG_DATE) as Date
+        date = requireArguments().getSerializable(ARG_DATE) as LocalDate
         type = getString(R.string.all_label)
 
         viewModel.monthlyReportDataLiveDataForAllTypesOfExpenses.observe(viewLifecycleOwner) { result ->
@@ -227,7 +228,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
     private fun handleAddExpenses() {
         binding?.fabNewExpense?.setOnClickListener {
             val startIntent = Intent(requireActivity(), ExpenseEditActivity::class.java)
-            startIntent.putExtra("date", Date().time)
+            startIntent.putExtra("date", LocalDate.now().toEpochDay())
             startIntent.putExtra(MainActivity.ANIMATE_TRANSITION_KEY, false)
             ActivityCompat.startActivityForResult(
                 requireActivity(),
@@ -239,7 +240,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
 
         binding?.fabNewRecurringExpense?.setOnClickListener {
             val startIntent = Intent(requireActivity(), RecurringExpenseEditActivity::class.java)
-            startIntent.putExtra("dateStart", Date().time)
+            startIntent.putExtra("dateStart", LocalDate.now().toEpochDay())
             startIntent.putExtra(MainActivity.ANIMATE_TRANSITION_KEY, false)
             ActivityCompat.startActivityForResult(
                 requireActivity(),
@@ -260,11 +261,6 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
         val layoutManager = LinearLayoutManager(activity)
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
-        val dividerItemDecoration = DividerItemDecoration(
-            recyclerView.context,
-            layoutManager.orientation
-        )
-        recyclerView.addItemDecoration(dividerItemDecoration)
     }
 
     /**
@@ -347,7 +343,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
      *
      */
     companion object {
-        fun newInstance(date: Date): BreakDownFragment = BreakDownFragment().apply {
+        fun newInstance(date: LocalDate): BreakDownFragment = BreakDownFragment().apply {
             arguments = Bundle().apply {
                 putSerializable(ARG_DATE, date)
             }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
                 onBackPressed()
                 true
             }
-            R.id.action_future_expenses -> {
+            R.id.action_edit_categories -> {
                 launchManageCategories()
                 true
             }
@@ -183,7 +183,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     /**
      * Start activity for result
      */
-    private var securityActivityLauncher =
+    private var voiceSearchIntentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val spokenText: String? =
                 result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
@@ -204,7 +204,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                 )
             }
-            securityActivityLauncher.launch(intent)
+            voiceSearchIntentLauncher.launch(intent)
         }
     }
 
@@ -286,6 +286,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     /**
      *
      */
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         doneWithSelection()
     }

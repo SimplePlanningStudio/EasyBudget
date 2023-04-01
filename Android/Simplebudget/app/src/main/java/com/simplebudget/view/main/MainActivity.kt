@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.simplebudget.view.main
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.app.NotificationManager
@@ -55,7 +56,6 @@ import com.simplebudget.SimpleBudget
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.showCaseView
-import com.simplebudget.helper.language.Languages
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpenseDeleteType
@@ -67,7 +67,6 @@ import com.simplebudget.view.main.calendar.CalendarFragment
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
-import com.simplebudget.view.futurepayments.FutureBaseActivity
 import com.simplebudget.view.search.base.SearchBaseActivity
 import com.simplebudget.view.security.SecurityActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
@@ -75,9 +74,10 @@ import com.simplebudget.view.settings.SettingsActivity
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
 import com.simplebudget.view.welcome.WelcomeActivity
 import org.koin.android.ext.android.inject
-import java.text.SimpleDateFormat
 import java.util.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 /**
@@ -478,7 +478,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         })
 
         viewModel.premiumStatusLiveData.observe(this) { isPremium ->
-            SimpleBudget.appOpenManager?.updatePremiumStatus(true)
             isUserPremium = isPremium
             invalidateOptionsMenu()
 
@@ -506,7 +505,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
             }.run()
 
-            val format = SimpleDateFormat(
+            val format = DateTimeFormatter.ofPattern(
                 resources.getString(R.string.account_balance_date_format),
                 Locale.getDefault()
             )
@@ -591,7 +590,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun calendarRevealAnimation() {
         try {
-            val format = SimpleDateFormat(
+            val format = DateTimeFormatter.ofPattern(
                 resources.getString(R.string.date_format_calender_reveal),
                 Locale.getDefault()
             )
@@ -685,17 +684,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    @Deprecated("Deprecated in Java", ReplaceWith("finish()"))
     override fun onBackPressed() {
-        super.onBackPressed()
+        finish()
     }
 
+    @SuppressLint("MissingSuperCall")
     override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-
         if (intent == null) {
             return
         }
-
         openSettingsIfNeeded(intent)
         openMonthlyReportIfNeeded(intent)
         openAddExpenseIfNeeded(intent)
@@ -867,13 +865,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /**
      * Update the balance for the given day
      */
-    private fun updateBalanceDisplayForDay(day: Date, balance: Double) {
-        val format = SimpleDateFormat(
+    private fun updateBalanceDisplayForDay(day: LocalDate, balance: Double) {
+        val formatter = DateTimeFormatter.ofPattern(
             resources.getString(R.string.account_balance_date_format),
             Locale.getDefault()
         )
-
-        var formatted = resources.getString(R.string.account_balance_format, format.format(day))
+        var formatted = resources.getString(R.string.account_balance_format, formatter.format(day))
         if (formatted.endsWith(".:")) {
             formatted = formatted.substring(
                 0,
@@ -976,7 +973,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun openAddExpenseIfNeeded(intent: Intent) {
         if (intent.getBooleanExtra(INTENT_SHOW_ADD_EXPENSE, false)) {
             val startIntent = Intent(this, ExpenseEditActivity::class.java)
-            startIntent.putExtra("date", Date().time)
+            startIntent.putExtra("date", LocalDate.now().toEpochDay())
 
             ActivityCompat.startActivityForResult(
                 this,
@@ -996,7 +993,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun openAddRecurringExpenseIfNeeded(intent: Intent) {
         if (intent.getBooleanExtra(INTENT_SHOW_ADD_RECURRING_EXPENSE, false)) {
             val startIntent = Intent(this, RecurringExpenseEditActivity::class.java)
-            startIntent.putExtra("dateStart", Date().time)
+            startIntent.putExtra("dateStart", LocalDate.now().toEpochDay())
 
             ActivityCompat.startActivityForResult(
                 this,
@@ -1029,18 +1026,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             args.putInt(CaldroidFragment.THEME_RESOURCE, R.style.caldroid_style)
 
             calendarFragment.arguments = args
-            calendarFragment.setMinDate(Date(appPreferences.getInitTimestamp()).computeCalendarMinDateFromInitDate())
+            calendarFragment.setMinDate(
+                (appPreferences.getInitDate()
+                    ?: LocalDate.now()).computeCalendarMinDateFromInitDate()
+            )
         }
 
         val listener = object : CaldroidListener() {
-            override fun onSelectDate(date: Date, view: View) {
+            override fun onSelectDate(date: LocalDate, view: View) {
                 viewModel.onSelectDate(date)
             }
 
-            override fun onLongClickDate(date: Date, view: View?) // Add expense on long press
+            override fun onLongClickDate(date: LocalDate, view: View?) // Add expense on long press
             {
                 val startIntent = Intent(this@MainActivity, ExpenseEditActivity::class.java)
-                startIntent.putExtra("date", date.time)
+                startIntent.putExtra("date", date.toEpochDay())
 
                 // Get the absolute location on window for Y value
                 val viewLocation = IntArray(2)
@@ -1162,10 +1162,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         R.color.calendar_background
                     )
                 )
-
-                // Remove border
-                leftButton.removeButtonBorder()
-                rightButton.removeButtonBorder()
             }
         }
 
@@ -1179,7 +1175,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun initRecyclerView() {
         binding.fabNewExpense.setOnClickListener {
             val startIntent = Intent(this@MainActivity, ExpenseEditActivity::class.java)
-            startIntent.putExtra("date", calendarFragment.getSelectedDate().time)
+            startIntent.putExtra("date", calendarFragment.getSelectedDate().toEpochDay())
 
             startIntent.putExtra(ANIMATE_TRANSITION_KEY, true)
             startIntent.putExtra(
@@ -1201,7 +1197,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         binding.fabNewRecurringExpense.setOnClickListener {
             val startIntent = Intent(this@MainActivity, RecurringExpenseEditActivity::class.java)
-            startIntent.putExtra("dateStart", calendarFragment.getSelectedDate().time)
+            startIntent.putExtra("dateStart", calendarFragment.getSelectedDate().toEpochDay())
 
             startIntent.putExtra(ANIMATE_TRANSITION_KEY, true)
             startIntent.putExtra(
@@ -1226,7 +1222,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
          */
         binding.expensesRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        expensesViewAdapter = ExpensesRecyclerViewAdapter(this, appPreferences, Date())
+        expensesViewAdapter = ExpensesRecyclerViewAdapter(this, appPreferences, LocalDate.now())
         binding.expensesRecyclerView.adapter = expensesViewAdapter
 
         binding.expensesRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -1266,7 +1262,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         })
     }
 
-    private fun refreshRecyclerViewForDate(date: Date, expenses: List<Expense>) {
+    private fun refreshRecyclerViewForDate(date: LocalDate, expenses: List<Expense>) {
         expensesViewAdapter.setDate(date, expenses)
         if (expenses.isNotEmpty()) {
             binding.expensesRecyclerView.visibility = View.VISIBLE
@@ -1277,10 +1273,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun refreshAllForDate(date: Date, balance: Double, expenses: List<Expense>) {
+    private fun refreshAllForDate(date: LocalDate, balance: Double, expenses: List<Expense>) {
         refreshRecyclerViewForDate(date, expenses)
         updateBalanceDisplayForDay(date, balance)
-        calendarFragment.setSelectedDates(date, date)
+        calendarFragment.setSelectedDate(date)
         calendarFragment.refreshView()
     }
 

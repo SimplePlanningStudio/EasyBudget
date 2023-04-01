@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.simplebudget.prefs.AppPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.time.LocalDate
 import kotlin.collections.ArrayList
 
 /**
@@ -44,7 +44,7 @@ class BreakDownViewModel(
     var expensesAmount = 0.0
     var balance = 0.0
     var totalExpenses = 0.0
-    val hashMap = hashMapOf<String, CustomTriple.Data>()
+    private val hashMap = hashMapOf<String, CustomTriple.Data>()
 
     data class CategoryWiseExpense(var category: String, var amountSpend: Double)
 
@@ -70,7 +70,7 @@ class BreakDownViewModel(
         ) : MonthlyBreakDownData()
     }
 
-    fun loadDataForMonth(month: Date, type: String) {
+    fun loadDataForMonth(month: LocalDate, type: String) {
         viewModelScope.launch {
             val expensesForMonth = withContext(Dispatchers.Default) {
                 db.getExpensesForMonth(month)
@@ -90,8 +90,10 @@ class BreakDownViewModel(
             hashMap.clear()
             withContext(Dispatchers.Default) {
                 for (expense in expensesForMonth) {
-                    // Only allows to add only expenses till current date
-                    if (expense.date.after(Date())) break
+
+                    /* Todo: Only allows to add expenses till current date, I've disabled it,
+                         so user can see breakdown of future expenses as well. */
+                    // if (expense.date.isAfter(LocalDate.now())) break
 
                     // Adding category into map with empty list
                     if (!hashMap.containsKey(expense.category))

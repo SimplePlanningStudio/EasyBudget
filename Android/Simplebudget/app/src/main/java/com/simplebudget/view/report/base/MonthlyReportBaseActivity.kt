@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -29,21 +29,12 @@ import androidx.viewpager.widget.ViewPager
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityMonthlyReportBinding
 import com.simplebudget.helper.BaseActivity
-import com.simplebudget.helper.extensions.showCaseView
-import com.simplebudget.helper.getMonthTitle
+import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
-import com.simplebudget.helper.showcaseviewlib.GuideView
-import com.simplebudget.helper.showcaseviewlib.config.DismissType
-import com.simplebudget.helper.showcaseviewlib.config.Gravity
-import com.simplebudget.helper.showcaseviewlib.config.PointerType
-import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.hasUserCompleteFutureExpensesShowCaseView
-import com.simplebudget.prefs.setUserCompleteFutureExpensesShowCaseView
-import com.simplebudget.view.futurepayments.FutureBaseActivity
+import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.report.MonthlyReportFragment
-import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.*
+import java.time.LocalDate
 
 
 /**
@@ -55,11 +46,6 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
     ViewPager.OnPageChangeListener {
 
     private val viewModel: MonthlyReportBaseViewModel by viewModel()
-
-    private var ignoreNextPageSelectedEvent: Boolean = false
-
-    private val appPreferences: AppPreferences by inject()
-
 
     override fun createBinding(): ActivityMonthlyReportBinding {
         return ActivityMonthlyReportBinding.inflate(layoutInflater)
@@ -76,7 +62,7 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         if (savedInstanceState == null) {
-            viewModel.loadData(intent.getBooleanExtra(FROM_NOTIFICATION_EXTRA, false))
+            viewModel.loadData()
         }
 
         binding.monthlyReportPreviousMonthButton.text = "<"
@@ -95,25 +81,18 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
 
         viewModel.datesLiveData.observe(this) { dates ->
             configureViewPager(dates)
-
             binding.monthlyReportProgressBar.visibility = View.GONE
             binding.monthlyReportContent.visibility = View.VISIBLE
         }
 
-        viewModel.selectedPositionLiveData.observe(this) { (position, date, isLatestMonth) ->
-            if (!ignoreNextPageSelectedEvent) {
-                binding.monthlyReportViewPager.setCurrentItem(position, true)
-            }
+        viewModel.selectedPositionLiveData.observe(this) { (position, date, isLastMonth) ->
+            binding.monthlyReportViewPager.setCurrentItem(position, true)
+            binding.monthlyReportMonthTitleTv.text = date.getMonthTitleWithPastAndFuture(this)
 
-            ignoreNextPageSelectedEvent = false
-
-            binding.monthlyReportMonthTitleTv.text = date.getMonthTitle(this)
-
-            // Last and first available month
-            val isFirstMonth = position == 0
-
-            binding.monthlyReportNextMonthButton.isEnabled = !isLatestMonth
-            binding.monthlyReportPreviousMonthButton.isEnabled = !isFirstMonth
+            binding.monthlyReportNextMonthButton.visibility =
+                if (isLastMonth) View.GONE else View.VISIBLE
+            binding.monthlyReportPreviousMonthButton.visibility =
+                if (position == 0) View.GONE else View.VISIBLE
         }
     }
 
@@ -129,23 +108,13 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
      * Creating a custom menu option.
      */
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        val menuItem = menu?.findItem(R.id.action_future_expenses)
+        val menuItem = menu?.findItem(R.id.action_break_down)
         val rootView = menuItem?.actionView as LinearLayout?
-        val customFutureExpenseMenu = rootView?.findViewById<TextView>(R.id.tvMenuFutureExpense)
-        customFutureExpenseMenu?.let {
-            if (appPreferences.hasUserCompleteFutureExpensesShowCaseView().not()) {
-                showCaseView(
-                    targetView = it,
-                    title = getString(R.string.future_expenses),
-                    message = getString(R.string.future_expenses_show_view_message),
-                    handleGuideListener = {
-                        appPreferences.setUserCompleteFutureExpensesShowCaseView()
-                    }
-                )
-            }
+        val tvMenuBreakdown = rootView?.findViewById<TextView>(R.id.tvMenuBreakdown)
+        tvMenuBreakdown?.let {
             it.setOnClickListener {
                 ActivityCompat.startActivity(
-                    this, Intent(this, FutureBaseActivity::class.java),
+                    this, Intent(this, BreakDownBaseActivity::class.java),
                     null
                 )
             }
@@ -162,13 +131,6 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
                 finish()
                 true
             }
-            R.id.action_future_expenses -> {
-                ActivityCompat.startActivity(
-                    this, Intent(this, FutureBaseActivity::class.java),
-                    null
-                )
-                true
-            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -178,7 +140,7 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
     /**
      * Configure the [.pager] adapter and listener.
      */
-    private fun configureViewPager(dates: List<Date>) {
+    private fun configureViewPager(dates: List<LocalDate>) {
         binding.monthlyReportViewPager.offscreenPageLimit = 0
         binding.monthlyReportViewPager.adapter = object :
             FragmentPagerAdapter(supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
@@ -198,8 +160,6 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
 
     override fun onPageSelected(position: Int) {
-        ignoreNextPageSelectedEvent = true
-
         viewModel.onPageSelected(position)
     }
 

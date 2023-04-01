@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.simplebudget.prefs
 
 import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.helper.*
+import java.time.LocalDate
 import java.util.*
 
 private const val DEFAULT_LOW_MONEY_WARNING_AMOUNT = 100
@@ -154,11 +155,6 @@ private const val DISPLAY_BALANCE = "display_balance"
 private const val APP_LOCK = "app_lock"
 
 /**
- * Future expenses menu in report activity
- */
-private const val SHOW_CASE_VIEW_FUTURE_EXPENSES = "future_expenses_menu_in_report"
-
-/**
  * Break down expenses in Break Down Base activity
  */
 private const val SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES =
@@ -172,7 +168,8 @@ private const val SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN = "expenses_break_menu_in_f
 /**
  * Future expenses menu in select category
  */
-private const val SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY = "manage_categories_in_select_category"
+private const val SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY =
+    "manage_categories_in_select_category"
 
 /**
  * Language
@@ -180,12 +177,17 @@ private const val SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY = "manage_
 private const val KEY_CHANGE_LANGUAGE = "change_language"
 
 
-fun AppPreferences.getInitTimestamp(): Long {
-    return getLong(INIT_DATE_PARAMETERS_KEY, 0L)
+fun AppPreferences.getInitDate(): LocalDate? {
+    val timestamp = getLong(INIT_DATE_PARAMETERS_KEY, 0L)
+    if (timestamp <= 0L) {
+        return null
+    }
+
+    return localDateFromTimestamp(timestamp)
 }
 
-fun AppPreferences.setInitTimestamp(value: Long) {
-    putLong(INIT_DATE_PARAMETERS_KEY, value)
+fun AppPreferences.setInitDate(date: Date) {
+    putLong(INIT_DATE_PARAMETERS_KEY, date.time)
 }
 
 fun AppPreferences.getLocalId(): String? {
@@ -403,6 +405,7 @@ fun AppPreferences.hasUserSawSwitchExpenseHint(): Boolean {
 fun AppPreferences.setUserSawSwitchExpenseHint() {
     putBoolean(USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY, true)
 }
+
 fun AppPreferences.resetUserSawSwitchExpenseHint() {
     putBoolean(USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY, false)
 }
@@ -489,22 +492,6 @@ fun AppPreferences.hiddenProtectionType(): Int {
 
 fun AppPreferences.setHiddenProtectionType(hiddenProtectionType: Int) {
     putInt(PROTECTION_TYPE, hiddenProtectionType)
-}
-
-/**
- * Has the user complete Future Expenses ShowCaseView
- *
- * @return true if the user has already viewed, false otherwise
- */
-fun AppPreferences.hasUserCompleteFutureExpensesShowCaseView(): Boolean {
-    return getBoolean(SHOW_CASE_VIEW_FUTURE_EXPENSES, false)
-}
-
-/**
- * Set that the user has complete Future Expenses ShowCaseView
- */
-fun AppPreferences.setUserCompleteFutureExpensesShowCaseView() {
-    putBoolean(SHOW_CASE_VIEW_FUTURE_EXPENSES, true)
 }
 
 /**

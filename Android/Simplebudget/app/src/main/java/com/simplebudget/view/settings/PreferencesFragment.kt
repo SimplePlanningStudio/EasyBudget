@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,17 +15,23 @@
  */
 package com.simplebudget.view.settings
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.EditText
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
@@ -41,7 +47,6 @@ import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.category.CategoriesActivity
-import com.simplebudget.view.futurepayments.FutureBaseActivity
 import com.simplebudget.view.moreApps.MoreAppsActivity
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.premium.PremiumSuccessActivity
@@ -49,6 +54,7 @@ import com.simplebudget.view.report.base.MonthlyReportBaseActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
 import com.simplebudget.view.settings.backup.BackupSettingsActivity
+import com.simplebudget.view.settings.faq.FAQActivity
 import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
 import com.simplebudget.view.settings.releaseHistory.ReleaseHistoryTimelineActivity
 import org.koin.android.ext.android.inject
@@ -71,6 +77,10 @@ class PreferencesFragment : PreferenceFragmentCompat() {
      */
     private lateinit var receiver: BroadcastReceiver
 
+    /**
+     * Launcher for notification permission request
+     */
+    private lateinit var notificationRequestPermissionLauncher: ActivityResultLauncher<String>
 
     /**
      *
@@ -87,11 +97,63 @@ class PreferencesFragment : PreferenceFragmentCompat() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Notifications permission
+        notificationRequestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                if (!granted) {
+                    activity?.let {
+                        MaterialAlertDialogBuilder(it)
+                            .setTitle(R.string.setting_notification_permission_rejected_dialog_title)
+                            .setMessage(R.string.setting_notification_permission_rejected_dialog_description)
+                            .setPositiveButton(R.string.setting_notification_permission_rejected_dialog_accept_cta) { dialog, _ ->
+                                dialog.dismiss()
+                                showNotificationPermissionIfNeeded()
+                            }
+                            .setNegativeButton(R.string.setting_notification_permission_rejected_dialog_not_now_cta) { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .show()
+                    }
+                }
+                findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.isVisible =
+                    true
+                findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.setSummary(
+                    if (isNotificationsPermissionGranted()) {
+                        R.string.backup_settings_backups_activated
+                    } else {
+                        R.string.backup_settings_backups_deactivated
+                    }
+                )
+            }
+
+        if (Build.VERSION.SDK_INT < 33) {
+            findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.isVisible =
+                false
+        } else {
+            findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.isVisible =
+                true
+            findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.setSummary(
+                if (isNotificationsPermissionGranted()) {
+                    R.string.backup_settings_backups_activated
+                } else {
+                    R.string.backup_settings_backups_deactivated
+                }
+            )
+            // Handle launch of notification permission
+            findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.onPreferenceClickListener =
+                Preference.OnPreferenceClickListener {
+                    activity?.let {
+                        showNotificationPermissionIfNeeded()
+                    }
+                    false
+                }
+        }
+
         /**
          * App version
          */
         val prefAppVersion: Preference =
-            findPreference<Preference>(resources.getString(R.string.setting_app_version_key))!!
+            findPreference(resources.getString(R.string.setting_app_version_key))!!
         prefAppVersion.title = getString(R.string.setting_app_version)
         prefAppVersion.summary = String.format(
             "%s",
@@ -116,7 +178,10 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_category_manage_category_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 val startIntent = Intent(requireActivity(), CategoriesActivity::class.java)
-                startIntent.putExtra(CategoriesActivity.REQUEST_CODE_SELECT_CATEGORY, CategoriesActivity.MANAGE_CATEGORIES)
+                startIntent.putExtra(
+                    CategoriesActivity.REQUEST_CODE_SELECT_CATEGORY,
+                    CategoriesActivity.MANAGE_CATEGORIES
+                )
                 ActivityCompat.startActivity(requireActivity(), startIntent, null)
                 false
             }
@@ -143,7 +208,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_telegram_channel_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 activity?.let {
-                    startActivity(Intent().getTelegramIntent())
+                    startActivity(Intent().getTelegramIntent(it))
                 }
                 false
             }
@@ -222,19 +287,6 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             }
 
         /*
-         * Future expenses
-         */
-        val futureExpenses =
-            findPreference<Preference>(getString(R.string.setting_future_expenses_key))
-        futureExpenses?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                val startIntent = Intent(requireActivity(), FutureBaseActivity::class.java)
-                startIntent.putExtra(FutureBaseActivity.FROM_NOTIFICATION_EXTRA, false)
-                ActivityCompat.startActivity(requireActivity(), startIntent, null)
-                true
-            }
-
-        /*
          * Backup
          */
         findPreference<Preference>(getString(R.string.setting_category_backup))?.onPreferenceClickListener =
@@ -243,6 +295,16 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 false
             }
         updateBackupPreferences()
+
+        /*
+         * Share app
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_category_faq_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                startActivity(Intent(context, FAQActivity::class.java))
+                false
+            }
+
 
         /*
          * Share app
@@ -401,13 +463,13 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         /*
          * Notifications
          */
-        val updateNotifPref =
+        val updateNotificationPref =
             findPreference<CheckBoxPreference>(resources.getString(R.string.setting_category_notifications_update_key))
-        updateNotifPref?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+        updateNotificationPref?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             appPreferences.setUserAllowUpdatePushes((it as CheckBoxPreference).isChecked)
             true
         }
-        updateNotifPref?.isChecked = appPreferences.isUserAllowingUpdatePushes()
+        updateNotificationPref?.isChecked = appPreferences.isUserAllowingUpdatePushes()
 
 
         /*
@@ -421,8 +483,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                         findPreference<Preference>(resources.getString(R.string.setting_category_currency_change_button_key))?.let { currencyPreference ->
                             setCurrencyPreferenceTitle(currencyPreference)
                         }
-
-                        selectCurrencyDialog!!.dismiss()
+                        selectCurrencyDialog?.dismiss()
                         selectCurrencyDialog = null
                     }
                 }
@@ -449,6 +510,28 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             }
     }
 
+    /**
+     * Check if notifications permission is granted or not
+     */
+    private fun isNotificationsPermissionGranted(): Boolean {
+        return if (Build.VERSION.SDK_INT < 33) {
+            false
+        } else {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    /**
+     * Ask for notifications permissions
+     */
+    private fun showNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < 33) return
+        if (isNotificationsPermissionGranted().not())
+            notificationRequestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
 
     /**
      *
@@ -512,7 +595,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
     private fun refreshPremiumPreference() {
         val isPremium = iab.isUserPremium()
         val pref: Preference =
-            findPreference<Preference>(resources.getString(R.string.setting_category_premium_key))!!
+            findPreference(resources.getString(R.string.setting_category_premium_key))!!
         if (isPremium) {
             pref.title = getString(R.string.setting_category_premium_status_title)
             pref.summary = getString(R.string.setting_category_premium_status_message)
@@ -547,7 +630,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
     /**
      *
      */
-    fun getWeekDaysName(weekDay: Int): String {
+    private fun getWeekDaysName(weekDay: Int): String {
         return when (weekDay) {
             CaldroidFragment.SUNDAY -> "SUNDAY"
             CaldroidFragment.MONDAY -> "MONDAY"

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@ package com.simplebudget.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import java.time.LocalDate
 import java.util.*
 
 data class Expense(
     val id: Long?,
     val title: String,
     val amount: Double,
-    val date: Date,
+    val date: LocalDate,
     val associatedRecurringExpense: RecurringExpense?,
     val category: String
 ) : Parcelable {
@@ -31,7 +32,7 @@ data class Expense(
     constructor(
         title: String,
         amount: Double,
-        date: Date,
+        date: LocalDate,
         category: String
     ) : this(null, title, amount, date, null, category)
 
@@ -39,14 +40,14 @@ data class Expense(
         id: Long,
         title: String,
         amount: Double,
-        date: Date,
+        date: LocalDate,
         category: String
     ) : this(id, title, amount, date, null, category)
 
     constructor(
         title: String,
         amount: Double,
-        date: Date,
+        date: LocalDate,
         associatedRecurringExpense: RecurringExpense,
         category: String
     ) : this(null, title, amount, date, associatedRecurringExpense, category)
@@ -55,7 +56,7 @@ data class Expense(
         parcel.readValue(Long::class.java.classLoader) as? Long,
         parcel.readString() ?: "",
         parcel.readDouble(),
-        Date(parcel.readLong()),
+        LocalDate.ofEpochDay(parcel.readLong()),
         parcel.readParcelable(RecurringExpense::class.java.classLoader),
         parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name
     )
@@ -68,7 +69,7 @@ data class Expense(
 
     fun isRevenue() = amount < 0
 
-    fun isFutureExpense() = date.after(Date())
+    fun isFutureExpense() = date.isAfter(LocalDate.now())
 
     fun isRecurring() = associatedRecurringExpense != null
 
@@ -76,7 +77,7 @@ data class Expense(
         parcel.writeValue(id)
         parcel.writeString(title)
         parcel.writeDouble(amount)
-        parcel.writeLong(date.time)
+        parcel.writeLong(date.toEpochDay())
         parcel.writeParcelable(associatedRecurringExpense, flags)
         parcel.writeString(category)
     }

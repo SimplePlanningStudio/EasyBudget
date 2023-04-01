@@ -59,19 +59,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <com.google.android.material.button.MaterialButton
+    <TextView
         android:id="@+id/onboarding_screen1_next_button"
         style="@style/BlueButton"
         android:layout_width="@dimen/_99sdp"
         android:layout_height="@dimen/_32sdp"
         android:layout_marginBottom="@dimen/_24sdp"
         android:background="@drawable/ic_small_button"
-        android:backgroundTint="@color/accent"
-        android:maxLines="1"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless"
         android:text="@string/onboarding_screen_1_cta"
         android:textAllCaps="false"
         android:textSize="@dimen/_12ssp"
-        app:backgroundTint="@color/accent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

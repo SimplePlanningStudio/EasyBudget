@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -99,7 +99,6 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
                     //Update Premium Status So That Ad can't be displayed
-                    SimpleBudget.appOpenManager?.updatePremiumStatus(true)
                     startActivity(
                         Intent(this, PremiumSuccessActivity::class.java)
                             .putExtra(PremiumSuccessActivity.REQUEST_CODE_IS_BACK_ENABLED, false)

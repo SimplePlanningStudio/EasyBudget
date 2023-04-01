@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ import com.simplebudget.view.category.CategoriesActivity
 import com.simplebudget.view.category.CategoriesSearchActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.abs
 
@@ -122,7 +123,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
         if (savedInstanceState == null) {
             viewModel.initWithDateAndExpense(
-                Date(intent.getLongExtra("date", 0)),
+                LocalDate.ofEpochDay(intent.getLongExtra("date", LocalDate.now().toEpochDay())),
                 intent.getParcelableExtra("expense")
             )
         }
@@ -313,8 +314,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
     /**
      * Set up the date button
      */
-    private fun setUpDateButton(date: Date) {
-        val formatter = SimpleDateFormat(
+    private fun setUpDateButton(date: LocalDate) {
+        val formatter = DateTimeFormatter.ofPattern(
             resources.getString(R.string.add_expense_date_format),
             Locale.getDefault()
         )
@@ -322,13 +323,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
         binding.dateButton.setOnClickListener {
             val fragment = DatePickerDialogFragment(date) { _, year, monthOfYear, dayOfMonth ->
-                val cal = Calendar.getInstance()
-
-                cal.set(Calendar.YEAR, year)
-                cal.set(Calendar.MONTH, monthOfYear)
-                cal.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
-                viewModel.onDateChanged(cal.time)
+                viewModel.onDateChanged(LocalDate.of(year, monthOfYear + 1, dayOfMonth))
             }
 
             fragment.show(supportFragmentManager, "datePicker")

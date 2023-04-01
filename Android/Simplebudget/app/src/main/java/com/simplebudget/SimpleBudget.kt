@@ -1,12 +1,19 @@
 package com.simplebudget
 
-import android.annotation.SuppressLint
 import android.app.*
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.gms.ads.MobileAds
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.multidex.MultiDexApplication
+import androidx.work.Configuration
+import com.google.android.gms.ads.*
+import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.simplebudget.appOpenAds.AppOpenManager
 import com.simplebudget.db.DB
 import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
@@ -29,21 +36,25 @@ import com.simplebudget.view.main.MainActivity as MainActivity
  *
  * @author Benoit LETONDOR
  */
-class SimpleBudget : Application() {
+class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbacks,
+    LifecycleObserver, Configuration.Provider {
 
     private val appPreferences: AppPreferences by inject()
     private val db: DB by inject()
 
-// ------------------------------------------>
+    private lateinit var appOpenAdManager: AppOpenAdManager
+    private var currentActivity: Activity? = null
+    private val logTag = "SimpleBudgetApplication"
+    private var activityCounter = 0
+    private var appOpenAdsDisplayCount = 0
+    private var maxAppOpenAdsDisplayCount = 2
 
-    companion object {
-        @SuppressLint("StaticFieldLeak")
-        public var appOpenManager: AppOpenManager? = null
-    }
-
+    // ------------------------------------------>
 
     override fun onCreate() {
         super.onCreate()
+        registerActivityLifecycleCallbacks(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
         startKoin {
             //androidLogger()
@@ -52,11 +63,10 @@ class SimpleBudget : Application() {
             modules(listOf(appModule, viewModelModule))
         }
 
-        if (!appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
+        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
             initAdsSdk()
-            appOpenManager = AppOpenManager(this)
+            appOpenAdManager = AppOpenAdManager()
         }
-
         // Init actions
         init()
 
@@ -77,10 +87,11 @@ class SimpleBudget : Application() {
         // Ensure DB is created and reset init date if needed
         db.run {
             db.ensureDBCreated()
-            // FIX ME this should be done on restore, change that for the whole parameters restoration
+
+            // FIXME this should be done on restore, change that for the whole parameters restoration
             if (appPreferences.getShouldResetInitDate()) {
-                runBlocking { db.getOldestExpense() }?.let { expense ->
-                    appPreferences.setInitTimestamp(expense.date.time)
+                runBlocking { getOldestExpense() }?.let { expense ->
+                    appPreferences.setInitDate(expense.date.toStartOfDayDate())
                 }
                 appPreferences.setShouldResetInitDate(false)
             }
@@ -99,9 +110,9 @@ class SimpleBudget : Application() {
         /*
          * Save first launch date if needed
          */
-        val initDate = appPreferences.getInitTimestamp()
-        if (initDate <= 0) {
-            appPreferences.setInitTimestamp(Date().time)
+        val initDate = appPreferences.getInitDate()
+        if (initDate == null) {
+            appPreferences.setInitDate(Date())
             // Set a default currency before on boarding
             appPreferences.setUserCurrency(appPreferences.getUserCurrency())
         }
@@ -114,37 +125,6 @@ class SimpleBudget : Application() {
             localId = UUID.randomUUID().toString()
             appPreferences.setLocalId(localId)
         }
-
-        // Activity counter for app foreground & background
-        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
-            private var activityCounter = 0
-
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-
-            override fun onActivityStarted(activity: Activity) {
-                if (activityCounter == 0) {
-                    onAppForeground(activity)
-                }
-
-                activityCounter++
-            }
-
-            override fun onActivityResumed(activity: Activity) {}
-
-            override fun onActivityPaused(activity: Activity) {}
-
-            override fun onActivityStopped(activity: Activity) {
-                if (activityCounter == 1) {
-                    onAppBackground()
-                }
-
-                activityCounter--
-            }
-
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-
-            override fun onActivityDestroyed(activity: Activity) {}
-        })
     }
 
     /**
@@ -193,14 +173,13 @@ class SimpleBudget : Application() {
     }
 
     /**
-     * Check if a an update occured and call [.onUpdate] if so
+     * Check if a an update occurred and call [.onUpdate] if so
      */
     private fun checkUpdateAction() {
         val savedVersion = appPreferences.getCurrentAppVersion()
         if (savedVersion > 0 && savedVersion != BuildConfig.VERSION_CODE) {
             onUpdate(savedVersion, BuildConfig.VERSION_CODE)
         }
-
         appPreferences.setCurrentAppVersion(BuildConfig.VERSION_CODE)
     }
 
@@ -212,6 +191,13 @@ class SimpleBudget : Application() {
     }
 
 // -------------------------------------->
+
+    /**
+     * Called when the app goes background
+     */
+    private fun onAppBackground() {
+        Logger.debug("onAppBackground")
+    }
 
     /**
      * Called when the app goes foreground
@@ -265,13 +251,224 @@ class SimpleBudget : Application() {
     }
 
     /**
-     * Called when the app goes background
+     * Init Ads SDK
      */
-    private fun onAppBackground() {
-        Logger.debug("onAppBackground")
-    }
-
     private fun initAdsSdk() {
         MobileAds.initialize(this) { }
+    }
+
+    /** LifecycleObserver method that shows the app open ad when the app moves to foreground. */
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun onMoveToForeground() {
+        // Show the ad (if available) when the app moves to foreground.
+        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
+            currentActivity?.let { appOpenAdManager.showAdIfAvailable(it) }
+        }
+    }
+
+    /** ActivityLifecycleCallback methods. */
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+
+    override fun onActivityStarted(activity: Activity) {
+        if (activityCounter == 0) {
+            onAppForeground(activity)
+        }
+        activityCounter++
+        // An ad activity is started when an ad is showing, which could be AdActivity class from Google
+        // SDK or another activity class implemented by a third party mediation partner. Updating the
+        // currentActivity only when an ad is not showing will ensure it is not an ad activity, but the
+        // one that shows the ad.
+        if (!appOpenAdManager.isShowingAd) {
+            currentActivity = activity
+        }
+    }
+
+    override fun onActivityResumed(activity: Activity) {}
+
+    override fun onActivityPaused(activity: Activity) {}
+
+    override fun onActivityStopped(activity: Activity) {
+        if (activityCounter == 1) {
+            onAppBackground()
+        }
+        activityCounter--
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+    override fun onActivityDestroyed(activity: Activity) {}
+
+    /**
+     * Shows an app open ad.
+     *
+     * @param activity the activity that shows the app open ad
+     * @param onShowAdCompleteListener the listener to be notified when an app open ad is complete
+     */
+    fun showAdIfAvailable(activity: Activity, onShowAdCompleteListener: OnShowAdCompleteListener) {
+        // We wrap the showAdIfAvailable to enforce that other classes only interact with MyApplication
+        // class.
+        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
+            appOpenAdManager.showAdIfAvailable(activity, onShowAdCompleteListener)
+        }
+    }
+
+    /**
+     * Interface definition for a callback to be invoked when an app open ad is complete (i.e.
+     * dismissed or fails to show).
+     */
+    interface OnShowAdCompleteListener {
+        fun onShowAdComplete()
+    }
+
+    /** Inner class that loads and shows app open ads. */
+    private inner class AppOpenAdManager {
+
+        private var appOpenAd: AppOpenAd? = null
+        private var isLoadingAd = false
+        var isShowingAd = false
+
+        /** Keep track of the time an app open ad is loaded to ensure you don't show an expired ad. */
+        private var loadTime: Long = 0
+
+        /**
+         * Load an ad.
+         *
+         * @param context the context of the activity that loads the ad
+         */
+        fun loadAd(context: Context) {
+            // Do not load ad if there is an unused ad or one is already loading.
+            if (isLoadingAd || isAdAvailable()) {
+                return
+            }
+            isLoadingAd = true
+            val request = AdRequest.Builder().build()
+            AppOpenAd.load(
+                context,
+                context.getString(R.string.app_open_ad_unit),
+                request,
+                AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
+                object : AppOpenAd.AppOpenAdLoadCallback() {
+                    /**
+                     * Called when an app open ad has loaded.
+                     *
+                     * @param ad the loaded app open ad.
+                     */
+                    override fun onAdLoaded(ad: AppOpenAd) {
+                        appOpenAd = ad
+                        isLoadingAd = false
+                        loadTime = Date().time
+                        Log.d(logTag, "onAdLoaded.")
+                    }
+
+                    /**
+                     * Called when an app open ad has failed to load.
+                     *
+                     * @param loadAdError the error.
+                     */
+                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                        isLoadingAd = false
+                        Log.d(logTag, "onAdFailedToLoad: " + loadAdError.message)
+                    }
+                }
+            )
+        }
+
+        /** Check if ad was loaded more than n hours ago. */
+        private fun wasLoadTimeLessThanNHoursAgo(numHours: Long): Boolean {
+            val dateDifference: Long = Date().time - loadTime
+            val numMilliSecondsPerHour: Long = 3600000
+            return dateDifference < numMilliSecondsPerHour * numHours
+        }
+
+        /** Check if ad exists and can be shown. */
+        private fun isAdAvailable(): Boolean {
+            // Ad references in the app open beta will time out after four hours, but this time limit
+            // may change in future beta versions. For details, see:
+            // https://support.google.com/admob/answer/9341964?hl=en
+            return appOpenAd != null && wasLoadTimeLessThanNHoursAgo(4)
+        }
+
+        /**
+         * Show the ad if one isn't already showing.
+         *
+         * @param activity the activity that shows the app open ad
+         */
+        fun showAdIfAvailable(activity: Activity) {
+            showAdIfAvailable(
+                activity,
+                object : OnShowAdCompleteListener {
+                    override fun onShowAdComplete() {
+                        // Empty because the user will go back to the activity that shows the ad.
+                    }
+                }
+            )
+        }
+
+        /**
+         * Show the ad if one isn't already showing.
+         *
+         * @param activity the activity that shows the app open ad
+         * @param onShowAdCompleteListener the listener to be notified when an app open ad is complete
+         */
+        fun showAdIfAvailable(
+            activity: Activity,
+            onShowAdCompleteListener: OnShowAdCompleteListener
+        ) {
+            // If the app open ad is already showing, do not show the ad again.
+            if (isShowingAd) return
+            // If the app open ad is not available yet, invoke the callback then load the ad.
+            if (!isAdAvailable()) {
+                onShowAdCompleteListener.onShowAdComplete()
+                loadAd(activity)
+                return
+            }
+            Log.d(logTag, "Will show ad.")
+            appOpenAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                /** Called when full screen content is dismissed. */
+                override fun onAdDismissedFullScreenContent() {
+                    // Set the reference to null so isAdAvailable() returns false.
+                    appOpenAd = null
+                    isShowingAd = false
+                    Log.d(logTag, "onAdDismissedFullScreenContent.")
+                    onShowAdCompleteListener.onShowAdComplete()
+                    if (appOpenAdsDisplayCount < maxAppOpenAdsDisplayCount)
+                        loadAd(activity)
+                }
+
+                /** Called when fullscreen content failed to show. */
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    appOpenAd = null
+                    isShowingAd = false
+                    Log.d(logTag, "onAdFailedToShowFullScreenContent: " + adError.message)
+
+                    onShowAdCompleteListener.onShowAdComplete()
+                    loadAd(activity)
+                }
+
+                /** Called when fullscreen content is shown. */
+                override fun onAdShowedFullScreenContent() {
+                    appOpenAdsDisplayCount++
+                    Log.d(logTag, "onAdShowedFullScreenContent.")
+                }
+            }
+            isShowingAd = true
+            if (appOpenAdsDisplayCount < maxAppOpenAdsDisplayCount)
+                appOpenAd?.show(activity)
+        }
+    }
+
+    /**
+     * Provides configurations
+     */
+    override fun getWorkManagerConfiguration(): Configuration {
+        return if (BuildConfig.DEBUG) {
+            Configuration.Builder()
+                .setMinimumLoggingLevel(Log.DEBUG)
+                .build()
+        } else {
+            Configuration.Builder()
+                .setMinimumLoggingLevel(Log.ERROR)
+                .build()
+        }
     }
 }

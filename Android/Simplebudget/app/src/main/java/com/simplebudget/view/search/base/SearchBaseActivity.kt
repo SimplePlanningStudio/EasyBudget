@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -37,12 +37,5 @@ class SearchBaseActivity : BaseActivity<ActivitySearchExpensesBinding>() {
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.frameLayoutSearchExpenses, SearchFragment.newInstance())
         transaction.commit()
-    }
-
-    /**
-     *
-     */
-    companion object {
-        const val FROM_NOTIFICATION_EXTRA = "fromNotif"
     }
 }

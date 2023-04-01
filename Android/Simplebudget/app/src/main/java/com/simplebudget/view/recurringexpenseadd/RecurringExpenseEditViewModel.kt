@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,15 +23,15 @@ import com.simplebudget.db.DB
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.SingleLiveEvent
 import com.simplebudget.model.Expense
-import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.model.RecurringExpense
 import com.simplebudget.model.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.getInitTimestamp
+import com.simplebudget.prefs.getInitDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class RecurringExpenseEditViewModel(
     private val db: DB,
@@ -42,7 +42,7 @@ class RecurringExpenseEditViewModel(
     val premiumStatusLiveData = MutableLiveData<Boolean>()
 
     private var editedExpense: Expense? = null
-    val expenseDateLiveData = MutableLiveData<Date>()
+    val expenseDateLiveData = MutableLiveData<LocalDate>()
     val editTypeLiveData = MutableLiveData<ExpenseEditType>()
     val existingExpenseEventStream = SingleLiveEvent<ExistingExpenseData?>()
     val savingIsRevenueEventStream = SingleLiveEvent<Boolean>()
@@ -56,7 +56,7 @@ class RecurringExpenseEditViewModel(
     }
 
 
-    fun initWithDateAndExpense(date: Date, expense: Expense?) {
+    fun initWithDateAndExpense(date: LocalDate, expense: Expense?) {
         this.expenseDateLiveData.value = date
         this.editedExpense = expense
         this.editTypeLiveData.value = ExpenseEditType(
@@ -82,8 +82,9 @@ class RecurringExpenseEditViewModel(
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
+        val dateOfInstallation = appPreferences.getInitDate() ?: LocalDate.now()
 
-        if (date.before(Date(appPreferences.getInitTimestamp()))) {
+        if (date.isBefore(dateOfInstallation)) {
             expenseAddBeforeInitDateEventStream.value = Unit
             return
         }
@@ -129,7 +130,7 @@ class RecurringExpenseEditViewModel(
         recurringExpenseType: RecurringExpenseType,
         editedExpense: Expense?,
         isRevenue: Boolean,
-        date: Date,
+        date: LocalDate,
         expenseCategoryType: String
     ) {
         savingIsRevenueEventStream.value = isRevenue
@@ -222,11 +223,10 @@ class RecurringExpenseEditViewModel(
 
     private suspend fun flattenExpensesForRecurringExpense(
         expense: RecurringExpense,
-        date: Date,
+        date: LocalDate,
         expenseCategoryType: String
     ): Boolean {
-        val cal = Calendar.getInstance()
-        cal.time = date
+        var currentDate = date
 
         when (expense.type) {
             RecurringExpenseType.DAILY -> {
@@ -237,7 +237,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -249,8 +249,7 @@ class RecurringExpenseEditViewModel(
                         )
                         return false
                     }
-
-                    cal.add(Calendar.DAY_OF_YEAR, 1)
+                    currentDate = currentDate.plusDays(1)
                 }
             }
             RecurringExpenseType.WEEKLY -> {
@@ -261,7 +260,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -274,8 +273,7 @@ class RecurringExpenseEditViewModel(
                         )
                         return false
                     }
-
-                    cal.add(Calendar.WEEK_OF_YEAR, 1)
+                    currentDate = currentDate.plus(1, ChronoUnit.WEEKS)
                 }
             }
             RecurringExpenseType.BI_WEEKLY -> {
@@ -286,7 +284,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -299,8 +297,7 @@ class RecurringExpenseEditViewModel(
                         )
                         return false
                     }
-
-                    cal.add(Calendar.WEEK_OF_YEAR, 2)
+                    currentDate = currentDate.plus(2, ChronoUnit.WEEKS)
                 }
             }
             RecurringExpenseType.TER_WEEKLY -> {
@@ -311,7 +308,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -325,7 +322,7 @@ class RecurringExpenseEditViewModel(
                         return false
                     }
 
-                    cal.add(Calendar.WEEK_OF_YEAR, 3)
+                    currentDate = currentDate.plus(3, ChronoUnit.WEEKS)
                 }
             }
             RecurringExpenseType.FOUR_WEEKLY -> {
@@ -336,7 +333,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -349,8 +346,7 @@ class RecurringExpenseEditViewModel(
                         )
                         return false
                     }
-
-                    cal.add(Calendar.WEEK_OF_YEAR, 4)
+                    currentDate = currentDate.plus(4, ChronoUnit.WEEKS)
                 }
             }
             RecurringExpenseType.MONTHLY -> {
@@ -361,7 +357,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -374,8 +370,7 @@ class RecurringExpenseEditViewModel(
                         )
                         return false
                     }
-
-                    cal.add(Calendar.MONTH, 1)
+                    currentDate = currentDate.plusMonths(1)
                 }
             }
             RecurringExpenseType.BI_MONTHLY -> {
@@ -386,7 +381,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -399,8 +394,7 @@ class RecurringExpenseEditViewModel(
                         )
                         return false
                     }
-
-                    cal.add(Calendar.MONTH, 2)
+                    currentDate = currentDate.plusMonths(2)
                 }
             }
             RecurringExpenseType.TER_MONTHLY -> {
@@ -411,7 +405,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -425,7 +419,7 @@ class RecurringExpenseEditViewModel(
                         return false
                     }
 
-                    cal.add(Calendar.MONTH, 3)
+                    currentDate = currentDate.plusMonths(3)
                 }
             }
             RecurringExpenseType.SIX_MONTHLY -> {
@@ -436,7 +430,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -450,7 +444,7 @@ class RecurringExpenseEditViewModel(
                         return false
                     }
 
-                    cal.add(Calendar.MONTH, 6)
+                    currentDate = currentDate.plusMonths(6)
                 }
             }
             RecurringExpenseType.YEARLY -> {
@@ -461,7 +455,7 @@ class RecurringExpenseEditViewModel(
                             Expense(
                                 expense.title,
                                 expense.amount,
-                                cal.time,
+                                currentDate,
                                 expense,
                                 expenseCategoryType
                             )
@@ -473,8 +467,7 @@ class RecurringExpenseEditViewModel(
                         )
                         return false
                     }
-
-                    cal.add(Calendar.YEAR, 1)
+                    currentDate = currentDate.plusYears(1)
                 }
             }
             else -> {
@@ -484,7 +477,7 @@ class RecurringExpenseEditViewModel(
         return true
     }
 
-    fun onDateChanged(date: Date) {
+    fun onDateChanged(date: LocalDate) {
         this.expenseDateLiveData.value = date
     }
 

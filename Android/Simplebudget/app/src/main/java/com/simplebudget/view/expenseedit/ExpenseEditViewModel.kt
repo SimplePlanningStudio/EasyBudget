@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,19 +20,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
-import com.simplebudget.db.impl.toCategoriesNamesList
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.model.Category
 import com.simplebudget.model.Expense
-import com.simplebudget.model.ExpenseCategories
-import com.simplebudget.model.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.getInitTimestamp
+import com.simplebudget.prefs.getInitDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.*
-import kotlin.collections.ArrayList
+import java.time.LocalDate
+
 
 class ExpenseEditViewModel(
     private val db: DB,
@@ -45,7 +41,7 @@ class ExpenseEditViewModel(
     private var expense: Expense? = null
 
     val premiumStatusLiveData = MutableLiveData<Boolean>()
-    val expenseDateLiveData = MutableLiveData<Date>()
+    val expenseDateLiveData = MutableLiveData<LocalDate>()
     val editTypeLiveData = MutableLiveData<ExpenseEditType>()
     val existingExpenseEventStream = SingleLiveEvent<ExistingExpenseData?>()
     val expenseAddBeforeInitDateEventStream = SingleLiveEvent<Unit>()
@@ -55,7 +51,7 @@ class ExpenseEditViewModel(
         premiumStatusLiveData.value = iab.isUserPremium()
     }
 
-    fun initWithDateAndExpense(date: Date, expense: Expense?) {
+    fun initWithDateAndExpense(date: LocalDate, expense: Expense?) {
         this.expense = expense
         this.expenseDateLiveData.value = expense?.date ?: date
         this.editTypeLiveData.value =
@@ -77,7 +73,9 @@ class ExpenseEditViewModel(
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
-        if (date.before(Date(appPreferences.getInitTimestamp()))) {
+        val dateOfInstallation = appPreferences.getInitDate() ?: LocalDate.now()
+
+        if (date.isBefore(dateOfInstallation)) {
             expenseAddBeforeInitDateEventStream.value = Unit
             return
         }
@@ -103,7 +101,7 @@ class ExpenseEditViewModel(
         value: Double,
         description: String,
         isRevenue: Boolean,
-        date: Date,
+        date: LocalDate,
         expenseCategoryType: String
     ) {
         viewModelScope.launch {
@@ -125,7 +123,7 @@ class ExpenseEditViewModel(
         }
     }
 
-    fun onDateChanged(date: Date) {
+    fun onDateChanged(date: LocalDate) {
         this.expenseDateLiveData.value = date
     }
 

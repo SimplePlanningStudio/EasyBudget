@@ -1,6 +1,7 @@
 package com.github.mikephil.charting.animation;
 
 import android.animation.TimeInterpolator;
+
 import androidx.annotation.RequiresApi;
 
 /**
@@ -199,7 +200,7 @@ public class Easing {
             float p = 0.3f;
             float s = p / DOUBLE_PI * (float) Math.asin(1f);
             return -((float) Math.pow(2f, 10f * (input -= 1f))
-                    *(float) Math.sin((input - s) * DOUBLE_PI / p));
+                    * (float) Math.sin((input - s) * DOUBLE_PI / p));
         }
     };
 

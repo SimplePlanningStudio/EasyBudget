@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Benoit LETONDOR
+ *   Copyright 2023 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -25,20 +25,19 @@ import android.widget.TextView
 import com.simplebudget.R
 import com.simplebudget.db.DB
 import com.roomorama.caldroid.CaldroidGridAdapter
-
-import java.util.Date
-import java.util.TimeZone
+import com.roomorama.caldroid.CalendarHelper
 
 import kotlinx.coroutines.runBlocking
 
 
-class CalendarGridAdapter(context: Context,
-                          private val db: DB,
-                          month: Int,
-                          year: Int,
-                          caldroidData: Map<String, Any>,
-                          extraData: Map<String, Any>)
-    : CaldroidGridAdapter(context, month, year, caldroidData, extraData) {
+class CalendarGridAdapter(
+    context: Context,
+    private val db: DB,
+    month: Int,
+    year: Int,
+    caldroidData: Map<String, Any>,
+    extraData: Map<String, Any>
+) : CaldroidGridAdapter(context, month, year, caldroidData, extraData) {
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val cellView = convertView ?: createView(parent)
@@ -48,7 +47,10 @@ class CalendarGridAdapter(context: Context,
         // Get dateTime of this cell
         val dateTime = this.datetimeList[position]!!
         val isToday = dateTime == getToday()
-        val isDisabled = minDateTime != null && dateTime.lt(minDateTime) || maxDateTime != null && dateTime.gt(maxDateTime) || disableDates != null && disableDatesMap.containsKey(dateTime)
+        val isDisabled =
+            minDateTime != null && dateTime.lt(minDateTime) || maxDateTime != null && dateTime.gt(
+                maxDateTime
+            ) || disableDates != null && disableDatesMap.containsKey(dateTime)
         val isOutOfMonth = dateTime.month != month
 
         val tv1 = viewData.dayTextView
@@ -129,7 +131,7 @@ class CalendarGridAdapter(context: Context,
                 }
             }
 
-            val date = Date(dateTime.getMilliseconds(TimeZone.getDefault()))
+            val date = CalendarHelper.convertDateTimeToDate(dateTime)
             if (runBlocking { db.hasExpenseForDay(date) }) {
                 val balance = runBlocking { db.getBalanceForDay(date) }
 
@@ -142,9 +144,19 @@ class CalendarGridAdapter(context: Context,
                 tv2.text = (-balance.toInt()).toString()
 
                 if (balance > 0) {
-                    tv1.setTextColor(ContextCompat.getColor(context, if (isOutOfMonth) R.color.budget_red_out else R.color.budget_red))
+                    tv1.setTextColor(
+                        ContextCompat.getColor(
+                            context,
+                            if (isOutOfMonth) R.color.budget_red_out else R.color.budget_red
+                        )
+                    )
                 } else {
-                    tv1.setTextColor(ContextCompat.getColor(context, if (isOutOfMonth) R.color.budget_green_out else R.color.budget_green))
+                    tv1.setTextColor(
+                        ContextCompat.getColor(
+                            context,
+                            if (isOutOfMonth) R.color.budget_green_out else R.color.budget_green
+                        )
+                    )
                 }
             } else if (viewData.containsExpenses) {
                 tv2.visibility = View.INVISIBLE
@@ -170,7 +182,8 @@ class CalendarGridAdapter(context: Context,
      */
     private fun createView(parent: ViewGroup): View {
         val v = LayoutInflater.from(context).inflate(R.layout.custom_grid_cell, parent, false)
-        val viewData = ViewData(v.findViewById(R.id.grid_cell_tv1), v.findViewById(R.id.grid_cell_tv2))
+        val viewData =
+            ViewData(v.findViewById(R.id.grid_cell_tv1), v.findViewById(R.id.grid_cell_tv2))
 
         v.tag = viewData
 

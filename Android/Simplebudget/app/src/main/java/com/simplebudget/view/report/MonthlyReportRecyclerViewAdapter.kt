@@ -1,5 +1,5 @@
 /*
- *   Copyright 2022 Waheed Nazir
+ *   Copyright 2023 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -27,8 +27,7 @@ import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.model.Expense
 import com.simplebudget.model.RecurringExpenseType
-
-import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
@@ -49,14 +48,14 @@ private const val HEADER_VIEW_TYPE = 2
 class MonthlyReportRecyclerViewAdapter(
     private val expenses: List<Expense>,
     private val revenues: List<Expense>,
-    private val allExpensesOfThisMonth: List<MonthlyReportViewModel.SuperParent>,
+    private val allExpensesOfThisMonth: List<DataModels.SuperParent>,
     private val appPreferences: AppPreferences
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     /**
      * Formatter to get day number for each date
      */
-    private val dayFormatter = SimpleDateFormat("dd", Locale.getDefault())
+    private val dayFormatter = DateTimeFormatter.ofPattern("dd", Locale.getDefault())
 
 // --------------------------------------->
 
@@ -74,7 +73,7 @@ class MonthlyReportRecyclerViewAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is HeaderViewHolder) {
-            val obj = getExpense(position) as MonthlyReportViewModel.Parent
+            val obj = getExpense(position) as DataModels.Parent
             val amountSpend =
                 if (obj.totalCredit > obj.totalDebit) (obj.totalCredit - obj.totalDebit) else (obj.totalDebit - obj.totalCredit)
             holder.headerTitle.text = String.format(
@@ -84,7 +83,7 @@ class MonthlyReportRecyclerViewAdapter(
             )
         } else {
             val viewHolder = holder as ExpenseViewHolder
-            val obj = getExpense(position) as MonthlyReportViewModel.Child
+            val obj = getExpense(position) as DataModels.Child
             viewHolder.expenseTitleTextView.text = obj.expense.title
             viewHolder.categoryTypeTextView.text = obj.expense.category
             viewHolder.expenseAmountTextView.text =
@@ -131,7 +130,7 @@ class MonthlyReportRecyclerViewAdapter(
     override fun getItemCount() = allExpensesOfThisMonth.size
 
     override fun getItemViewType(position: Int) =
-        if (getExpense(position) is MonthlyReportViewModel.Parent) HEADER_VIEW_TYPE else EXPENSE_VIEW_TYPE
+        if (getExpense(position) is DataModels.Parent) HEADER_VIEW_TYPE else EXPENSE_VIEW_TYPE
 
     /**
      * Get the expense for the given position
@@ -139,7 +138,7 @@ class MonthlyReportRecyclerViewAdapter(
      * @param position the position
      * @return the expense for that position
      */
-    private fun getExpense(position: Int): MonthlyReportViewModel.SuperParent =
+    private fun getExpense(position: Int): DataModels.SuperParent =
         allExpensesOfThisMonth[position]
 
 // --------------------------------------->
