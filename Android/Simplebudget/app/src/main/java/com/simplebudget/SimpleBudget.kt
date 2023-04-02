@@ -42,7 +42,7 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
     private val appPreferences: AppPreferences by inject()
     private val db: DB by inject()
 
-    private lateinit var appOpenAdManager: AppOpenAdManager
+    private var appOpenAdManager: AppOpenAdManager? = null
     private var currentActivity: Activity? = null
     private val logTag = "SimpleBudgetApplication"
     private var activityCounter = 0
@@ -262,7 +262,7 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
     fun onMoveToForeground() {
         // Show the ad (if available) when the app moves to foreground.
         if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
-            currentActivity?.let { appOpenAdManager.showAdIfAvailable(it) }
+            currentActivity?.let { appOpenAdManager?.showAdIfAvailable(it) }
         }
     }
 
@@ -278,8 +278,10 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
         // SDK or another activity class implemented by a third party mediation partner. Updating the
         // currentActivity only when an ad is not showing will ensure it is not an ad activity, but the
         // one that shows the ad.
-        if (!appOpenAdManager.isShowingAd) {
-            currentActivity = activity
+        appOpenAdManager?.let {
+            if (!it.isShowingAd) {
+                currentActivity = activity
+            }
         }
     }
 
@@ -308,7 +310,7 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
         // We wrap the showAdIfAvailable to enforce that other classes only interact with MyApplication
         // class.
         if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
-            appOpenAdManager.showAdIfAvailable(activity, onShowAdCompleteListener)
+            appOpenAdManager?.showAdIfAvailable(activity, onShowAdCompleteListener)
         }
     }
 

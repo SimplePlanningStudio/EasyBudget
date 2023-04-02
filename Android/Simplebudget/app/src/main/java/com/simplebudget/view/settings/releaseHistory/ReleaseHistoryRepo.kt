@@ -9,20 +9,20 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 2.1.2
+            releaseList.add(ReleaseHistory("Version", "2.1.2", "You can check future and past expenses breakdowns."))
+            releaseList.add(ReleaseHistory("Version", "2.1.2", "You can check and print future and past reports."))
+            releaseList.add(ReleaseHistory("Version", "2.1.2", "You can print reports for search results too."))
+            releaseList.add(ReleaseHistory("Version", "2.1.2", "FAQ section added inside app settings."))
+            releaseList.add(ReleaseHistory("Version", "2.1.2", "Fixed few bugs and crashes."))
+            releaseList.add(ReleaseHistory("Version", "2.1.2", "Added overall designs enhancements."))
+
             // 2.1.1
             releaseList.add(ReleaseHistory("Version", "2.1.1", "You can check future and past expenses breakdowns."))
             releaseList.add(ReleaseHistory("Version", "2.1.1", "You can check and print future and past reports."))
             releaseList.add(ReleaseHistory("Version", "2.1.1", "You can print reports for search results too."))
             releaseList.add(ReleaseHistory("Version", "2.1.1", "FAQ section added inside app settings."))
-            releaseList.add(ReleaseHistory("Version", "2.1.1", "Fixed few bugs and crashes."))
             releaseList.add(ReleaseHistory("Version", "2.1.1", "Added overall designs enhancements."))
-
-            // 2.1.0
-            releaseList.add(ReleaseHistory("Version", "2.1.0", "You can check future and past expenses breakdowns."))
-            releaseList.add(ReleaseHistory("Version", "2.1.0", "You can check and print future and past reports."))
-            releaseList.add(ReleaseHistory("Version", "2.1.0", "You can print reports for search results too."))
-            releaseList.add(ReleaseHistory("Version", "2.1.0", "FAQ section added inside app settings."))
-            releaseList.add(ReleaseHistory("Version", "2.1.0", "Added overall designs enhancements."))
 
             // 2.0.9
             releaseList.add(ReleaseHistory("Version", "2.0.9", "Search expenses functionality added."))
