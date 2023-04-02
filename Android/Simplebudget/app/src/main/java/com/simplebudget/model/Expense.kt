@@ -70,6 +70,7 @@ data class Expense(
     fun isRevenue() = amount < 0
 
     fun isFutureExpense() = date.isAfter(LocalDate.now())
+    fun isPastExpense() = date.isBefore(LocalDate.now())
 
     fun isRecurring() = associatedRecurringExpense != null
 

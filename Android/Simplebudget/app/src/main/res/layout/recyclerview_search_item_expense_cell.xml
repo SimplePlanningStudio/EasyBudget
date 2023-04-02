@@ -97,10 +97,8 @@
                 android:gravity="center"
                 android:maxLines="2"
                 android:minLines="2"
-                android:text="@string/future_expense"
                 android:textColor="@color/budget_green"
-                android:textSize="@dimen/_8ssp"
-                android:visibility="gone" />
+                android:textSize="@dimen/_8ssp" />
 
         </LinearLayout>
 

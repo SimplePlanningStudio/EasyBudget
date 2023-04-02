@@ -70,8 +70,14 @@ class SearchRecyclerViewAdapter(
         viewHolder.monthlyIndicator.visibility =
             if (expense.isRecurring()) View.VISIBLE else View.GONE
 
-        viewHolder.futureExpense.visibility =
-            if (expense.isFutureExpense()) View.VISIBLE else View.GONE
+        val expenseType: String = if (expense.isFutureExpense()) {
+            viewHolder.view.context.getString(R.string.future_expense)
+        } else if (expense.isPastExpense()) {
+            viewHolder.view.context.getString(R.string.past_expense)
+        } else {
+            viewHolder.view.context.getString(R.string.today_expense)
+        }
+        viewHolder.futureExpense.text = expenseType
 
         if (expense.isRecurring()) {
             when (expense.associatedRecurringExpense?.type

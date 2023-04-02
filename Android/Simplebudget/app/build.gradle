@@ -14,11 +14,19 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 27
-        versionName "2.1.0"
+        versionCode 28
+        versionName "2.1.1"
         vectorDrawables.useSupportLibrary = true
         flavorDimensions "default"
         multiDexEnabled true
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += [
+                        "room.incremental":"true"
+                ]
+            }
+        }
     }
 
     productFlavors {
@@ -58,6 +66,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -73,9 +82,14 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
+    //https://developer.android.com/studio/write/java8-support#library-desugaring
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.2.2"
+
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.activity:activity-ktx:1.7.0'
+    implementation 'androidx.fragment:fragment-ktx:1.5.6'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'

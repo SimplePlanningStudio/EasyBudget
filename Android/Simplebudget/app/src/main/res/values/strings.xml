@@ -488,12 +488,14 @@
     <string name="iab_success_message">Thank you so much for your support! You can enjoy all the features lifetime without ads.</string>
     <string name="category">Category</string>
     <string name="save">Save</string>
-    <string name="today">Today:</string>
+    <string name="todayWithColon">Today:</string>
+    <string name="today_expense">Today\'s\nExpense</string>
     <string name="privacy_policy">http://greenprologix.com/policy_simple_budget.html</string>
     <string name="enter_category">Enter category</string>
     <string name="content_description">Simple Budget Content Description</string>
     <string name="search_hint">Search Expenses</string>
-    <string name="future_expense">Future Expense</string>
+    <string name="future_expense">Future\nExpense</string>
+    <string name="past_expense">Past\nExpense</string>
     <string name="next_month">Next</string>
     <string name="previous_month">Back</string>
     <string name="expenses_breakdown_show_view_message">By clicking this you can see current month expenses breakdown.\nYou can also access it under app settings.</string>

@@ -51,7 +51,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/_10sdp"
-                        android:text="@string/today"
+                        android:text="@string/todayWithColon"
                         android:textColor="@color/white"
                         android:textSize="@dimen/_12ssp"
                         android:textStyle="bold"
