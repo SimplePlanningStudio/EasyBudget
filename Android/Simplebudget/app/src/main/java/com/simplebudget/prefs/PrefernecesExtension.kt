@@ -105,11 +105,6 @@ private const val USER_SAW_BREAK_DOWN_HINT_PARAMETERS_KEY = "user_saw_break_down
 private const val USER_SAW_SEARCH_HINT_PARAMETERS_KEY = "user_saw_search_hint"
 
 /**
- * Future expenses hint
- */
-private const val USER_SAW_FUTURE_EXPENSES_HINT_PARAMETERS_KEY = "user_saw_future_expenses_hint"
-
-/**
  * Settings Hint
  */
 private const val USER_SAW_SETTINGS_HINT_PARAMETERS_KEY = "user_saw_settings_hint"
@@ -123,8 +118,7 @@ private const val USER_SAW_ADD_SINGLE_EXPENSE_HINT_PARAMETERS_KEY =
     "user_saw_add_single_expense_hint"
 
 
-private const val USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY =
-    "user_saw_switch_expense_hint"
+private const val USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY = "user_saw_switch_expense_hint"
 
 private const val USER_SAW_ADD_RECURRING_EXPENSE_HINT_PARAMETERS_KEY =
     "user_saw_add_recurring_expense_hint"
@@ -155,12 +149,6 @@ private const val DISPLAY_BALANCE = "display_balance"
 private const val APP_LOCK = "app_lock"
 
 /**
- * Break down expenses in Break Down Base activity
- */
-private const val SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES =
-    "break_down_expenses_menu_in_break_down_activity"
-
-/**
  * Future expenses menu in report activity
  */
 private const val SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN = "expenses_break_menu_in_future"
@@ -175,6 +163,11 @@ private const val SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY =
  * Language
  */
 private const val KEY_CHANGE_LANGUAGE = "change_language"
+
+/**
+ * Active Account
+ */
+private const val KEY_ACTIVE_ACCOUNT = "active_account"
 
 
 fun AppPreferences.getInitDate(): LocalDate? {
@@ -351,17 +344,6 @@ fun AppPreferences.setUserSawSearchHint() {
 }
 
 /**
- * Future expenses hint
- */
-fun AppPreferences.hasUserSawFutureExpensesHint(): Boolean {
-    return getBoolean(USER_SAW_FUTURE_EXPENSES_HINT_PARAMETERS_KEY, false)
-}
-
-fun AppPreferences.setUserSawFutureExpensesHint() {
-    putBoolean(USER_SAW_FUTURE_EXPENSES_HINT_PARAMETERS_KEY, true)
-}
-
-/**
  * Settings hint
  */
 fun AppPreferences.hasUserSawSettingsHint(): Boolean {
@@ -509,23 +491,6 @@ fun AppPreferences.hasUserCompleteExpensesBreakDownShowCaseView(): Boolean {
 fun AppPreferences.setUserCompleteExpensesBreakDownShowCaseView() {
     putBoolean(SHOW_CASE_VIEW_EXPENSES_BREAK_DOWN, true)
 }
-
-/**
- * Has the user complete Future Expenses Break Down Category
- *
- * @return true if the user has already viewed, false otherwise
- */
-fun AppPreferences.hasUserCompleteExpensesBreakDownCategoryShowCaseView(): Boolean {
-    return getBoolean(SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES, false)
-}
-
-/**
- * Set that the user has complete Expenses Break Down Category
- */
-fun AppPreferences.setUserCompleteExpensesBreakDownCategoryShowCaseView() {
-    putBoolean(SHOW_CASE_VIEW_BREAK_DOWN_EXPENSES, true)
-}
-
 
 /**
  * Has the user complete manage categories from select category while adding / editing expenses

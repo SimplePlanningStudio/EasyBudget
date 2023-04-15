@@ -40,11 +40,10 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivityExpenseEditBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.showCaseView
-import com.simplebudget.model.ExpenseCategoryType
+import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.*
 import com.simplebudget.view.DatePickerDialogFragment
-import com.simplebudget.view.category.CategoriesActivity
-import com.simplebudget.view.category.CategoriesSearchActivity
+import com.simplebudget.view.category.search.CategoriesSearchActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
@@ -344,7 +343,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         try {
             val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
             adContainerView.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)!!
+            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
             adView = AdView(this)
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             adContainerView.addView(adView)

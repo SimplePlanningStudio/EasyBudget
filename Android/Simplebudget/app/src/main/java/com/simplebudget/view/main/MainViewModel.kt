@@ -21,7 +21,10 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.model.*
+import com.simplebudget.model.category.ExpenseCategoryType
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.recurringexpense.RecurringExpense
+import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -87,7 +90,7 @@ class MainViewModel(
     }
 
     init {
-        premiumStatusLiveData.value = iab.isUserPremium()
+        premiumStatusLiveData.value = if (!iab.isIabReady()) false else iab.isUserPremium()
         refreshDataForDate(selectedDate)
     }
 
@@ -326,7 +329,8 @@ class MainViewModel(
 
                     currentBalanceEditedEventStream.value =
                         BalanceAdjustedData(newExpense, diff, newBalance)
-                } else { // If no adjust balance yet, create a new one
+                } else {
+                    // If no adjust balance yet, create a new one
                     val persistedExpense = withContext(Dispatchers.Default) {
                         db.persistExpense(
                             Expense(
@@ -370,7 +374,7 @@ class MainViewModel(
     }
 
     fun onIabStatusChanged() {
-        premiumStatusLiveData.value = iab.isUserPremium()
+        premiumStatusLiveData.value = if (!iab.isIabReady()) false else iab.isUserPremium()
     }
 
     fun onSelectDate(date: LocalDate) {

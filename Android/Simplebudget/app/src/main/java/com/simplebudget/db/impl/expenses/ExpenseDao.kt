@@ -13,11 +13,10 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.db.impl
+package com.simplebudget.db.impl.expenses
 
 import androidx.room.*
-import com.simplebudget.db.impl.entity.ExpenseEntity
-import com.simplebudget.db.impl.entity.RecurringExpenseEntity
+import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import androidx.sqlite.db.SupportSQLiteQuery
 import androidx.room.RawQuery
 import java.time.LocalDate

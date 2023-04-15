@@ -1,4 +1,5 @@
 package com.simplebudget.view.settings.faq
+
 import java.util.*
 
 /**
@@ -85,6 +86,10 @@ class FaqRepo {
                     Question(
                         "How does SimpleBudget help me stick to my budget?",
                         "SimpleBudget can help users stick to their budget by providing an overview of their spending, alerting them when they are close to reaching their budget limit, and offering suggestions on how to adjust their spending."
+                    ),
+                    Question(
+                        "If I delete or edit any category. Would it also update or delete expenses attached to this category?",
+                        "No, By editing or deleting any category won\'t affect expenses. If you want to update categories in expenses you can directly edit / update in your expenses."
                     ),
                     // Add more questions here
                 )

@@ -240,7 +240,7 @@
                 android:layout_height="36dp"
                 android:layout_marginTop="@dimen/_30sdp"
                 android:background="@drawable/expense_save_background_drawable"
-                android:text="Save"
+                android:text="@string/save"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"

@@ -15,9 +15,9 @@
  */
 package com.simplebudget.db
 
-import com.simplebudget.model.Category
-import com.simplebudget.model.Expense
-import com.simplebudget.model.RecurringExpense
+import com.simplebudget.model.category.Category
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.recurringexpense.RecurringExpense
 import java.io.Closeable
 import java.time.LocalDate
 

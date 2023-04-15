@@ -132,6 +132,13 @@
     <string name="recurring_interval_six_monthly">Every 6 months</string>
     <string name="recurring_interval_yearly">Every year</string>
 
+    <string name="account_title_default_account">Default Account</string>
+    <string name="account_title_current_account">Current Account</string>
+    <string name="account_title_savings_account">Savings Account</string>
+    <string name="account_title_checking_account">Checking Account</string>
+    <string name="account_title_loans_account">Loans Account</string>
+    <string name="account_title_credit_cards_account">Credit Cards Account</string>
+
     <string name="setting_category_general">General</string>
     <string name="setting_category_app_title">App</string>
     <string name="setting_category_app_support_and_help">Help and Support</string>
@@ -535,12 +542,15 @@
     <string name="enter_new_category_or_choose_from_existing_categories">Enter new category or choose from existing categories.</string>
     <string name="type_new_category_or_search_existing">Enter or search category</string>
     <string name="search_category">Search category</string>
+    <string name="add_or_search_category">Add or search category</string>
     <string name="search_faq">Search…</string>
     <string name="removed">Removed</string>
+    <string name="deleted">Deleted</string>
     <string name="no_category_found">%s Not found</string>
     <string name="category_not_found_do_you_want_add_now">Do you want to add it as a category?</string>
     <string name="categories">Categories</string>
     <string name="edit_categories">Edit Categories</string>
+    <string name="manage_categories">Manage Categories</string>
     <string name="edit_categories_show_view_message">By clicking this you can manage (Add and Remove) categories.\nYou can also access it under app settings.</string>
     <string name="skip">Skip</string>
     <string name="add">Add</string>
@@ -562,5 +572,17 @@
     <string name="setting_notification_permission_rejected_dialog_description">To receive your daily and monthly reminders, you need to allow notifications. Do you want to receive notifications?</string>
     <string name="setting_notification_permission_rejected_dialog_accept_cta">Allow</string>
     <string name="setting_notification_permission_rejected_dialog_not_now_cta">Not now</string>
+    <string name="title_account">Account</string>
+    <string name="select_account">Select Account</string>
+    <string name="edit_category">Edit your category</string>
+    <string name="enter_your_category">Enter your category</string>
+    <string name="how_can_i_help_you">How can I help you?</string>
+    <string name="edit_category_note">Note: By editing or deleting any category won\'t affect expenses.</string>
+    <string name="category_updated_successfully">Category updated successfully!</string>
+    <string name="category_cant_be_empty">Category can\'t be empty.</string>
+    <string name="cant_edit_miscellaneous">You can\'t edit or delete \'MISCELLANEOUS\' as it is a default category.</string>
+    <string name="miscellaneous">MISCELLANEOUS</string>
+    <string name="show_pie_chart">Show Pie Chart</string>
+    <string name="hide_pie_chart">Hide Pie Chart</string>
 
 </resources>

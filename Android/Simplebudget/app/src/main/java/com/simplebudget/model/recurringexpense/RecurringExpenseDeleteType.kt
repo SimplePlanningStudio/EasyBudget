@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.model
+package com.simplebudget.model.recurringexpense
 
 /**
  * An enum that reference different kind of deletion for a recurring expense

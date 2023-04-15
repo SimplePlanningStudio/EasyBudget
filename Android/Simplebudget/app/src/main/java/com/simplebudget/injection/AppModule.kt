@@ -27,11 +27,10 @@ import com.simplebudget.db.impl.CachedDBImpl
 import com.simplebudget.db.impl.DBImpl
 import com.simplebudget.db.impl.RoomDB
 import com.simplebudget.iab.IabImpl
-import com.simplebudget.model.Expense
+import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
 import org.koin.dsl.module
 import java.time.LocalDate
-import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit

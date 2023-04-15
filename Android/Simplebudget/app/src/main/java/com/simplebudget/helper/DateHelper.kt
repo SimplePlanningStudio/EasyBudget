@@ -75,15 +75,15 @@ fun AppPreferences.getListOfMonthsAvailableForUser(): Pair<List<LocalDate>, Int>
     val today = LocalDate.now()
     val months = ArrayList<LocalDate>()
     var currentDate = LocalDate.of(initDate.year, initDate.month, 1)
-    // 10 months before it was started. So that user can see report of past month
-    currentDate = currentDate.minusMonths(10)
+    // Minus 24 months for past So that user can see report of past 24 month
+    currentDate = currentDate.minusMonths(24)
 
     while (currentDate.isBefore(today) || currentDate == today) {
         months.add(currentDate)
         currentDate = currentDate.plusMonths(1)
     }
-    // Add 10 more months for future. So that user can see future months report.
-    for (i in 1..20) {
+    // Add 24 more months for future so that user can see future months report.
+    for (i in 1..24) {
         months.add(currentDate)
         currentDate = currentDate.plusMonths(1)
     }

@@ -23,7 +23,7 @@ import android.widget.TextView
 
 import com.simplebudget.R
 import com.simplebudget.helper.CurrencyHelper
-import com.simplebudget.model.Expense
+import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
 
 /**

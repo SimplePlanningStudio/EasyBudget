@@ -24,6 +24,8 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.view.*
+import android.view.animation.AnimationUtils
+import android.widget.AbsListView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
@@ -43,11 +45,11 @@ import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.FragmentBreakDownBinding
 import com.simplebudget.helper.*
-import com.simplebudget.helper.extensions.showCaseView
+import com.simplebudget.helper.extensions.beGone
+import com.simplebudget.helper.extensions.beVisible
+import com.simplebudget.helper.extensions.isVisible
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.hasUserCompleteExpensesBreakDownCategoryShowCaseView
-import com.simplebudget.prefs.setUserCompleteExpensesBreakDownCategoryShowCaseView
 import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import com.simplebudget.view.main.MainActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
@@ -74,11 +76,8 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
 // ---------------------------------->
 
     override fun onCreateBinding(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): FragmentBreakDownBinding =
-        FragmentBreakDownBinding.inflate(inflater, container, false)
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): FragmentBreakDownBinding = FragmentBreakDownBinding.inflate(inflater, container, false)
 
 
     /**
@@ -99,16 +98,6 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
         val rootView = menuItem?.actionView as LinearLayout?
         val customFutureExpenseMenu = rootView?.findViewById<TextView>(R.id.tvMenuBreakdown)
         customFutureExpenseMenu?.let {
-            if (appPreferences.hasUserCompleteExpensesBreakDownCategoryShowCaseView().not()) {
-                activity?.showCaseView(
-                    targetView = it,
-                    title = getString(R.string.change_breakdown),
-                    message = getString(R.string.change_breakdown_details),
-                    handleGuideListener = {
-                        appPreferences.setUserCompleteExpensesBreakDownCategoryShowCaseView()
-                    }
-                )
-            }
             it.setOnClickListener {
                 BreakdownType.showTypeDialog(
                     requireActivity(),
@@ -120,8 +109,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                         binding?.balancesContainer?.visibility =
                             if (typeEnum == TYPE.ALL.name && lisOfExpenses.isNotEmpty()) View.VISIBLE else View.GONE
                         viewModel.loadDataForMonth(
-                            date,
-                            typeEnum
+                            date, typeEnum
                         )
                     })
             }
@@ -159,8 +147,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                         CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
                     binding?.monthlyReportFragmentBalanceTv?.setTextColor(
                         ContextCompat.getColor(
-                            requireContext(),
-                            R.color.budget_green
+                            requireContext(), R.color.budget_green
                         )
                     )
                     binding?.balancesContainer?.visibility = View.GONE
@@ -172,8 +159,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                     lisOfExpenses.addAll(result.allExpensesOfThisMonth)
                     initChart()
                     configureRecyclerView(
-                        binding?.monthlyReportFragmentRecyclerView!!,
-                        BreakDownRecyclerViewAdapter(
+                        binding?.monthlyReportFragmentRecyclerView!!, BreakDownRecyclerViewAdapter(
                             result.allExpensesOfThisMonth,
                             result.expenses,
                             result.revenues,
@@ -182,13 +168,11 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                     )
                     binding?.monthlyReportFragmentRevenuesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(
-                            appPreferences,
-                            result.revenuesAmount
+                            appPreferences, result.revenuesAmount
                         )
                     binding?.monthlyReportFragmentExpensesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(
-                            appPreferences,
-                            result.expensesAmount
+                            appPreferences, result.expensesAmount
                         )
 
                     val balance = result.revenuesAmount - result.expensesAmount
@@ -219,6 +203,69 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
          * Handle clicks for Add expenses
          */
         handleAddExpenses()
+
+        /**
+         * Listen recycler view scroll and hide expenses pi chart upon scroll up
+         */
+        binding?.monthlyReportFragmentRecyclerView?.addOnScrollListener(object :
+            RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 0) {
+                    // Scrolling up
+                    showHidePiChart()
+                } else {
+                    // Scrolling down
+                }
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                when (newState) {
+                    AbsListView.OnScrollListener.SCROLL_STATE_FLING -> {
+                        // Do something
+                    }
+                    AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL -> {
+                        // Do something
+                    }
+                    else -> {
+                        // Do something
+                    }
+                }
+            }
+        })
+        /**
+         *
+         */
+        binding?.llContainerShowPiChart?.setOnClickListener { showHidePiChart() }
+    }
+
+
+    /**
+     * Show / Hide Pie Chart
+     */
+    private fun showHidePiChart() {
+        binding?.let {
+            it.apply {
+                if (chart.isVisible()) {
+                    chart.beGone()
+                    chart.startAnimation(
+                        AnimationUtils.loadAnimation(
+                            requireContext(), R.anim.debounce
+                        )
+                    )
+                    tvLabelShowPieChart.setText(R.string.show_pie_chart)
+                } else {
+                    chart.beVisible()
+                    chart.startAnimation(
+                        AnimationUtils.loadAnimation(
+                            requireContext(), R.anim.bounce
+                        )
+                    )
+                    tvLabelShowPieChart.setText(R.string.hide_pie_chart)
+                }
+            }
+        }
     }
 
 
@@ -231,10 +278,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
             startIntent.putExtra("date", LocalDate.now().toEpochDay())
             startIntent.putExtra(MainActivity.ANIMATE_TRANSITION_KEY, false)
             ActivityCompat.startActivityForResult(
-                requireActivity(),
-                startIntent,
-                MainActivity.ADD_EXPENSE_ACTIVITY_CODE,
-                null
+                requireActivity(), startIntent, MainActivity.ADD_EXPENSE_ACTIVITY_CODE, null
             )
         }
 
@@ -243,10 +287,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
             startIntent.putExtra("dateStart", LocalDate.now().toEpochDay())
             startIntent.putExtra(MainActivity.ANIMATE_TRANSITION_KEY, false)
             ActivityCompat.startActivityForResult(
-                requireActivity(),
-                startIntent,
-                MainActivity.ADD_EXPENSE_ACTIVITY_CODE,
-                null
+                requireActivity(), startIntent, MainActivity.ADD_EXPENSE_ACTIVITY_CODE, null
             )
         }
     }
@@ -255,8 +296,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
      * Configure recycler view LayoutManager & adapter
      */
     private fun configureRecyclerView(
-        recyclerView: RecyclerView,
-        adapter: BreakDownRecyclerViewAdapter
+        recyclerView: RecyclerView, adapter: BreakDownRecyclerViewAdapter
     ) {
         val layoutManager = LinearLayoutManager(activity)
         recyclerView.layoutManager = layoutManager
@@ -320,8 +360,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
      *
      */
     private fun generateCenterSpannableText(
-        topExpensesSize: Int,
-        actualSize: Int
+        topExpensesSize: Int, actualSize: Int
     ): SpannableString {
         if (topExpensesSize == 0) return SpannableString("")
         val expenseLabel = if (type == getString(R.string.all_label)) "Expenses" else type
@@ -357,14 +396,12 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
         try {
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
-                requireContext(),
-                requireActivity().windowManager.defaultDisplay
+                requireContext(), requireActivity().windowManager.defaultDisplay
             )!!
             adView = AdView(requireContext())
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             binding?.adViewContainer?.addView(adView)
-            val actualAdRequest = AdRequest.Builder()
-                .build()
+            val actualAdRequest = AdRequest.Builder().build()
             adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {

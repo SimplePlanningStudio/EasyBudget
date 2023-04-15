@@ -22,7 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.DateHelper
-import com.simplebudget.model.Expense
+import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.report.*
 import kotlinx.coroutines.Dispatchers
@@ -442,7 +442,9 @@ class SearchViewModel(
                         )
                         val expenseColor = if (data.expense.isRevenue()) "green" else "red"
                         val futureExpense =
-                            if (data.expense.date.isAfter(LocalDate.now())) "/(Upcoming expense)" else ""
+                            if (data.expense.isFutureExpense()) "/ (Upcoming expense)"
+                            else if (data.expense.isPastExpense()) "/ (Past expense)" else ""
+
                         contents.append(
                             "<p style=\"font-size:140%;color:black\"><b>${(data.expense.title)}</b></p>" +
                                     "<p style=\"font-size:140%;color:grey\">${

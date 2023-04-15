@@ -1,4 +1,4 @@
-package com.simplebudget.view.category
+package com.simplebudget.view.category.search
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,9 +6,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
+import com.simplebudget.model.category.Category
 
 class CategorySearchAdapter(
-    private val categoriesList: List<String>,
+    private val categoriesList: List<Category>,
     private val listener: CategoryAdapterListener
 ) : RecyclerView.Adapter<CategorySearchAdapter.SearchViewHolder>() {
 
@@ -25,16 +26,16 @@ class CategorySearchAdapter(
     }
 
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
-        val categoryName: String = categoriesList[position]
-        holder.titleTextView.text = categoryName
+        val category = categoriesList[position]
+        holder.titleTextView.text = category.name
         holder.itemView.setOnClickListener {
-            listener.onCategorySelected(categoryName)
+            listener.onCategorySelected(category)
         }
     }
 
     override fun getItemCount() = categoriesList.size
 
     interface CategoryAdapterListener {
-        fun onCategorySelected(selectedCategory: String)
+        fun onCategorySelected(selectedCategory: Category)
     }
 }

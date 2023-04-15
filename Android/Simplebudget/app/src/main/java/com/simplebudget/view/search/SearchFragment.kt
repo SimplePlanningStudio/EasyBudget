@@ -43,7 +43,7 @@ import com.simplebudget.R
 import com.simplebudget.databinding.FragmentSearchBinding
 import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
-import com.simplebudget.model.ExpenseCategoryType
+import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.report.PDFReportActivity
 import org.koin.android.ext.android.inject

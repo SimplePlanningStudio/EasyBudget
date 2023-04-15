@@ -1,6 +1,6 @@
 package com.simplebudget.view.report
 
-import com.simplebudget.model.Expense
+import com.simplebudget.model.expense.Expense
 
 class DataModels {
     open class SuperParent()

@@ -18,6 +18,7 @@ package com.simplebudget.iab
 import android.app.Activity
 
 interface Iab {
+    fun isIabReady(): Boolean
     fun isUserPremium(): Boolean
     fun updateIAPStatusIfNeeded()
     suspend fun launchPremiumPurchaseFlow(activity: Activity): PremiumPurchaseFlowResult
@@ -26,7 +27,7 @@ interface Iab {
 sealed class PremiumPurchaseFlowResult {
     object Cancelled : PremiumPurchaseFlowResult()
     object Success : PremiumPurchaseFlowResult()
-    class Error(val reason: String): PremiumPurchaseFlowResult()
+    class Error(val reason: String) : PremiumPurchaseFlowResult()
 }
 
 /**

@@ -21,7 +21,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.model.Expense
+import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.getInitDate
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +69,11 @@ class ExpenseEditViewModel(
         editTypeLiveData.value = ExpenseEditType(isRevenue, expense != null)
     }
 
-    fun onSave(value: Double, description: String, expenseCategoryType: String) {
+    fun onSave(
+        value: Double,
+        description: String,
+        expenseCategoryType: String
+    ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
@@ -142,4 +146,8 @@ class ExpenseEditViewModel(
 
 data class ExpenseEditType(val isRevenue: Boolean, val editing: Boolean)
 
-data class ExistingExpenseData(val title: String, val amount: Double, val categoryType: String)
+data class ExistingExpenseData(
+    val title: String,
+    val amount: Double,
+    val categoryType: String
+)

@@ -15,11 +15,11 @@
  */
 package com.simplebudget.db.impl
 
-import com.simplebudget.model.Expense
-import com.simplebudget.model.RecurringExpense
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.recurringexpense.RecurringExpense
 import com.simplebudget.db.DB
 import com.simplebudget.helper.Logger
-import com.simplebudget.model.Category
+import com.simplebudget.model.category.Category
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.util.concurrent.Executor

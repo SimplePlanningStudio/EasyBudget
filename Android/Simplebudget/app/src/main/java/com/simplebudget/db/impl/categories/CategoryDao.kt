@@ -13,15 +13,9 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.db.impl
+package com.simplebudget.db.impl.categories
 
 import androidx.room.*
-import com.simplebudget.db.impl.entity.ExpenseEntity
-import com.simplebudget.db.impl.entity.RecurringExpenseEntity
-import java.util.*
-import androidx.sqlite.db.SupportSQLiteQuery
-import androidx.room.RawQuery
-import com.simplebudget.db.impl.entity.CategoryEntity
 
 @Dao
 interface CategoryDao {
@@ -34,7 +28,6 @@ interface CategoryDao {
 
     @Delete
     suspend fun deleteCategory(categoryEntity: CategoryEntity)
-
 
     @Query("DELETE FROM category WHERE name = :categoryName")
     suspend fun deleteCategory(categoryName: String)

@@ -29,16 +29,15 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
 import com.simplebudget.helper.CurrencyHelper
-import com.simplebudget.model.Expense
-import com.simplebudget.model.RecurringExpenseDeleteType
-import com.simplebudget.model.RecurringExpenseType
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
+import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import com.simplebudget.prefs.BALANCE_PLACE_HOLDER
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.getDisplayBalance
 import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import java.time.LocalDate
-import java.util.*
 
 /**
  * Recycler view adapter to display expenses for a given date

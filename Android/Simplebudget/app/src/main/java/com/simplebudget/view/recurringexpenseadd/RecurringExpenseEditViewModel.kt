@@ -22,9 +22,9 @@ import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.model.Expense
-import com.simplebudget.model.RecurringExpense
-import com.simplebudget.model.RecurringExpenseType
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.recurringexpense.RecurringExpense
+import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.getInitDate
 import kotlinx.coroutines.Dispatchers

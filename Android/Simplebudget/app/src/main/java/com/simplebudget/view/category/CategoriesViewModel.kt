@@ -13,15 +13,16 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.view
+package com.simplebudget.view.category
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
-import com.simplebudget.db.impl.toCategoriesNamesList
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.model.Category
-import com.simplebudget.model.ExpenseCategories
+import com.simplebudget.iab.Iab
+import com.simplebudget.model.category.Category
+import com.simplebudget.model.category.ExpenseCategories
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,23 +31,30 @@ import kotlin.collections.ArrayList
 /**
  * ExpenseEditViewModel to handle categories.
  */
-class CategoriesViewModel(private val db: DB) : ViewModel() {
+class CategoriesViewModel(
+    private val db: DB, private val iab: Iab
+) : ViewModel() {
     /**
      * Expense that is being edited (will be null if it's a new one)
      */
-    private var categories: ArrayList<String> = ArrayList()
-    val categoriesLiveData = SingleLiveEvent<ArrayList<String>>()
+    private var categories: ArrayList<Category> = ArrayList()
+    val categoriesLiveData = SingleLiveEvent<ArrayList<Category>>()
+
+    val premiumStatusLiveData = MutableLiveData<Boolean>()
+    fun onIabStatusChanged() {
+        premiumStatusLiveData.value = iab.isUserPremium()
+    }
+
 
     /**
      *
      */
-    private fun loadCategories(currentCategories: ArrayList<String>) {
+    private fun loadCategories(currentCategories: ArrayList<Category>) {
         viewModelScope.launch {
             categories.clear()
             withContext(Dispatchers.Default) {
-                db.getCategories().toCategoriesNamesList().let {
-                    categories.addAll(it)
-                }
+                val dbCategories = db.getCategories()
+                categories.addAll(dbCategories)
                 //If changes in categories added / deleted during selection just reverse so that user can see newly added records
                 if (currentCategories.isNotEmpty() && categories.size > currentCategories.size) categories.reverse()
                 categoriesLiveData.postValue(categories)
@@ -61,31 +69,19 @@ class CategoriesViewModel(private val db: DB) : ViewModel() {
     /**
      * Reload categories if you have added or remove some categories call this
      */
-    fun reloadCategories(currentCategories: ArrayList<String>) {
+    fun reloadCategories(currentCategories: ArrayList<Category>) {
         loadCategories(currentCategories)
-    }
-
-    /**
-     *
-     */
-    fun saveCategory(categoryType: String?) {
-        doSaveCategory(categoryType)
     }
 
     /**
      * Save category it might be new and not exist already.
      */
-    private fun doSaveCategory(categoryType: String?) {
-        categoryType?.let {
-            if (it.isEmpty() || it.isBlank()) return
-            if (!categories.contains((categoryType.uppercase()))) {
-                viewModelScope.launch {
-                    withContext(Dispatchers.Default) {
-                        db.persistCategories(
-                            Category(categoryType.uppercase())
-                        )
-                    }
-                }
+    fun saveCategory(category: Category) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                db.persistCategories(
+                    category
+                )
             }
         }
     }
@@ -93,11 +89,12 @@ class CategoriesViewModel(private val db: DB) : ViewModel() {
     /**
      * Delete category from DB
      */
-    fun deleteCategory(categoryType: String?) {
-        categoryType?.let {
-            if (it.isEmpty() || it.isBlank()) return
-            viewModelScope.launch {
-                db.deleteCategory(categoryType.uppercase())
+    fun deleteCategory(category: Category) {
+        viewModelScope.launch {
+            if (category.id != null) {
+                db.deleteCategory(category)
+            } else {
+                db.deleteCategory(category.name)
             }
         }
     }
@@ -121,5 +118,6 @@ class CategoriesViewModel(private val db: DB) : ViewModel() {
 
     init {
         loadCategories(ArrayList())
+        premiumStatusLiveData.value = iab.isUserPremium()
     }
 }

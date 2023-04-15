@@ -8,8 +8,8 @@ import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
 import com.simplebudget.databinding.FragmentOnboarding3Binding
 import com.simplebudget.helper.*
-import com.simplebudget.model.Expense
-import com.simplebudget.model.ExpenseCategoryType
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject

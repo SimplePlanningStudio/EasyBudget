@@ -25,8 +25,8 @@ import android.widget.TextView
 import com.simplebudget.R
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.model.Expense
-import com.simplebudget.model.RecurringExpenseType
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 

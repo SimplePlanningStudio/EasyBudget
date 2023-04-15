@@ -13,11 +13,11 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.model
+package com.simplebudget.model.recurringexpense
 
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.room.ColumnInfo
+import com.simplebudget.model.category.ExpenseCategoryType
 import java.time.LocalDate
 
 data class RecurringExpense(
@@ -37,7 +37,7 @@ data class RecurringExpense(
         LocalDate.ofEpochDay(parcel.readLong()),
         parcel.readByte() != 0.toByte(),
         RecurringExpenseType.values()[parcel.readInt()],
-        parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name,
+        parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name
     )
 
     constructor(

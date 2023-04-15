@@ -13,13 +13,13 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.db.impl.entity
+package com.simplebudget.db.impl.recurringexpenses
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.simplebudget.model.RecurringExpense
-import com.simplebudget.model.RecurringExpenseType
+import com.simplebudget.model.recurringexpense.RecurringExpense
+import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import java.time.LocalDate
 
 @Entity(tableName = "monthlyexpense")

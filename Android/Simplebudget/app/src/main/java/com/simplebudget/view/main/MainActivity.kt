@@ -52,13 +52,12 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
 import com.simplebudget.R
-import com.simplebudget.SimpleBudget
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
-import com.simplebudget.model.Expense
-import com.simplebudget.model.RecurringExpenseDeleteType
+import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
 import com.simplebudget.prefs.*
 import com.simplebudget.push.MyFirebaseMessagingService
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
@@ -73,6 +72,7 @@ import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
 import com.simplebudget.view.welcome.WelcomeActivity
+import com.simplebudget.view.welcome.getOnboardingStep
 import org.koin.android.ext.android.inject
 import java.util.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -150,6 +150,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
             )
+
+        //Check if on boarding done
+        if (appPreferences.getOnboardingStep() != WelcomeActivity.STEP_COMPLETED) {
+            startActivity(Intent(this@MainActivity, WelcomeActivity::class.java))
+            finish()
+        }
 
         setSupportActionBar(binding.toolbar)
         handleAppPasswordProtection()
@@ -718,9 +724,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        if (!appPreferences.hasUserSawFutureExpensesHint()) {
+        if (!appPreferences.hasUserSawBreakDownHint()) {
             binding.futureExpenseHintButton.setOnClickListener {
-                appPreferences.setUserSawFutureExpensesHint()
+                appPreferences.setUserSawBreakDownHint()
                 binding.futureExpenseHint.visibility = View.GONE
                 binding.searchHint.visibility = View.VISIBLE
             }
@@ -1299,7 +1305,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         try {
             val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
             adContainerView.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)!!
+            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
             adView = AdView(this)
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             adContainerView.addView(adView)

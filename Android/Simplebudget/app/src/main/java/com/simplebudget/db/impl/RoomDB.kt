@@ -19,12 +19,14 @@ import android.content.Context
 import androidx.room.*
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.simplebudget.db.impl.entity.CategoryEntity
-import com.simplebudget.db.impl.entity.ExpenseEntity
-import com.simplebudget.db.impl.entity.RecurringExpenseEntity
+import com.simplebudget.db.impl.categories.CategoryDao
+import com.simplebudget.db.impl.categories.CategoryEntity
+import com.simplebudget.db.impl.expenses.ExpenseDao
+import com.simplebudget.db.impl.expenses.ExpenseEntity
+import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.localDateFromTimestamp
-import com.simplebudget.model.ExpenseCategoryType
-import com.simplebudget.model.RecurringExpenseType
+import com.simplebudget.model.category.ExpenseCategoryType
+import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import java.time.LocalDate
 
 const val DB_NAME = "easybudget.db"
@@ -59,7 +61,7 @@ abstract class RoomDB : RoomDatabase() {
     }
 }
 
-private class TimestampConverters {
+class TimestampConverters {
     @TypeConverter
     fun dateFromTimestamp(value: Long?): LocalDate? {
         return value?.let { LocalDate.ofEpochDay(it) }

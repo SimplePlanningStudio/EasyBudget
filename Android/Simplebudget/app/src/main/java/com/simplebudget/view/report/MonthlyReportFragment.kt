@@ -236,7 +236,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(),
                 requireActivity().windowManager.defaultDisplay
-            )!!
+            )
             adView = AdView(requireContext())
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             binding?.adViewContainer?.addView(adView)

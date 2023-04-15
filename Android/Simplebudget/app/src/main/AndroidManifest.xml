@@ -65,11 +65,25 @@
         <activity
             android:name="com.simplebudget.view.main.MainActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/app_name_simplebudget_title"
             android:launchMode="singleInstancePerTask"
             android:screenOrientation="portrait"
-            tools:ignore="LockedOrientationActivity" />
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="simplebudget" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".view.premium.PremiumActivity"
@@ -92,24 +106,6 @@
             android:screenOrientation="portrait" />
 
         <activity
-            android:name="com.simplebudget.view.splash.SplashActivity"
-            android:exported="true"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="simplebudget" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name="com.simplebudget.view.report.base.MonthlyReportBaseActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
@@ -129,6 +125,7 @@
             android:exported="false"
             android:label="@string/title_search_expenses"
             android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustNothing"
             android:theme="@style/Theme.MaterialComponents" />
 
         <activity
@@ -194,15 +191,18 @@
             android:theme="@style/Transparent" />
 
         <activity
-            android:name=".view.category.CategoriesActivity"
-            android:exported="false"
-            android:theme="@style/Transparent" />
-
-        <activity
-            android:name=".view.category.CategoriesSearchActivity"
+            android:name=".view.category.search.CategoriesSearchActivity"
             android:exported="false"
             android:label="@string/categories"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustNothing" />
+
+        <activity
+            android:name=".view.category.manage.ManageCategoriesActivity"
+            android:exported="false"
+            android:label="@string/manage_categories"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustNothing" />
 
         <!-- Push -->
         <service

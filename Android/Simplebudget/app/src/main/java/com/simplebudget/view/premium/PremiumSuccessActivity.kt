@@ -20,7 +20,7 @@ import android.os.Bundle
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySuccessPremiumBinding
 import com.simplebudget.helper.BaseActivity
-import com.simplebudget.view.splash.SplashActivity
+import com.simplebudget.view.main.MainActivity
 
 /**
  *
@@ -62,7 +62,7 @@ class PremiumSuccessActivity : BaseActivity<ActivitySuccessPremiumBinding>() {
                 finish()
             } else {
                 finishAffinity()
-                startActivity(Intent(this, SplashActivity::class.java))
+                startActivity(Intent(this, MainActivity::class.java))
             }
         }
     }
@@ -76,7 +76,7 @@ class PremiumSuccessActivity : BaseActivity<ActivitySuccessPremiumBinding>() {
             finish()
         } else {
             finishAffinity()
-            startActivity(Intent(this, SplashActivity::class.java))
+            startActivity(Intent(this, MainActivity::class.java))
         }
     }
 }

@@ -18,7 +18,7 @@ package com.simplebudget.view.breakdown
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplebudget.model.Expense
+import com.simplebudget.model.expense.Expense
 import com.simplebudget.db.DB
 import com.simplebudget.prefs.AppPreferences
 import kotlinx.coroutines.Dispatchers

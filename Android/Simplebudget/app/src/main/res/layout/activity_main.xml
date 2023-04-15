@@ -391,7 +391,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/future_expense_hint"
+                android:text="@string/breakdown_hint"
                 android:textColor="@android:color/black"
                 android:textSize="15sp" />
 
@@ -447,6 +447,8 @@
         </LinearLayout>
 
     </LinearLayout>
+
+
 
     <LinearLayout
         android:id="@+id/settings_hint"

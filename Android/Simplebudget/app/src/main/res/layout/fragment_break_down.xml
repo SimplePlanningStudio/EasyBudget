@@ -1,6 +1,5 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/relativeLayoutMonthlyReports"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -29,10 +28,10 @@
         android:layout_below="@+id/chart"
         android:orientation="vertical"
         android:paddingLeft="@dimen/_6sdp"
-        android:paddingTop="@dimen/_2sdp"
+        android:paddingTop="@dimen/_4sdp"
         android:paddingRight="@dimen/_6sdp"
         android:paddingBottom="@dimen/_2sdp"
-        android:visibility="gone">
+        android:visibility="visible">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -117,6 +116,26 @@
                     android:textSize="@dimen/_10ssp" />
             </LinearLayout>
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llContainerShowPiChart"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true">
+
+            <TextView
+                android:id="@+id/tvLabelShowPieChart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginEnd="@dimen/_6sdp"
+                android:drawablePadding="@dimen/_4sdp"
+                android:gravity="center_vertical"
+                android:text="@string/hide_pie_chart"
+                android:textColor="@color/colorBlack"
+                app:drawableEndCompat="@drawable/baseline_pie_chart_24" />
         </LinearLayout>
 
     </RelativeLayout>

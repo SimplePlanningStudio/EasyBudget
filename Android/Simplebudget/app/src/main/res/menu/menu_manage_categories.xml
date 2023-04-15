@@ -3,10 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_edit_categories"
+        android:id="@+id/action_done_editing"
         android:orderInCategory="1"
-        android:title="@string/manage_categories"
-        app:actionLayout="@layout/custom_menu_view_select_categories"
+        android:title="@string/done"
+        app:actionLayout="@layout/custom_menu_manage_categories"
         app:showAsAction="always" />
 
 </menu>

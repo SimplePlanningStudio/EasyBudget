@@ -42,14 +42,13 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivityRecurringExpenseAddBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.showCaseView
-import com.simplebudget.model.ExpenseCategoryType
-import com.simplebudget.model.RecurringExpenseType
+import com.simplebudget.model.category.ExpenseCategoryType
+import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.hasUserSawSwitchExpenseHint
-import com.simplebudget.prefs.resetUserSawSwitchExpenseHint
 import com.simplebudget.prefs.setUserSawSwitchExpenseHint
 import com.simplebudget.view.DatePickerDialogFragment
-import com.simplebudget.view.category.CategoriesSearchActivity
+import com.simplebudget.view.category.search.CategoriesSearchActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
@@ -181,7 +180,6 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         viewModel.finishLiveData.observe(this) {
             progressDialog?.dismiss()
             progressDialog = null
-
             setResult(Activity.RESULT_OK)
             finish()
         }

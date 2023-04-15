@@ -13,28 +13,42 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.view.category
+package com.simplebudget.view.category.search
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.DividerItemDecoration
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySearchCategoryBinding
+import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.BaseActivity
 import com.simplebudget.helper.extensions.showCaseView
-import com.simplebudget.model.ExpenseCategories
-import com.simplebudget.model.ExpenseCategoryType
+import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.model.category.Category
+import com.simplebudget.model.category.ExpenseCategories
+import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.*
-import com.simplebudget.view.CategoriesViewModel
+import com.simplebudget.view.category.CategoriesViewModel
+import com.simplebudget.view.category.manage.ManageCategoriesActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.collections.ArrayList
@@ -43,11 +57,13 @@ import kotlin.collections.ArrayList
 class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     CategorySearchAdapter.CategoryAdapterListener {
 
-    private var selectedCategory = ""
-    private var currentCategory = ""
+    private var selectedCategoryName = ""
+    private var currentCategoryName = ""
     private val viewModelCategory: CategoriesViewModel by viewModel()
-    private var categories: ArrayList<String> = ArrayList()
+    private var categories: ArrayList<Category> = ArrayList()
     private val appPreferences: AppPreferences by inject()
+    private var adView: AdView? = null
+    private lateinit var receiver: BroadcastReceiver
 
     companion object {
         const val REQUEST_CODE_CURRENT_EDIT_CATEGORY = "CURRENT_EDIT_CATEGORY"
@@ -73,8 +89,31 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        currentCategory =
-            intent?.getStringExtra(REQUEST_CODE_CURRENT_EDIT_CATEGORY) ?: ""
+        currentCategoryName = intent?.getStringExtra(REQUEST_CODE_CURRENT_EDIT_CATEGORY) ?: ""
+
+        // Register receiver
+        val filter = IntentFilter()
+        filter.addAction(INTENT_IAB_STATUS_CHANGED)
+        filter.addAction(Intent.ACTION_VIEW)
+
+        receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    INTENT_IAB_STATUS_CHANGED -> viewModelCategory.onIabStatusChanged()
+                }
+            }
+        }
+        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(receiver, filter)
+
+        viewModelCategory.premiumStatusLiveData.observe(this) { isPremium ->
+            if (isPremium) {
+                val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
+                adContainerView.visibility = View.INVISIBLE
+            } else {
+                loadAndDisplayBannerAds()
+            }
+        }
+
 
         binding.searchEditText.doOnTextChanged { text, _, _, _ ->
             val query = text.toString().uppercase()
@@ -93,13 +132,13 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
         }
         binding.btnAdd.setOnClickListener {
             val newCategory = binding.searchEditText.text.toString().uppercase()
-            categories.add(0, newCategory)
+            categories.add(0, Category(id = null, name = newCategory))
             binding.searchEditText.setText("")
             binding.linearLayoutEmptyState.visibility = View.GONE
             binding.recyclerViewCategories.visibility = View.VISIBLE
             toggleImageView("")
             searchAdapter.notifyDataSetChanged()
-            viewModelCategory.saveCategory(newCategory)
+            viewModelCategory.saveCategory(Category(id = null, name = newCategory))
         }
 
         handleVoiceSearch()
@@ -125,14 +164,12 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
             if (appPreferences.hasUserCompleteManageCategoriesFromSelectCategoryShowCaseView()
                     .not()
             ) {
-                showCaseView(
-                    targetView = it,
+                showCaseView(targetView = it,
                     title = getString(R.string.edit_categories),
                     message = getString(R.string.edit_categories_show_view_message),
                     handleGuideListener = {
                         appPreferences.setUserCompleteManageCategoriesFromSelectCategoryShowCaseView()
-                    }
-                )
+                    })
             }
             it.setOnClickListener {
                 launchManageCategories()
@@ -155,11 +192,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
      *
      */
     private fun launchManageCategories() {
-        val startIntent = Intent(this, CategoriesActivity::class.java)
-        startIntent.putExtra(
-            CategoriesActivity.REQUEST_CODE_SELECT_CATEGORY,
-            CategoriesActivity.MANAGE_CATEGORIES
-        )
+        val startIntent = Intent(this, ManageCategoriesActivity::class.java)
         manageCategoriesActivityLauncher.launch(startIntent)
     }
 
@@ -200,8 +233,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
         binding.voiceSearchQuery.setOnClickListener {
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(
-                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                 )
             }
             voiceSearchIntentLauncher.launch(intent)
@@ -213,7 +245,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
      */
     private fun filterWithQuery(query: String) {
         if (query.trim().isNotEmpty()) {
-            val filteredList: List<String> = onFilterChanged(query)
+            val filteredList: List<Category> = onFilterChanged(query)
             attachAdapter(filteredList)
             toggleRecyclerView(filteredList)
         } else if (query.trim().isEmpty()) {
@@ -224,10 +256,10 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     /**
      *
      */
-    private fun onFilterChanged(filterQuery: String): List<String> {
-        val filteredList = ArrayList<String>()
+    private fun onFilterChanged(filterQuery: String): List<Category> {
+        val filteredList = ArrayList<Category>()
         for (category in categories) {
-            if (category.uppercase().contains(filterQuery.uppercase())) {
+            if (category.name.uppercase().contains(filterQuery.uppercase())) {
                 filteredList.add(category)
             }
         }
@@ -237,9 +269,13 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     /**
      *
      */
-    private fun attachAdapter(list: List<String>) {
+    private fun attachAdapter(list: List<Category>) {
         searchAdapter = CategorySearchAdapter(list, this)
         binding.recyclerViewCategories.adapter = searchAdapter
+        val dividerItemDecoration = DividerItemDecoration(
+            binding.recyclerViewCategories.context, LinearLayout.VERTICAL
+        )
+        binding.recyclerViewCategories.addItemDecoration(dividerItemDecoration)
     }
 
     /**
@@ -252,11 +288,11 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
             categories.clear()
             if (dbCat.isEmpty()) {
                 ExpenseCategories.getCategoriesList().forEach { item ->
-                    if (!categories.contains(item.uppercase()))
-                        categories.add(item.uppercase())
+                    val category = Category(id = null, name = item.uppercase())
+                    if (!categories.contains(category)) categories.add(category)
                 }
             } else {
-                categories.addAll(dbCat)
+                categories.addAll(dbCat.asReversed())
             }
 
             attachAdapter(categories)
@@ -268,17 +304,18 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
      *
      */
     private fun doneWithSelection() {
-        if (selectedCategory.trim().isEmpty()) {
-            selectedCategory = if (selectedCategory.trim().isEmpty()) {
-                if (currentCategory.trim().isEmpty())
-                    ExpenseCategoryType.MISCELLANEOUS.name else currentCategory
+        if (selectedCategoryName.trim().isEmpty()) {
+            selectedCategoryName = if (selectedCategoryName.trim().isEmpty()) {
+                if (currentCategoryName.trim()
+                        .isEmpty()
+                ) ExpenseCategoryType.MISCELLANEOUS.name else currentCategoryName
             } else {
                 ExpenseCategoryType.MISCELLANEOUS.name
             }
         }
         setResult(
             Activity.RESULT_OK,
-            Intent().putExtra(REQUEST_CODE_SELECTED_CATEGORY, selectedCategory)
+            Intent().putExtra(REQUEST_CODE_SELECTED_CATEGORY, selectedCategoryName)
         )
         finish()
     }
@@ -294,13 +331,12 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     /**
      *
      */
-    private fun toggleRecyclerView(categoriesList: List<String>) {
+    private fun toggleRecyclerView(categoriesList: List<Category>) {
         if (categoriesList.isEmpty()) {
             binding.recyclerViewCategories.visibility = View.INVISIBLE
             binding.linearLayoutEmptyState.visibility = View.VISIBLE
             binding.tvNotFound.text = String.format(
-                getString(R.string.no_category_found),
-                binding.searchEditText.text.toString()
+                getString(R.string.no_category_found), binding.searchEditText.text.toString()
             )
         } else {
             binding.recyclerViewCategories.visibility = View.VISIBLE
@@ -322,8 +358,50 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     /**
      *
      */
-    override fun onCategorySelected(selectedCategory: String) {
-        this.selectedCategory = selectedCategory
+    override fun onCategorySelected(selectedCategory: Category) {
+        this.selectedCategoryName = selectedCategory.name
         doneWithSelection()
+    }
+
+    /**
+     *
+     */
+    private fun loadAndDisplayBannerAds() {
+        try {
+            val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
+            adContainerView.visibility = View.VISIBLE
+            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
+            adView = AdView(this)
+            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
+            adContainerView.addView(adView)
+            val actualAdRequest = AdRequest.Builder().build()
+            adView?.setAdSize(adSize)
+            adView?.loadAd(actualAdRequest)
+            adView?.adListener = object : AdListener() {
+                override fun onAdLoaded() {}
+                override fun onAdOpened() {}
+                override fun onAdClosed() {
+                    loadAndDisplayBannerAds()
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Called when leaving the activity
+     */
+    override fun onPause() {
+        adView?.pause()
+        super.onPause()
+    }
+
+    /**
+     *
+     */
+    override fun onDestroy() {
+        LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
+        super.onDestroy()
     }
 }

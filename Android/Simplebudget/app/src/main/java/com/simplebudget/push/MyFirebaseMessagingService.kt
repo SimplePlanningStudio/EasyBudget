@@ -13,13 +13,12 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
-import com.simplebudget.SimpleBudget
 import com.simplebudget.helper.*
 import com.simplebudget.notif.CHANNEL_DAILY_REMINDERS
 import com.simplebudget.notif.CHANNEL_WEEKLY_REMINDERS
 import com.simplebudget.notif.CHANNEL_NEW_FEATURES
 import com.simplebudget.prefs.*
-import com.simplebudget.view.splash.SplashActivity
+import com.simplebudget.view.main.MainActivity
 import org.koin.android.ext.android.inject
 import java.util.*
 import kotlin.random.Random
@@ -211,7 +210,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      */
     private fun sendNotification(notification: RemoteMessage.Notification, channel: String) {
         if (notification.body == null) return // Body is null no need to display notification
-        val intent = Intent(this, SplashActivity::class.java)
+        val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

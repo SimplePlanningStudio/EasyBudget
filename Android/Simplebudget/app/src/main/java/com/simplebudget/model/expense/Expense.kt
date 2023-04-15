@@ -13,12 +13,13 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.model
+package com.simplebudget.model.expense
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.simplebudget.model.recurringexpense.RecurringExpense
+import com.simplebudget.model.category.ExpenseCategoryType
 import java.time.LocalDate
-import java.util.*
 
 data class Expense(
     val id: Long?,
@@ -71,7 +72,6 @@ data class Expense(
 
     fun isFutureExpense() = date.isAfter(LocalDate.now())
     fun isPastExpense() = date.isBefore(LocalDate.now())
-
     fun isRecurring() = associatedRecurringExpense != null
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

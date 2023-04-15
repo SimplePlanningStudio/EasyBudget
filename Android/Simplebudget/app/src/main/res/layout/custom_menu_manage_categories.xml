@@ -6,16 +6,16 @@
     android:orientation="horizontal">
 
     <TextView
-        android:id="@+id/tvEditCategories"
+        android:id="@+id/tvDoneEditing"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginEnd="@dimen/_6sdp"
         android:drawablePadding="@dimen/_4sdp"
         android:gravity="center_vertical"
-        android:text="@string/manage_categories"
+        android:text="@string/done"
         android:textAllCaps="true"
         android:textColor="@color/white"
-        app:drawableEndCompat="@drawable/ic_edit_icon" />
+        app:drawableEndCompat="@drawable/ic_done_tick" />
 
 </LinearLayout>

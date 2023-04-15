@@ -46,7 +46,7 @@ import com.simplebudget.iab.Iab
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
-import com.simplebudget.view.category.CategoriesActivity
+import com.simplebudget.view.category.manage.ManageCategoriesActivity
 import com.simplebudget.view.moreApps.MoreAppsActivity
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.premium.PremiumSuccessActivity
@@ -177,11 +177,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_category_manage_category_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                val startIntent = Intent(requireActivity(), CategoriesActivity::class.java)
-                startIntent.putExtra(
-                    CategoriesActivity.REQUEST_CODE_SELECT_CATEGORY,
-                    CategoriesActivity.MANAGE_CATEGORIES
-                )
+                val startIntent = Intent(requireActivity(), ManageCategoriesActivity::class.java)
                 ActivityCompat.startActivity(requireActivity(), startIntent, null)
                 false
             }

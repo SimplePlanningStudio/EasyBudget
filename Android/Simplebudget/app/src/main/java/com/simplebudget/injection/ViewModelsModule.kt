@@ -15,7 +15,7 @@
  */
 package com.simplebudget.injection
 
-import com.simplebudget.view.CategoriesViewModel
+import com.simplebudget.view.category.CategoriesViewModel
 import com.simplebudget.view.breakdown.base.BreakDownBaseViewModel
 import com.simplebudget.view.expenseedit.ExpenseEditViewModel
 import com.simplebudget.view.main.MainViewModel
@@ -24,8 +24,6 @@ import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditViewModel
 import com.simplebudget.view.report.MonthlyReportViewModel
 import com.simplebudget.view.report.base.MonthlyReportBaseViewModel
 import com.simplebudget.view.breakdown.BreakDownViewModel
-import com.simplebudget.view.futurepayments.FutureBaseViewModel
-import com.simplebudget.view.futurepayments.FutureExpenseViewModel
 import com.simplebudget.view.search.SearchViewModel
 import com.simplebudget.view.selectcurrency.SelectCurrencyViewModel
 import com.simplebudget.view.settings.backup.BackupSettingsViewModel
@@ -42,7 +40,7 @@ val viewModelModule = module {
     /**
      * Categories view model
      */
-    viewModel { CategoriesViewModel(get()) }
+    viewModel { CategoriesViewModel(get(),get()) }
 
     /**
      * Select currencies
@@ -65,12 +63,6 @@ val viewModelModule = module {
      * Search Expenses
      */
     viewModel { SearchViewModel(get(), get()) }
-
-    /**
-     * Future Expenses
-     */
-    viewModel { FutureExpenseViewModel(get()) }
-    viewModel { FutureBaseViewModel() }
 
     /**
      * Add / Edit Expenses
