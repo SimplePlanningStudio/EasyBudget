@@ -37,13 +37,15 @@ class MonthlyReportBaseViewModel(private val appPreferences: AppPreferences) : V
             val pair = withContext(Dispatchers.IO) {
                 return@withContext appPreferences.getListOfMonthsAvailableForUser()
             }
-            datesLiveData.value = pair.first
-            selectedPositionLiveData.value =
-                MonthlyReportSelectedPosition(
-                    pair.second,
-                    pair.first[pair.second],
-                    (pair.second == pair.first.size - 1)
-                )
+            if (pair.first.isNotEmpty()) {
+                datesLiveData.value = pair.first
+                selectedPositionLiveData.value =
+                    MonthlyReportSelectedPosition(
+                        pair.second,
+                        pair.first[pair.second],
+                        (pair.second == pair.first.size - 1)
+                    )
+            }
         }
     }
 

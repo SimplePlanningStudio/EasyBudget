@@ -31,6 +31,11 @@ class CachedDBImpl(
     private val executor: Executor
 ) : DB {
 
+    override suspend fun clearAllTables() {
+        wrappedDB.clearAllTables()
+        wipeCache()
+    }
+
     override fun ensureDBCreated() {
         wrappedDB.ensureDBCreated()
     }

@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.view.category.search
+package com.simplebudget.view.category.choose
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -47,19 +47,18 @@ import com.simplebudget.model.category.Category
 import com.simplebudget.model.category.ExpenseCategories
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.*
-import com.simplebudget.view.category.CategoriesViewModel
 import com.simplebudget.view.category.manage.ManageCategoriesActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.collections.ArrayList
 
 
-class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
-    CategorySearchAdapter.CategoryAdapterListener {
+class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>(),
+    ChooseCategoryAdapter.CategoryAdapterListener {
 
     private var selectedCategoryName = ""
     private var currentCategoryName = ""
-    private val viewModelCategory: CategoriesViewModel by viewModel()
+    private val viewModelCategory: ChooseCategoryViewModel by viewModel()
     private var categories: ArrayList<Category> = ArrayList()
     private val appPreferences: AppPreferences by inject()
     private var adView: AdView? = null
@@ -70,7 +69,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
         const val REQUEST_CODE_SELECTED_CATEGORY = "SELECTED_CATEGORY"
     }
 
-    private lateinit var searchAdapter: CategorySearchAdapter
+    private lateinit var searchAdapter: ChooseCategoryAdapter
 
     /**
      *
@@ -270,7 +269,7 @@ class CategoriesSearchActivity : BaseActivity<ActivitySearchCategoryBinding>(),
      *
      */
     private fun attachAdapter(list: List<Category>) {
-        searchAdapter = CategorySearchAdapter(list, this)
+        searchAdapter = ChooseCategoryAdapter(list, this)
         binding.recyclerViewCategories.adapter = searchAdapter
         val dividerItemDecoration = DividerItemDecoration(
             binding.recyclerViewCategories.context, LinearLayout.VERTICAL

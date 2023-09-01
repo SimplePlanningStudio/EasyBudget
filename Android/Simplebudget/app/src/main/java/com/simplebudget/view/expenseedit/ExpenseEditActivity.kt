@@ -43,7 +43,7 @@ import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.*
 import com.simplebudget.view.DatePickerDialogFragment
-import com.simplebudget.view.category.search.CategoriesSearchActivity
+import com.simplebudget.view.category.choose.ChooseCategoryActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
@@ -386,7 +386,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
     private var securityActivityLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val category =
-                result.data?.getStringExtra(CategoriesSearchActivity.REQUEST_CODE_SELECTED_CATEGORY)
+                result.data?.getStringExtra(ChooseCategoryActivity.REQUEST_CODE_SELECTED_CATEGORY)
                     ?: ""
             binding.tvCategoryName.text = category
         }
@@ -396,9 +396,9 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      */
     private fun handleCategoryLaunch() {
         securityActivityLauncher.launch(
-            Intent(this, CategoriesSearchActivity::class.java)
+            Intent(this, ChooseCategoryActivity::class.java)
                 .putExtra(
-                    CategoriesSearchActivity.REQUEST_CODE_CURRENT_EDIT_CATEGORY,
+                    ChooseCategoryActivity.REQUEST_CODE_CURRENT_EDIT_CATEGORY,
                     (binding.tvCategoryName.text?.toString() ?: existingExpenseCategory)
                 )
         )

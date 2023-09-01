@@ -10,7 +10,7 @@ import com.simplebudget.R
 import com.simplebudget.helper.toast
 import com.simplebudget.model.category.Category
 
-object EditCategory {
+object EditCategoryDialog {
     fun open(
         context: Activity?,
         category: Category,

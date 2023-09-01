@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.view.category
+package com.simplebudget.view.category.choose
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -31,7 +31,7 @@ import kotlin.collections.ArrayList
 /**
  * ExpenseEditViewModel to handle categories.
  */
-class CategoriesViewModel(
+class ChooseCategoryViewModel(
     private val db: DB, private val iab: Iab
 ) : ViewModel() {
     /**

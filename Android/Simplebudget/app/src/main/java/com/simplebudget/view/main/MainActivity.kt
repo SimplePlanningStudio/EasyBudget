@@ -66,6 +66,7 @@ import com.simplebudget.view.main.calendar.CalendarFragment
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
+import com.simplebudget.view.reset.ResetAppDataActivity
 import com.simplebudget.view.search.base.SearchBaseActivity
 import com.simplebudget.view.security.SecurityActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
@@ -74,10 +75,10 @@ import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INT
 import com.simplebudget.view.welcome.WelcomeActivity
 import com.simplebudget.view.welcome.getOnboardingStep
 import org.koin.android.ext.android.inject
-import java.util.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 
 /**
@@ -85,6 +86,7 @@ import java.time.format.DateTimeFormatter
  *
  * @author Benoit LETONDOR
  */
+@SuppressLint("NotifyDataSetChanged")
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private lateinit var receiver: BroadcastReceiver
@@ -122,7 +124,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /**
      * Start activity for result
      */
-    var securityActivityLauncher =
+    private var securityActivityLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_CANCELED) {
                 finish()
@@ -175,7 +177,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         mapData?.containsKey("route")?.let {
                             if (it) {
                                 if (mapData["route"].toString() == "display_premium_screen") {
-                                    startActivity(Intent(this, PremiumActivity::class.java))
+                                    becomePremium()
                                 }
                             }
                         }
@@ -469,11 +471,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 snackbar.show()
             })
 
-        viewModel.currentBalanceRestoringEventStream.observe(this, Observer {
+        viewModel.currentBalanceRestoringEventStream.observe(this) {
             // Nothing to do
-        })
+        }
 
-        viewModel.currentBalanceRestoringErrorEventStream.observe(this, Observer { exception ->
+        viewModel.currentBalanceRestoringErrorEventStream.observe(this) { exception ->
             Logger.error("An error occurred during balance", exception)
 
             AlertDialog.Builder(this@MainActivity)
@@ -481,10 +483,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 .setMessage(R.string.adjust_balance_error_message)
                 .setNegativeButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }
                 .show()
-        })
+        }
 
         viewModel.premiumStatusLiveData.observe(this) { isPremium ->
             isUserPremium = isPremium
+            binding.ivPremiumIcon.setBackgroundResource(if (isPremium) R.drawable.ic_premium_icon_gold else R.drawable.ic_premium_icon_grey)
             invalidateOptionsMenu()
 
             if (isPremium) {
@@ -553,6 +556,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Check and launch download campaign.
         checkIfItsDownloadCampaign()
 
+        binding.ivPremiumIcon.setBackgroundResource(if (isUserPremium) R.drawable.ic_premium_icon_gold else R.drawable.ic_premium_icon_grey)
+
         //checkToken()
     }
 
@@ -579,6 +584,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /**
      * Only enable for testing.
      */
+    @SuppressWarnings("unused")
     private fun checkToken() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
             if (!task.isSuccessful) {
@@ -607,7 +613,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 revealHideCalendar()
             }
             binding.llBalances.setOnClickListener { binding.revealCalendar.callOnClick() }
+            binding.ivPremiumIcon.setOnClickListener {
+                if (isUserPremium) toast(getString(R.string.thank_you_you_are_premium_user))
+                else
+                    becomePremium()
+            }
         } catch (e: Exception) {
+            Log.d("", e.message ?: "")
         }
     }
 
@@ -633,7 +645,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onStart()
 
         // If the last stop happened yesterday (or another day), set and refresh to the current date
-        if (lastStopDate != null) {
+        lastStopDate?.let {
             val cal = Calendar.getInstance()
             val currentDay = cal.get(Calendar.DAY_OF_YEAR)
 
@@ -643,7 +655,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             if (currentDay != lastStopDay) {
                 viewModel.onDayChanged()
             }
-
             lastStopDate = null
         }
     }
@@ -712,6 +723,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+
+        val itemBecomePremium: MenuItem? = menu.findItem(R.id.action_become_premium)
+        itemBecomePremium?.let {
+            it.isVisible = isUserPremium.not()
+        }
 
         // Remove monthly report for non premium users
         if (!appPreferences.hasUserSawMonthlyReportHint()) {
@@ -853,6 +869,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 )
                 return true
             }
+            R.id.action_become_premium -> {
+                if (!isUserPremium) {
+                    becomePremium()
+                } else {
+                    toast(getString(R.string.thank_you_you_are_premium_user))
+                }
+                return true
+            }
+            R.id.action_reset_ap_data -> {
+                startActivity(Intent(this, ResetAppDataActivity::class.java))
+                return true
+            }
             /*R.id.action_language -> {
                 Languages.showLanguagesDialog(
                     this,
@@ -913,7 +941,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 binding.budgetLineAmount.text = BALANCE_PLACE_HOLDER
                 binding.expenseLineAmount.text = BALANCE_PLACE_HOLDER
             }
-            expensesViewAdapter?.notifyDataSetChanged()
+            expensesViewAdapter.notifyDataSetChanged()
         }
     }
 
@@ -1331,6 +1359,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onPause() {
         adView?.pause()
         super.onPause()
+    }
+
+    private fun becomePremium() {
+        startActivity(Intent(this, PremiumActivity::class.java))
     }
 
     companion object {

@@ -1,4 +1,4 @@
-package com.simplebudget.view.category.search
+package com.simplebudget.view.category.choose
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,10 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
 import com.simplebudget.model.category.Category
 
-class CategorySearchAdapter(
+class ChooseCategoryAdapter(
     private val categoriesList: List<Category>,
     private val listener: CategoryAdapterListener
-) : RecyclerView.Adapter<CategorySearchAdapter.SearchViewHolder>() {
+) : RecyclerView.Adapter<ChooseCategoryAdapter.SearchViewHolder>() {
 
     class SearchViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView: TextView = itemView.findViewById(R.id.search_title_text_view)

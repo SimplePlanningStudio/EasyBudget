@@ -33,6 +33,10 @@ import kotlin.math.floor
 
 class DBImpl(private val roomDB: RoomDB) : DB {
 
+    override suspend fun clearAllTables() {
+        roomDB.clearAllTables()
+    }
+
     override fun ensureDBCreated() {
         roomDB.openHelper.writableDatabase.close()
     }
@@ -92,7 +96,7 @@ class DBImpl(private val roomDB: RoomDB) : DB {
     }
 
     override suspend fun searchExpenses(search_query: String): List<Expense> {
-        return roomDB.expenseDao().searchExpenses(search_query)
+        return roomDB.expenseDao().searchExpenses("%$search_query%")
             .toExpenses(this)
     }
 

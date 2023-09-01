@@ -17,7 +17,7 @@
     <string name="title_activity_premium">Premium</string>
     <string name="title_activity_more_apps">More Apps</string>
     <string name="title_budget_report">Budget report</string>
-    <string name="title_search_expenses">Search expenses</string>
+    <string name="title_search_expenses">Search expenses by title or category</string>
     <string name="title_upcoming">Upcoming expenses</string>
     <string name="title_expenses_breakdown">Expenses breakdown</string>
     <string name="cancel">Cancel</string>
@@ -206,6 +206,7 @@
     <string name="premium_popup_not_premium_feature_more_title">… and more features that would be added soon!</string>
     <string name="premium_popup_not_premium_cta">Buy</string>
     <string name="premium_popup_become_title">Become a premium user</string>
+    <string name="become_premium_user">Become premium user</string>
     <string name="premium_popup_become_message">It seems that you like using SimpleBudget!\nWould you like to take it to next level and discover premium features?</string>
     <string name="premium_popup_become_cta">Discover</string>
     <string name="premium_popup_become_not_now">Not now</string>
@@ -584,5 +585,13 @@
     <string name="miscellaneous">MISCELLANEOUS</string>
     <string name="show_pie_chart">Show Pie Chart</string>
     <string name="hide_pie_chart">Hide Pie Chart</string>
-
+    <string name="thank_you_you_are_premium_user">Thank you! You are a premium user!</string>
+    <string name="reset_app_data">Reset App Data</string>
+    <string name="delete_app_data">Delete App\'s Local Data</string>
+    <string name="simple_budget_delete_all_app_data">SimpleBudget Reset App Data</string>
+    <string name="delete_app_data_description_one">If you really want to clear/reset all of your data and wants to have a fresh start you can proceed with reset. <b>Note: It can\'t be undone</b> and by resetting app data will clear all of your expenses, income and balance.</string>
+    <string name="delete_app_data_description_two"><b>Note:</b> By resetting SimpleBudget data <u>your purchases won\'t be deleted.</u></string>
+    <string name="delete_app_data_description_three"><u>Cloud data won\'t be deleted</u> by deleting with this option. If you want to delete cloud data you can delete it from app settings. If you have enabled data backup <u>you can restore it from app settings.</u></string>
+    <string name="proceed_with_deleting_your_data">Proceed with resetting local data?</string>
+    <string name="proceed_deleting">Proceed With Reset</string>
 </resources>

@@ -49,7 +49,6 @@ import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.category.ExpenseCategories
 import com.simplebudget.prefs.*
-import com.simplebudget.view.category.CategoriesViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
@@ -57,7 +56,7 @@ import java.util.*
 class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>(),
     ManageCategoriesAdapter.ManageCategoriesListener {
 
-    private val viewModelCategory: CategoriesViewModel by viewModel()
+    private val viewModelCategory: ManageCategoriesViewModel by viewModel()
     private var categories: ArrayList<Category> = ArrayList()
     private lateinit var manageCategoriesAdapter: ManageCategoriesAdapter
     private var adView: AdView? = null
@@ -310,7 +309,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
             .setTitle(getString(R.string.how_can_i_help_you))
             .setItems(options) { dialog, which ->
                 if (which == 0) {
-                    EditCategory.open(
+                    EditCategoryDialog.open(
                         this,
                         selectedCategory,
                         updateCategory = { newCategory ->

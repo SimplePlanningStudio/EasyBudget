@@ -38,14 +38,16 @@ class BreakDownBaseViewModel(private val appPreferences: AppPreferences) : ViewM
             val pair = withContext(Dispatchers.IO) {
                 return@withContext appPreferences.getListOfMonthsAvailableForUser()
             }
-
             datesLiveData.value = pair.first
-            selectedPositionLiveData.value =
-                BreakDownSelectedPosition(
-                    pair.second,
-                    pair.first[pair.second],
-                    (pair.second == pair.first.size - 1)
-                )
+
+            if (pair.first.isNotEmpty()) {
+                selectedPositionLiveData.value =
+                    BreakDownSelectedPosition(
+                        pair.second,
+                        pair.first[pair.second],
+                        (pair.second == pair.first.size - 1)
+                    )
+            }
         }
     }
 

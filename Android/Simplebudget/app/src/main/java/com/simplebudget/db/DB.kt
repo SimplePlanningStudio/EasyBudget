@@ -22,7 +22,12 @@ import java.io.Closeable
 import java.time.LocalDate
 
 interface DB : Closeable {
+
+    suspend fun clearAllTables()
+
     fun ensureDBCreated()
+
+
     suspend fun triggerForceWriteToDisk()
 
     /**

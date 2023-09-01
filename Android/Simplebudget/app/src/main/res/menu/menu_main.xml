@@ -46,6 +46,21 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_become_premium"
+        android:icon="@drawable/ic_premium_icon_gold"
+        android:orderInCategory="100"
+        android:title="@string/become_premium_user"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_reset_ap_data"
+        android:icon="@drawable/ic_share"
+        android:orderInCategory="100"
+        android:title="@string/reset_app_data"
+        app:showAsAction="ifRoom" />
+
+
+    <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_share"
         android:orderInCategory="100"

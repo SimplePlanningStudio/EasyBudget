@@ -96,7 +96,8 @@ interface ExpenseDao {
     @Query("SELECT * FROM expense ORDER BY date LIMIT 1")
     suspend fun getOldestExpense(): ExpenseEntity?
 
-    @Query("SELECT * FROM expense WHERE title OR category LIKE '%' || :search_query || '%'")
+    // SELECT * FROM user WHERE name LIKE :searchQuery
+    @Query("SELECT * FROM expense WHERE UPPER(title) LIKE UPPER(:search_query) OR UPPER(category) LIKE UPPER(:search_query)")
     suspend fun searchExpenses(search_query: String): List<ExpenseEntity>
 
     @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate")

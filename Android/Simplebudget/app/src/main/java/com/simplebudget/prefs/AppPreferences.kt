@@ -126,4 +126,11 @@ class AppPreferences(context: Context) {
     fun getString(key: String): String? {
         return preferences.getString(key, null)
     }
+
+    /**
+     * Clear All Preferences Data
+     */
+    suspend fun clearAllPreferencesData() {
+        preferences.edit().clear().apply()
+    }
 }

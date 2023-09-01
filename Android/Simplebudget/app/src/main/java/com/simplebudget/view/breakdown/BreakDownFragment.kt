@@ -203,37 +203,6 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
          * Handle clicks for Add expenses
          */
         handleAddExpenses()
-
-        /**
-         * Listen recycler view scroll and hide expenses pi chart upon scroll up
-         */
-        binding?.monthlyReportFragmentRecyclerView?.addOnScrollListener(object :
-            RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                if (dy > 0) {
-                    // Scrolling up
-                    showHidePiChart()
-                } else {
-                    // Scrolling down
-                }
-            }
-
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                when (newState) {
-                    AbsListView.OnScrollListener.SCROLL_STATE_FLING -> {
-                        // Do something
-                    }
-                    AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL -> {
-                        // Do something
-                    }
-                    else -> {
-                        // Do something
-                    }
-                }
-            }
-        })
         /**
          *
          */
@@ -397,7 +366,7 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(), requireActivity().windowManager.defaultDisplay
-            )!!
+            )
             adView = AdView(requireContext())
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             binding?.adViewContainer?.addView(adView)

@@ -173,7 +173,7 @@ private const val KEY_ACTIVE_ACCOUNT = "active_account"
 fun AppPreferences.getInitDate(): LocalDate? {
     val timestamp = getLong(INIT_DATE_PARAMETERS_KEY, 0L)
     if (timestamp <= 0L) {
-        return null
+        return LocalDate.now()
     }
 
     return localDateFromTimestamp(timestamp)

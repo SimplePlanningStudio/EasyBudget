@@ -71,7 +71,7 @@ object DateHelper {
  */
 fun AppPreferences.getListOfMonthsAvailableForUser(): Pair<List<LocalDate>, Int> {
     var currentMonthPosition = 0
-    val initDate = getInitDate() ?: return Pair(emptyList(), currentMonthPosition)
+    val initDate = getInitDate() ?: DateHelper.today
     val today = LocalDate.now()
     val months = ArrayList<LocalDate>()
     var currentDate = LocalDate.of(initDate.year, initDate.month, 1)
