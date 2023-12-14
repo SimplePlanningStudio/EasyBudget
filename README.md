@@ -29,6 +29,9 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - Future Payements 
 - Category search new design added while adding/editing expenses
 - Voice search added for category
+- Multiple accounts
+- Side navigation panel
+- Budgets (Coming soon)
 
 
 
@@ -38,7 +41,7 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 
 ### Copyright
 
-    Copyright (C) 2022 Waheed Nazir. The name "SimpleBudget", the app idea and assets (images, names, wordings etc...) are all under copyright.
+    Copyright (C) 2024 Waheed Nazir. The name "SimpleBudget", the app idea and assets (images, names, wordings etc...) are all under copyright.
     Sources are availables under the Apache 2 licence (See LICENSE for details) and contributions will be warmely welcomed! Feel free to contribute :)
     
     
