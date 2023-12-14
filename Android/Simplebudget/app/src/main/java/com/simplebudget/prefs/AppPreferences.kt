@@ -43,8 +43,15 @@ class AppPreferences(context: Context) {
      * @param key
      * @param value
      */
-    fun putInt(key: String, value: Int) {
-        preferences.edit().putInt(key, value).apply()
+    @SuppressLint("ApplySharedPref")
+    fun putInt(key: String, value: Int, forceCommit: Boolean = false) {
+        val edit = preferences.edit()
+        edit.putInt(key, value)
+        if (forceCommit) {
+            edit.commit()
+        } else {
+            edit.apply()
+        }
     }
 
     /**
@@ -73,6 +80,7 @@ class AppPreferences(context: Context) {
      * @param key
      * @param value
      */
+
     @SuppressLint("ApplySharedPref")
     fun putBoolean(key: String, value: Boolean, forceCommit: Boolean = false) {
         val edit = preferences.edit()

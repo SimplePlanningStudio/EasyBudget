@@ -12,11 +12,14 @@ import com.simplebudget.model.category.Category
 
 @SuppressLint("NotifyDataSetChanged")
 class ManageCategoriesAdapter(
-    private val categoriesList: ArrayList<Category>, private val listener: ManageCategoriesListener
+    private val categoriesList: ArrayList<Category>,
+    private val listener: ManageCategoriesListener,
+    private val currencyCode: String
 ) : RecyclerView.Adapter<ManageCategoriesAdapter.ManageCategoriesViewHolder>() {
 
     class ManageCategoriesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvCategoryName: TextView = itemView.findViewById(R.id.tvCategoryName)
+        val tvCategoryBudget: TextView = itemView.findViewById(R.id.tvCategoryBudget)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ManageCategoriesViewHolder {
@@ -29,8 +32,7 @@ class ManageCategoriesAdapter(
 
     override fun onBindViewHolder(holder: ManageCategoriesViewHolder, position: Int) {
         val selectedCategory = categoriesList[position]
-        val categoryName: String = selectedCategory.name
-        holder.tvCategoryName.text = categoryName
+        holder.tvCategoryName.text = selectedCategory.name
         holder.itemView.setOnClickListener {
             listener.onCategorySelected(selectedCategory, position)
         }

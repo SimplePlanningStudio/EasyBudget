@@ -18,6 +18,7 @@ package com.simplebudget.view.main.calendar
 import com.simplebudget.db.DB
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidGridAdapter
+import com.simplebudget.prefs.AppPreferences
 import org.koin.android.ext.android.inject
 import java.time.LocalDate
 
@@ -27,10 +28,20 @@ class CalendarFragment : CaldroidFragment() {
 
     private val db: DB by inject()
 
+    private val appPreferences: AppPreferences by inject()
+
 // --------------------------------------->
 
     override fun getNewDatesGridAdapter(month: Int, year: Int): CaldroidGridAdapter {
-        return CalendarGridAdapter(requireContext(), db, month, year, getCaldroidData(), extraData)
+        return CalendarGridAdapter(
+            requireContext(),
+            db,
+            appPreferences,
+            month,
+            year,
+            getCaldroidData(),
+            extraData
+        )
     }
 
     override fun onDestroy() {

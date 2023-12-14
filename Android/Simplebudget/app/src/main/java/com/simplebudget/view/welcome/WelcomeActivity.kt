@@ -28,7 +28,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewAnimationUtils
 import com.simplebudget.databinding.ActivityWelcomeBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.setStatusBarColor
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.main.MainActivity
@@ -127,14 +127,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                val pager = binding.welcomeViewPager ?: return
+                val pager = binding.welcomeViewPager
                 val pagerAdapter = pager.adapter ?: return
 
                 if (PAGER_NEXT_INTENT == intent.action && pager.currentItem < pagerAdapter.count - 1) {
                     if (intent.getBooleanExtra(
                             ANIMATE_TRANSITION_KEY,
                             false
-                        ) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                        )
                     ) {
                         // get the center for the clipping circle
                         val cx = intent.getIntExtra(CENTER_X_KEY, pager.x.toInt() + pager.width / 2)
@@ -180,13 +180,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         (((binding.welcomeViewPager.adapter) as? FragmentStatePagerAdapter)?.getItem(initialStep) as? OnboardingFragment<*>)?.let { fragment ->
             setStatusBarColor(fragment.statusBarColor)
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            var flags = window.decorView.systemUiVisibility
-            flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
-
-            window.decorView.systemUiVisibility = flags
-        }
+        var flags = window.decorView.systemUiVisibility
+        flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        window.decorView.systemUiVisibility = flags
     }
 
     override fun onDestroy() {

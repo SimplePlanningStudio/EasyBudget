@@ -17,6 +17,7 @@ package com.simplebudget.prefs
 
 import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.helper.*
+import com.simplebudget.model.account.AccountType
 import java.time.LocalDate
 import java.util.*
 
@@ -100,9 +101,19 @@ private const val USER_SAW_MONTHLY_REPORT_HINT_PARAMETERS_KEY =
 private const val USER_SAW_BREAK_DOWN_HINT_PARAMETERS_KEY = "user_saw_break_down_hint"
 
 /**
+ * Backup hint
+ */
+private const val USER_SAW_BACKUP_HINT_PARAMETERS_KEY = "backup_hint"
+
+/**
  * Search hint
  */
 private const val USER_SAW_SEARCH_HINT_PARAMETERS_KEY = "user_saw_search_hint"
+
+/**
+ * Help hint
+ */
+private const val USER_SAW_HELP_HINT_PARAMETERS_KEY = "user_saw_help_hint"
 
 /**
  * Settings Hint
@@ -122,6 +133,10 @@ private const val USER_SAW_EXPENSE_SWITCH_HINT_PARAMETERS_KEY = "user_saw_switch
 
 private const val USER_SAW_ADD_RECURRING_EXPENSE_HINT_PARAMETERS_KEY =
     "user_saw_add_recurring_expense_hint"
+
+private const val USER_SAW_MULTI_ACCOUNT_HINT_PARAMETERS_KEY = "user_saw_multi_account_hint"
+
+private const val USER_SAW_CALENDAR_ICON_HINT_PARAMETERS_KEY = "user_saw_calendar_icon_hint"
 
 /**
  * Backup enabled
@@ -168,6 +183,7 @@ private const val KEY_CHANGE_LANGUAGE = "change_language"
  * Active Account
  */
 private const val KEY_ACTIVE_ACCOUNT = "active_account"
+private const val KEY_ACTIVE_ACCOUNT_NAME = "active_account_name"
 
 
 fun AppPreferences.getInitDate(): LocalDate? {
@@ -333,6 +349,17 @@ fun AppPreferences.setUserSawBreakDownHint() {
 }
 
 /**
+ * Backup Hint
+ */
+fun AppPreferences.hasUserSawBackupHint(): Boolean {
+    return getBoolean(USER_SAW_BACKUP_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawBackupHint() {
+    putBoolean(USER_SAW_BACKUP_HINT_PARAMETERS_KEY, true)
+}
+
+/**
  * Search Hint
  */
 fun AppPreferences.hasUserSawSearchHint(): Boolean {
@@ -344,6 +371,17 @@ fun AppPreferences.setUserSawSearchHint() {
 }
 
 /**
+ * Help Hint
+ */
+fun AppPreferences.hasUserSawHelpHint(): Boolean {
+    return getBoolean(USER_SAW_HELP_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawHelpHint() {
+    putBoolean(USER_SAW_HELP_HINT_PARAMETERS_KEY, true)
+}
+
+/**
  * Settings hint
  */
 fun AppPreferences.hasUserSawSettingsHint(): Boolean {
@@ -352,6 +390,28 @@ fun AppPreferences.hasUserSawSettingsHint(): Boolean {
 
 fun AppPreferences.setUserSawSettingsHint() {
     putBoolean(USER_SAW_SETTINGS_HINT_PARAMETERS_KEY, true)
+}
+
+/**
+ * Multiple Accounts hint
+ */
+fun AppPreferences.hasUserSawMultiAccountsHint(): Boolean {
+    return getBoolean(USER_SAW_MULTI_ACCOUNT_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawMultiAccountsHint(enabled: Boolean = true) {
+    putBoolean(USER_SAW_MULTI_ACCOUNT_HINT_PARAMETERS_KEY, enabled)
+}
+
+/**
+ * Calendar icon hint
+ */
+fun AppPreferences.hasUserSawCalendarIconHint(): Boolean {
+    return getBoolean(USER_SAW_CALENDAR_ICON_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawCalendarIconHint(enabled: Boolean = true) {
+    putBoolean(USER_SAW_CALENDAR_ICON_HINT_PARAMETERS_KEY, enabled)
 }
 
 /**
@@ -506,4 +566,22 @@ fun AppPreferences.hasUserCompleteManageCategoriesFromSelectCategoryShowCaseView
  */
 fun AppPreferences.setUserCompleteManageCategoriesFromSelectCategoryShowCaseView() {
     putBoolean(SHOW_CASE_VIEW_MANAGE_CATEGORIES_IN_SELECT_CATEGORY, true)
+}
+
+// Active account
+// Default value is 1 as ID of DEFAULT is 1
+fun AppPreferences.activeAccount(): Long = getLong(KEY_ACTIVE_ACCOUNT, 1)
+
+
+fun AppPreferences.activeAccountLabel(): String =
+    getString(KEY_ACTIVE_ACCOUNT_NAME) ?: AccountType.SAVINGS.name
+
+
+/**
+ * Account title must be saved from AccountType enum e.g
+ * AccountType.DEFAULT_ACCOUNT.name
+ */
+suspend fun AppPreferences.setActiveAccount(accountId: Long?, accountName: String?) {
+    putLong(KEY_ACTIVE_ACCOUNT, accountId ?: 1) // 1 is default account id from the DB
+    putString(KEY_ACTIVE_ACCOUNT_NAME, accountName ?: AccountType.SAVINGS.name)
 }

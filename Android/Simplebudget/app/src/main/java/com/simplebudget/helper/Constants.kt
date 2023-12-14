@@ -1,6 +1,7 @@
 package com.simplebudget.helper
 
 import android.os.Looper
+import com.simplebudget.BuildConfig
 
 const val MD5 = "MD5"
 const val PROTECTION_TYPE = "protection_type"
@@ -14,10 +15,15 @@ const val LOCALE_ENGLISH = "en"
 // global intents
 const val OPEN_DOCUMENT_TREE = 1000
 
+const val ACCOUNTS_LIMIT = 6
+val FREE_BUDGETS_LIMIT = if (BuildConfig.DEBUG) 4 else 1
+
 // security
 const val WAS_PROTECTION_HANDLED = "was_protection_handled"
 const val PROTECTION_PIN = 0
 const val SHOW_PIN = 0
 const val DATE_FORMAT_EIGHT = "dd-MM-yyyy"
+
+const val ENABLE_ANALYTICS = false
 
 fun isOnMainThread() = Looper.myLooper() == Looper.getMainLooper()

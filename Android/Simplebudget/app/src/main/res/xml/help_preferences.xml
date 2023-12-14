@@ -1,0 +1,19 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Preference
+        app:icon="@drawable/ic_contact_us_black"
+        app:key="@string/setting_category_faq_key"
+        app:summary="@string/setting_category_faq_message"
+        app:title="@string/setting_category_faq_title" />
+
+    <Preference
+        app:icon="@drawable/ic_feedback_black"
+        app:key="@string/setting_category_feedback_app_key"
+        app:summary="@string/setting_category_feedback_app_message"
+        app:title="@string/setting_category_rate_app_title" />
+
+    <Preference
+        app:icon="@drawable/ic_send_black"
+        app:key="@string/setting_telegram_channel_key"
+        app:summary="@string/setting_telegram_channel_summary"
+        app:title="@string/setting_telegram_channel_title" />
+</PreferenceScreen>

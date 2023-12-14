@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:minHeight="@dimen/_70sdp"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="16dp">
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineMiddle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        android:textColor="@color/primary_dark"
+        app:layout_constraintEnd_toStartOf="@+id/edit_icon"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Entertainment" />
+
+    <TextView
+        android:id="@+id/tvLimit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:textColor="@color/divider_grey"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@+id/edit_icon"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvDescription"
+        tools:text="Limit: $0" />
+
+    <TextView
+        android:id="@+id/tvSpent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:textColor="@color/divider_grey"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@+id/edit_icon"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvLimit"
+        tools:text="Spent: $0" />
+
+    <TextView
+        android:id="@+id/tvRemaining"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:textColor="@color/divider_grey"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@+id/edit_icon"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvSpent"
+        tools:text="Remaining: $0" />
+
+    <TextView
+        android:id="@+id/tvCategory"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:textColor="@color/divider_grey"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@+id/edit_icon"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvRemaining"
+        tools:text="Category: SAVINGS" />
+
+    <TextView
+        android:id="@+id/tvStartDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:textColor="@color/divider_grey"
+        android:visibility="visible"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineMiddle"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvCategory"
+        tools:text="Starting: 03 Dec 2023" />
+
+    <TextView
+        android:id="@+id/tvEndDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_4sdp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:textColor="@color/divider_grey"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@id/guidelineMiddle"
+        app:layout_constraintTop_toBottomOf="@+id/tvCategory"
+        tools:text="Ending: 05 Dec 2023" />
+
+    <ProgressBar
+        android:id="@+id/budgetProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:max="100"
+        android:progress="30"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/edit_icon"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvEndDate" />
+
+    <ImageView
+        android:id="@+id/edit_icon"
+        android:layout_width="@dimen/_20sdp"
+        android:layout_height="@dimen/_20sdp"
+        android:background="?attr/selectableItemBackground"
+        android:src="@drawable/ic_edit_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.432"
+        app:tint="@color/dark_grey"
+        tools:ignore="ContentDescription" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

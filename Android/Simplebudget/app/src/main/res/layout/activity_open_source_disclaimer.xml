@@ -164,15 +164,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_2sdp"
-                android:text="@string/_6_shimmer_facebook"
-                android:textColor="@color/colorBlackLight"
-                android:textSize="@dimen/_12ssp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_2sdp"
-                android:text="@string/_7_jxl_excel_sheet"
+                android:text="@string/_6_jxl_excel_sheet"
                 android:textColor="@color/colorBlackLight"
                 android:textSize="@dimen/_12ssp" />
 
@@ -181,9 +173,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_2sdp"
                 android:text="@string/_8_localization"
-                android:visibility="gone"
                 android:textColor="@color/colorBlackLight"
-                android:textSize="@dimen/_12ssp" />
+                android:textSize="@dimen/_12ssp"
+                android:visibility="gone" />
 
         </LinearLayout>
 

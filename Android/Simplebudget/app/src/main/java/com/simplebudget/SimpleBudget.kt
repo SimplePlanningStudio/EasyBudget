@@ -2,6 +2,7 @@ package com.simplebudget
 
 import android.app.*
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.LifecycleObserver
@@ -9,9 +10,11 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import com.google.android.gms.ads.*
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.simplebudget.db.DB
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.FirebaseAnalyticsHelper
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.injection.appModule
 import com.simplebudget.injection.viewModelModule
@@ -94,6 +97,13 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
      * DO NOT USE LOGGER HERE
      */
     private fun init() {
+        /**
+         * Initialize FirebaseAnalyticsHelper
+         */
+        if (ENABLE_ANALYTICS) {
+            FirebaseAnalyticsHelper.initialize(FirebaseAnalytics.getInstance(this))
+        }
+
         /*
          * Save first launch date if needed
          */
@@ -274,13 +284,9 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
      */
     override fun getWorkManagerConfiguration(): Configuration {
         return if (BuildConfig.DEBUG) {
-            Configuration.Builder()
-                .setMinimumLoggingLevel(Log.DEBUG)
-                .build()
+            Configuration.Builder().setMinimumLoggingLevel(Log.DEBUG).build()
         } else {
-            Configuration.Builder()
-                .setMinimumLoggingLevel(Log.ERROR)
-                .build()
+            Configuration.Builder().setMinimumLoggingLevel(Log.ERROR).build()
         }
     }
 }

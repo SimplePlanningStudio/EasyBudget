@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="margin_end_search_hint">@dimen/_78sdp</dimen>
+    <dimen name="margin_end_monthly_report_hint">@dimen/_57sdp</dimen>
+    <dimen name="margin_end_backup_hint">@dimen/_41sdp</dimen>
+    <dimen name="margin_end_help_hint">@dimen/_22sdp</dimen>
+    <dimen name="margin_end_settings_hint">@dimen/_4sdp</dimen>
+</resources>

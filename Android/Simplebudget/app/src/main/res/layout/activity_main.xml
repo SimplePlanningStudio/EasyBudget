@@ -1,507 +1,641 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/primary"
+    android:fitsSystemWindows="true"
     tools:context=".view.main.MainActivity"
     tools:ignore="UnusedAttribute">
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/appbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:theme="@style/ToolbarTheme" />
-
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/reveal_calendar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/appbar"
-            android:layout_margin="@dimen/_6sdp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/accent"
-            app:cardElevation="@dimen/_6sdp">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_30sdp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    tools:ignore="RelativeOverlap">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_10sdp"
-                        android:text="@string/todayWithColon"
-                        android:textColor="@color/white"
-                        android:textSize="@dimen/_12ssp"
-                        android:textStyle="bold"
-                        tools:ignore="RelativeOverlap" />
-
-                    <TextView
-                        android:id="@+id/todaysDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_6sdp"
-                        android:textColor="@color/primary"
-                        android:textSize="@dimen/_12ssp"
-                        tools:ignore="RelativeOverlap" />
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/arrowDown"
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginEnd="@dimen/_10sdp"
-                    android:contentDescription="@string/content_description"
-                    android:src="@drawable/ic_arrow_down"
-                    android:textSize="@dimen/_18ssp" />
-            </RelativeLayout>
-        </androidx.cardview.widget.CardView>
-
-        <FrameLayout
-            android:id="@+id/calendarView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/reveal_calendar"
-            android:background="@color/primary"
-            android:visibility="visible" />
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/budgetLineContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/calendarView"
-            android:layout_margin="@dimen/_6sdp"
-            app:cardElevation="@dimen/_6sdp">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_56sdp"
-                android:background="@color/white"
-                android:gravity="center">
-
-                <LinearLayout
-                    android:id="@+id/llBalances"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:orientation="horizontal"
-                    android:weightSum="4"
-                    tools:ignore="UselessParent">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1.7"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/budgetLine"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/budget_green"
-                            android:textSize="@dimen/_12ssp"
-                            tools:ignore="RelativeOverlap" />
-
-                        <TextView
-                            android:id="@+id/budgetLineAmount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/colorBlack"
-                            android:textSize="@dimen/_10ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/contSwitchBalance"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.6"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/ivPremiumIcon"
-                            android:layout_width="@dimen/_20sdp"
-                            android:layout_height="@dimen/_20sdp"
-                            android:background="?attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:contentDescription="@string/setting_category_premium_status_key"
-                            android:visibility="visible" />
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/switchHideBalance"
-                            style="@style/SwitchCompatStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/_4sdp"
-                            android:checked="true"
-                            tools:ignore="RtlHardcoded" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1.7"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/expenseLine"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/budget_red"
-                            android:textSize="@dimen/_12ssp"
-                            tools:ignore="RelativeOverlap" />
-
-                        <TextView
-                            android:id="@+id/expenseLineAmount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/colorBlack"
-                            android:textSize="@dimen/_10ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </RelativeLayout>
-
-        </androidx.cardview.widget.CardView>
-
-        <LinearLayout
-            android:id="@+id/emptyExpensesRecyclerViewPlaceholder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/budgetLineContainer"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:visibility="visible"
-            tools:ignore="UseCompoundDrawables">
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:alpha="0.6"
-                android:contentDescription="@string/content_description"
-                android:src="@drawable/ic_wallet" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_8sdp"
-                android:text="@string/no_expense_for_today"
-                android:textColor="@color/secondary_text"
-                android:textSize="14sp" />
-
-        </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/expensesRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/llAddAmountContainer"
-            android:layout_below="@+id/emptyExpensesRecyclerViewPlaceholder"
-            android:layout_marginHorizontal="@dimen/_6sdp"
-            android:layout_marginBottom="@dimen/_4sdp"
-            android:scrollbars="vertical" />
-
-        <LinearLayout
-            android:id="@+id/llDummyViewForHint"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_40sdp"
-            android:layout_above="@+id/llAddAmountContainer"
-            android:layout_marginBottom="@dimen/_minus18sdp"
-            android:weightSum="2">
-
-            <TextView
-                android:id="@+id/tvDummyViewForRecurringHint"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/tvDummyViewForSingleHint"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/llAddAmountContainer"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_40sdp"
-            android:layout_above="@+id/ad_view_container"
-            android:layout_marginBottom="@dimen/_4sdp"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal"
-            android:padding="@dimen/_2sdp"
-            android:weightSum="2">
-
-            <Button
-                android:id="@+id/fab_new_recurring_expense"
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="@dimen/_2sdp"
-                android:layout_weight="1"
-                android:background="@color/caldroid_lighter_gray"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_add_recurring"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:gravity="center"
-                android:text="@string/fab_add_monthly_expense"
-                android:textAllCaps="false"
-                android:textColor="@color/caldroid_black"
-                android:textSize="@dimen/_10ssp" />
-
-            <Button
-                android:id="@+id/fab_new_expense"
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="@dimen/_2sdp"
-                android:layout_weight="1"
-                android:background="@color/caldroid_lighter_gray"
-                android:clickable="true"
-                android:drawableStart="@drawable/ic_add"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:text="@string/fab_add_expense"
-                android:textAllCaps="false"
-                android:textColor="@color/caldroid_black"
-                android:textSize="@dimen/_10ssp" />
-        </LinearLayout>
-
-        <FrameLayout
-            android:id="@+id/ad_view_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:visibility="invisible" />
+        android:layout_height="match_parent">
 
         <RelativeLayout
-            android:id="@+id/intro_overlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/appbar"
-            android:alpha="0.9"
-            android:background="@color/caldroid_black"
-            android:visibility="gone" />
-    </RelativeLayout>
+            android:orientation="vertical">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/coordinatorLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/appbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:id="@+id/monthly_report_hint"
-        android:layout_width="220dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="@dimen/_142sdp"
-        android:orientation="vertical"
-        android:visibility="gone">
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:theme="@style/ToolbarTheme"
+                    app:logo="@drawable/ic_logo_white" />
 
-        <View
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="end"
-            android:background="@drawable/triangle_drawable" />
+            </com.google.android.material.appbar.AppBarLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/monthly_report_hint_background"
-            android:orientation="vertical"
-            android:padding="10dp">
-
-            <TextView
+            <LinearLayout
+                android:id="@+id/containerSelectAccount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="@string/monthly_report_hint"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
+                android:layout_below="@+id/appbar"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:weightSum="4">
 
-            <Button
-                android:id="@+id/monthly_report_hint_button"
+                <include
+                    android:id="@+id/layoutSelectAccount"
+                    layout="@layout/layout_update_account"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3.7" />
+
+                <LinearLayout
+                    android:id="@+id/ivCalendarCollapse"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:layout_gravity="center"
+                    android:layout_marginEnd="@dimen/_2sdp"
+                    android:layout_weight="0.3"
+                    android:background="@drawable/accent_rounded_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/content_description"
+                        android:src="@drawable/ic_calenadar_white" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/calendarView"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:text="@string/ok"
-                android:theme="@style/BlueButton" />
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/containerSelectAccount"
+                android:background="@color/primary"
+                android:visibility="visible" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/budgetLineContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/calendarView"
+                android:layout_margin="@dimen/_6sdp"
+                app:cardElevation="@dimen/_6sdp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_56sdp"
+                    android:background="@color/white"
+                    android:gravity="center">
+
+                    <LinearLayout
+                        android:id="@+id/llBalances"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal"
+                        android:weightSum="4"
+                        tools:ignore="UselessParent">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1.7"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/budgetLine"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/budget_green"
+                                android:textSize="@dimen/_12ssp"
+                                tools:ignore="RelativeOverlap" />
+
+                            <TextView
+                                android:id="@+id/budgetLineAmount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/colorBlack"
+                                android:textSize="@dimen/_10ssp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/contSwitchBalance"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.6"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:id="@+id/ivPremiumIcon"
+                                android:layout_width="@dimen/_20sdp"
+                                android:layout_height="@dimen/_20sdp"
+                                android:background="?attr/selectableItemBackground"
+                                android:clickable="true"
+                                android:contentDescription="@string/setting_category_premium_status_key"
+                                android:focusable="true"
+                                android:visibility="visible" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/switchHideBalance"
+                                style="@style/SwitchCompatStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/_4sdp"
+                                android:checked="true"
+                                tools:ignore="RtlHardcoded" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1.7"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/expenseLine"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/budget_red"
+                                android:textSize="@dimen/_12ssp"
+                                tools:ignore="RelativeOverlap" />
+
+                            <TextView
+                                android:id="@+id/expenseLineAmount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/colorBlack"
+                                android:textSize="@dimen/_10ssp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <LinearLayout
+                android:id="@+id/emptyExpensesRecyclerViewPlaceholder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/budgetLineContainer"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:visibility="visible"
+                tools:ignore="UseCompoundDrawables">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:alpha="0.6"
+                    android:contentDescription="@string/content_description"
+                    android:src="@drawable/ic_wallet" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:text="@string/no_expense_for_today"
+                    android:textColor="@color/secondary_text"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/expensesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/llAddAmountContainer"
+                android:layout_below="@+id/emptyExpensesRecyclerViewPlaceholder"
+                android:layout_marginHorizontal="@dimen/_6sdp"
+                android:layout_marginBottom="@dimen/_4sdp"
+                android:scrollbars="vertical" />
+
+            <LinearLayout
+                android:id="@+id/llDummyViewForHint"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_above="@+id/llAddAmountContainer"
+                android:layout_marginBottom="@dimen/_minus18sdp"
+                android:weightSum="2">
+
+                <TextView
+                    android:id="@+id/tvDummyViewForRecurringHint"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvDummyViewForSingleHint"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llAddAmountContainer"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_above="@+id/ad_view_container"
+                android:layout_marginBottom="@dimen/_4sdp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:padding="@dimen/_2sdp"
+                android:weightSum="2">
+
+                <Button
+                    android:id="@+id/fab_new_recurring_expense"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="@dimen/_2sdp"
+                    android:layout_weight="1"
+                    android:background="@color/caldroid_lighter_gray"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_add_recurring"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:text="@string/fab_add_monthly_expense"
+                    android:textAllCaps="false"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="@dimen/_10ssp" />
+
+                <Button
+                    android:id="@+id/fab_new_expense"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/_2sdp"
+                    android:layout_weight="1"
+                    android:background="@color/caldroid_lighter_gray"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_add"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:text="@string/fab_add_expense"
+                    android:textAllCaps="false"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="@dimen/_10ssp" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/ad_view_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:visibility="invisible" />
+
+            <TextView
+                android:id="@+id/counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="@dimen/_400sdp"
+                android:textColor="@color/accent"
+                android:textSize="@dimen/_70ssp" />
+        </RelativeLayout>
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/coordinatorLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Multi Accounts Hint-->
+        <LinearLayout
+            android:id="@+id/multiAccountsHint"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|right"
+            android:layout_marginTop="@dimen/_50sdp"
+            android:layout_marginRight="@dimen/_40sdp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/hide_multi_account_hint_message"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/multiAccountsHintButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/future_expense_hint"
-        android:layout_width="220dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="@dimen/_105sdp"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <View
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="end"
-            android:background="@drawable/triangle_drawable" />
-
+        <!-- Calendar Hint-->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/monthly_report_hint_background"
+            android:id="@+id/calendarHint"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|right"
+            android:layout_marginTop="@dimen/_54sdp"
+            android:layout_marginEnd="@dimen/_minus2sdp"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:visibility="gone">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="@string/breakdown_hint"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
 
-            <Button
-                android:id="@+id/future_expense_hint_button"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:text="@string/ok"
-                android:theme="@style/BlueButton" />
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/hide_calendar_hint_message"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/calendarHintButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/search_hint"
-        android:layout_width="220dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="@dimen/_68sdp"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <View
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="end"
-            android:background="@drawable/triangle_drawable" />
-
+        <!-- Search Hint-->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/monthly_report_hint_background"
+            android:id="@+id/search_hint"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="@dimen/margin_end_search_hint"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:visibility="gone">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="@string/search_dialog_hint"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
 
-            <Button
-                android:id="@+id/search_hint_button"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:text="@string/ok"
-                android:theme="@style/BlueButton" />
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/search_dialog_hint"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/search_hint_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
-
-
-    <LinearLayout
-        android:id="@+id/settings_hint"
-        android:layout_width="220dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="@dimen/_31sdp"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <View
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="end"
-            android:background="@drawable/triangle_drawable" />
-
+        <!-- Monthly Report Hint-->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/monthly_report_hint_background"
+            android:id="@+id/monthly_report_hint"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="@dimen/margin_end_monthly_report_hint"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:visibility="gone">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:text="@string/settings_hint"
-                android:textColor="@android:color/black"
-                android:textSize="15sp" />
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
 
-            <Button
-                android:id="@+id/settings_hint_button"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:text="@string/ok"
-                android:theme="@style/BlueButton" />
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/monthly_report_hint"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/monthly_report_hint_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
+        <!-- Backup Hint-->
+        <LinearLayout
+            android:id="@+id/backup_hint"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="@dimen/margin_end_backup_hint"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-    <FrameLayout
-        android:id="@+id/framelayoutOpaque"
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/backup_hint"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/backup_hint_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Help Hint-->
+        <LinearLayout
+            android:id="@+id/help_hint"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="@dimen/margin_end_help_hint"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/help_dialog_hint"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/help_hint_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Settings Hint-->
+        <LinearLayout
+            android:id="@+id/settings_hint"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="@dimen/margin_end_settings_hint"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/settings_hint"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/settings_hint_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/framelayoutOpaque"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.6"
+            android:background="@color/colorBlack"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="@dimen/_80sdp"
+                android:layout_height="@dimen/_80sdp"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
+    </FrameLayout>
+
+    <!-- Navigation Drawer -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.6"
-        android:background="@color/colorBlack"
-        android:visibility="gone">
+        android:layout_gravity="start"
+        android:layout_marginEnd="@dimen/_30sdp"
+        android:background="@color/white"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/navigation_menu" />
 
-        <ProgressBar
-            android:layout_width="@dimen/_80sdp"
-            android:layout_height="@dimen/_80sdp"
-            android:layout_gravity="center" />
-
-    </FrameLayout>
-</FrameLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

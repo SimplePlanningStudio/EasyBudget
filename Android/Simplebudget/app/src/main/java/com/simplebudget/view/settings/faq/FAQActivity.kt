@@ -9,7 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityFaqBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 
 class FAQActivity : BaseActivity<ActivityFaqBinding>() {
 

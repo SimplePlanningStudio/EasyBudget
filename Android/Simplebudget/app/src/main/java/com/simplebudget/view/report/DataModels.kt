@@ -4,8 +4,7 @@ import com.simplebudget.model.expense.Expense
 
 class DataModels {
     open class SuperParent()
-    data class Parent(var category: String, var totalCredit: Double, var totalDebit: Double) :
-        SuperParent()
+    data class Parent(var category: String, var totalCredit: Double, var totalDebit: Double) : SuperParent()
 
     data class Child(var expense: Expense) : SuperParent()
 

@@ -7,7 +7,6 @@
     android:clipChildren="false"
     tools:context=".view.premium.PremiumActivity">
 
-
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/animationView"
         android:layout_width="match_parent"
@@ -19,113 +18,83 @@
         app:lottie_autoPlay="true"
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/go_premium_now"
-        app:lottie_speed="100" />
-
+        app:lottie_speed="500" />
 
     <TextView
-        android:id="@+id/tvTitle"
+        android:id="@+id/screenTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/animationView"
-        android:gravity="center"
         android:maxLines="1"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:text="@string/setting_category_not_premium_status_title"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/_26ssp" />
-
-    <TextView
-        android:id="@+id/tv_description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/tvTitle"
-        android:gravity="center"
-        android:maxLines="3"
         android:paddingHorizontal="@dimen/_24sdp"
-        android:text="@string/setting_category_not_premium_status_message"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/_18ssp" />
-
-    <ImageView
-        android:id="@+id/animationViewNoAds"
-        android:layout_width="@dimen/_120sdp"
-        android:layout_height="@dimen/_120sdp"
-        android:layout_below="@id/tv_description"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="@dimen/_20sdp"
-        android:contentDescription="@string/content_description" />
-
-    <me.relex.circleindicator.CircleIndicator
-        android:id="@+id/premium_view_pager_indicator"
-        android:layout_width="match_parent"
-        android:layout_height="20dp"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="70dp" />
-
-
-    <LinearLayout
-        android:id="@+id/buttons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/tv_promo_code"
-        android:layout_gravity="bottom"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:clipChildren="false"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal">
-
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/premium_not_now_button"
-            style="@style/BlueButton"
-            android:layout_width="@dimen/_99sdp"
-            android:layout_height="@dimen/_35sdp"
-            android:layout_marginEnd="@dimen/_4sdp"
-            android:background="@drawable/ic_small_button"
-            android:backgroundTint="@color/caldroid_gray"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            android:maxLines="1"
-            android:text="Not now"
-            android:textAllCaps="false"
-            android:textColor="@color/budget_red"
-            android:textSize="@dimen/_12ssp"
-            app:backgroundTint="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:ignore="UnusedAttribute" />
-
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/premium_cta_button"
-            style="@style/BlueButton"
-            android:layout_width="@dimen/_99sdp"
-            android:layout_height="@dimen/_35sdp"
-            android:layout_marginStart="@dimen/_4sdp"
-            android:background="@drawable/ic_small_button"
-            android:backgroundTint="@color/accent"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            android:maxLines="1"
-            android:text="Buy"
-            android:textAllCaps="false"
-            android:textColor="@color/budget_green"
-            android:textSize="@dimen/_12ssp"
-            app:backgroundTint="@color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:ignore="UnusedAttribute" />
-
-    </LinearLayout>
+        android:textColor="@color/white"
+        android:textSize="@dimen/_22ssp"
+        android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/tv_promo_code"
+        android:id="@+id/tvDescriptionOne"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/screenTitle"
+        android:paddingHorizontal="@dimen/_24sdp"
+        android:text="@string/premium_caption_one"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_14ssp" />
+
+    <TextView
+        android:id="@+id/tvDescriptionTwo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvDescriptionOne"
+        android:paddingHorizontal="@dimen/_24sdp"
+        android:text="@string/premium_caption_two"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_14ssp" />
+
+    <TextView
+        android:id="@+id/tvDescriptionThree"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvDescriptionTwo"
+        android:paddingHorizontal="@dimen/_24sdp"
+        android:text="@string/premium_caption_three"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_14ssp" />
+
+    <TextView
+        android:id="@+id/tvDescriptionFour"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvDescriptionThree"
+        android:paddingHorizontal="@dimen/_24sdp"
+        android:text="@string/premium_caption_four"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_14ssp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewInAppProducts"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/buttonBuy"
+        android:layout_below="@+id/tvDescriptionFour"
+        android:layout_marginVertical="@dimen/_30sdp" />
+
+    <Button
+        android:id="@+id/buttonBuy"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/promoCode"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:background="@drawable/ic_large_button_green"
+        android:gravity="center"
+        android:text="@string/try_free_and_subscribe"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_12ssp" />
+
+    <TextView
+        android:id="@+id/promoCode"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/_40sdp"
         android:layout_alignParentBottom="true"

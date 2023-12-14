@@ -16,15 +16,25 @@
 package com.simplebudget.db.impl.categories
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CategoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun persistCategories(categories: List<CategoryEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun persistCategory(categoryEntity: CategoryEntity): Long
 
     @Query("SELECT * FROM category")
-    suspend fun getCategories(): List<CategoryEntity>
+    fun getCategories(): Flow<List<CategoryEntity>>
+
+    @Query("SELECT * FROM category WHERE _category_id = :categoryId")
+    suspend fun getCategory(categoryId: Long): CategoryEntity
+
+    @Query("SELECT * FROM category WHERE name = 'MISCELLANEOUS'")
+    suspend fun getMiscellaneousCategory(): CategoryEntity
 
     @Delete
     suspend fun deleteCategory(categoryEntity: CategoryEntity)
@@ -32,4 +42,6 @@ interface CategoryDao {
     @Query("DELETE FROM category WHERE name = :categoryName")
     suspend fun deleteCategory(categoryName: String)
 
+    @Query("SELECT COUNT(*) FROM category")
+    suspend fun getRowCount(): Int
 }

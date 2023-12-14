@@ -22,19 +22,19 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.android.billingclient.api.*
 import com.simplebudget.helper.Logger
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.view.main.MainActivity
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 
 /**
  * SKU premium, lifetime, subscription
  */
-private const val SKU_PREMIUM_LEGACY = "premium"
+const val SKU_PREMIUM_LEGACY = "premium"
 
 /**
  * Monthly payments
  */
-private const val SKU_SUBSCRIPTION = "simple_budget_membership"
+const val SKU_SUBSCRIPTION = "simple_budget_membership"
 
 /**
  * Cache storage of the IAB status
@@ -53,10 +53,8 @@ class IabImpl(
     private var queryPurchasesJob: Job? = null
 
     private val appContext = context.applicationContext
-    private val billingClient = BillingClient.newBuilder(appContext)
-        .setListener(this)
-        .enablePendingPurchases()
-        .build()
+    private val billingClient =
+        BillingClient.newBuilder(appContext).setListener(this).enablePendingPurchases().build()
 
     /**
      * iab check status
@@ -86,10 +84,7 @@ class IabImpl(
         iabStatus = status
 
         // Save status only on success
-        if (status == PremiumCheckStatus.LEGACY_PREMIUM ||
-            status == PremiumCheckStatus.SUBSCRIBED ||
-            status == PremiumCheckStatus.NOT_PREMIUM
-        ) {
+        if (status == PremiumCheckStatus.LEGACY_PREMIUM || status == PremiumCheckStatus.SUBSCRIBED || status == PremiumCheckStatus.NOT_PREMIUM) {
             appPreferences.setUserPremium((iabStatus == PremiumCheckStatus.LEGACY_PREMIUM) || (iabStatus == PremiumCheckStatus.SUBSCRIBED))
         }
 
@@ -107,8 +102,7 @@ class IabImpl(
      * @return true if the user if premium, false otherwise
      */
     override fun isUserPremium(): Boolean {
-        return appPreferences.isUserPremium() ||
-                (iabStatus == PremiumCheckStatus.LEGACY_PREMIUM || iabStatus == PremiumCheckStatus.SUBSCRIBED)
+        return appPreferences.isUserPremium() || (iabStatus == PremiumCheckStatus.LEGACY_PREMIUM || iabStatus == PremiumCheckStatus.SUBSCRIBED)
     }
 
     /**
@@ -136,17 +130,62 @@ class IabImpl(
         }
 
         val skuList = listOf(
-            QueryProductDetailsParams.Product
-                .newBuilder()
-                .setProductId(SKU_SUBSCRIPTION)
-                .setProductType(BillingClient.ProductType.SUBS)
-                .build()
+            QueryProductDetailsParams.Product.newBuilder().setProductId(SKU_PREMIUM_LEGACY)
+                .setProductType(BillingClient.ProductType.INAPP).build()
         )
 
         val (billingResult, skuDetailsList) = billingClient.queryProductDetails(
-            QueryProductDetailsParams.newBuilder()
-                .setProductList(skuList)
+            QueryProductDetailsParams.newBuilder().setProductList(skuList).build()
+        )
+
+        if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+                setIabStatusAndNotify(PremiumCheckStatus.LEGACY_PREMIUM)
+                return PremiumPurchaseFlowResult.Success
+            }
+            return PremiumPurchaseFlowResult.Error("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")
+        }
+
+        if (skuDetailsList == null || skuDetailsList.isEmpty()) {
+            return PremiumPurchaseFlowResult.Error("Unable to fetch content from PlayStore (response code: skuDetailsList is empty). Please restart the app and try again")
+        }
+
+        val product = skuDetailsList.first()
+
+        val productDetailsParamsList = listOf(
+            BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product).build()
+        )
+
+        val billingFlowParams =
+            BillingFlowParams.newBuilder().setProductDetailsParamsList(productDetailsParamsList)
                 .build()
+
+        billingClient.launchBillingFlow(activity, billingFlowParams)
+
+        return pendingPurchaseEventMutableFlow.first()
+    }
+
+    override suspend fun launchPremiumPurchaseSubscriptionFlow(
+        activity: Activity,
+        productId: String
+    ): PremiumPurchaseFlowResult {
+        if (iabStatus != PremiumCheckStatus.NOT_PREMIUM) {
+            return when (iabStatus) {
+                PremiumCheckStatus.ERROR -> PremiumPurchaseFlowResult.Error("Unable to connect to your Google account. Please restart the app and try again")
+                PremiumCheckStatus.LEGACY_PREMIUM, PremiumCheckStatus.SUBSCRIBED -> PremiumPurchaseFlowResult.Error(
+                    "You already bought Premium with that Google account. Restart the app if you don't have access to premium features."
+                )
+                else -> PremiumPurchaseFlowResult.Error("Runtime error: $iabStatus")
+            }
+        }
+
+        val skuList = listOf(
+            QueryProductDetailsParams.Product.newBuilder().setProductId(productId)
+                .setProductType(BillingClient.ProductType.SUBS).build()
+        )
+
+        val (billingResult, skuDetailsList) = billingClient.queryProductDetails(
+            QueryProductDetailsParams.newBuilder().setProductList(skuList).build()
         )
 
         if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
@@ -165,17 +204,14 @@ class IabImpl(
         val offerToken = product.subscriptionOfferDetails?.firstOrNull()?.offerToken
             ?: return PremiumPurchaseFlowResult.Error("Unable to fetch content from PlayStore (response code: null offerToken). Please restart the app and try again")
 
-        val productDetailsParamsList =
-            listOf(
-                BillingFlowParams.ProductDetailsParams.newBuilder()
-                    .setProductDetails(product)
-                    .setOfferToken(offerToken)
-                    .build()
-            )
+        val productDetailsParamsList = listOf(
+            BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product)
+                .setOfferToken(offerToken).build()
+        )
 
-        val billingFlowParams = BillingFlowParams.newBuilder()
-            .setProductDetailsParamsList(productDetailsParamsList)
-            .build()
+        val billingFlowParams =
+            BillingFlowParams.newBuilder().setProductDetailsParamsList(productDetailsParamsList)
+                .build()
 
         billingClient.launchBillingFlow(activity, billingFlowParams)
 
@@ -229,6 +265,33 @@ class IabImpl(
             } else {
                 setIabStatusAndNotify(PremiumCheckStatus.NOT_PREMIUM)
             }
+        }
+    }
+
+    override suspend fun queryProductDetails(): Flow<List<ProductDetails>> {
+        val inAppFlow = getDetailsFlow(listOf(SKU_PREMIUM_LEGACY), BillingClient.ProductType.INAPP)
+        val subsFlow = getDetailsFlow(listOf(SKU_SUBSCRIPTION), BillingClient.ProductType.SUBS)
+
+        val allDetailsFlow = inAppFlow.zip(subsFlow) { inAppResult, subsResult ->
+            return@zip inAppResult + subsResult
+        }
+        return allDetailsFlow
+    }
+
+    private fun getDetailsFlow(productIds: List<String>, type: String): Flow<List<ProductDetails>> {
+        val productList = productIds.map { productId ->
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(productId)
+                .setProductType(type)
+                .build()
+        }
+
+        val params = QueryProductDetailsParams.newBuilder().setProductList(productList).build()
+
+        return flow {
+            emit(billingClient.queryProductDetails(params))
+        }.map { result ->
+            result.productDetailsList ?: emptyList()
         }
     }
 
@@ -311,7 +374,7 @@ private fun AppPreferences.setUserPremium(premium: Boolean) {
     putBoolean(PREMIUM_PARAMETER_KEY, premium)
 }
 
-private fun AppPreferences.isUserPremium(): Boolean {
+fun AppPreferences.isUserPremium(): Boolean {
     return getBoolean(PREMIUM_PARAMETER_KEY, false)
 }
 

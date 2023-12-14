@@ -21,18 +21,23 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.model.account.AccountType
+import com.simplebudget.model.account.Accounts
+import com.simplebudget.model.category.ExpenseCategories
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
+import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
+import com.simplebudget.prefs.setActiveAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 class MainViewModel(
-    private val db: DB,
-    private val iab: Iab
+    private val db: DB, private val iab: Iab, private val appPreferences: AppPreferences
 ) : ViewModel() {
     private var selectedDate: LocalDate = LocalDate.now()
 
@@ -74,26 +79,67 @@ class MainViewModel(
 
     sealed class RecurringExpenseRestoreProgressState {
         class Starting(
-            val recurringExpense: RecurringExpense,
-            val expensesToRestore: List<Expense>
+            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>
         ) : RecurringExpenseRestoreProgressState()
 
         class ErrorIO(
-            val recurringExpense: RecurringExpense,
-            val expensesToRestore: List<Expense>
+            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>
         ) : RecurringExpenseRestoreProgressState()
 
         class Restored(
-            val recurringExpense: RecurringExpense,
-            val expensesToRestore: List<Expense>
+            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>
         ) : RecurringExpenseRestoreProgressState()
     }
 
     init {
         premiumStatusLiveData.value = if (!iab.isIabReady()) false else iab.isUserPremium()
         refreshDataForDate(selectedDate)
+        refreshCategories()
+        refreshAccountTypes()
     }
 
+    /**
+     * Add categories and keep user's categories as well.
+     */
+    private fun refreshCategories() {
+        viewModelScope.launch {
+            val categoriesNotAvailable = db.isCategoriesTableEmpty()
+            if (categoriesNotAvailable) {
+                //So it's first time categories being added that's why DB categories are empty
+                //Adding default categories into DB
+                db.persistCategories(ExpenseCategories.getCategoriesList())
+            }
+
+        }
+    }
+
+    /**
+     * Add account types into db
+     * As it's first time accounts being added that's why DB accounts are empty
+     * adding default / fixed accounts into DB
+     *
+     *  - Persists accounts list into DB
+     *  - Set active account to default at this moment
+     *  -  Save this active account id, name into preferences for later use.
+     */
+    private fun refreshAccountTypes() {
+        viewModelScope.launch {
+            val accountsNotAvailable = db.isAccountsTypeTableEmpty()
+            if (accountsNotAvailable) {
+                //So it's first time accounts being added that's why DB accounts are empty
+                //Adding default / fixed accounts into DB
+                db.persistAccountTypes(Accounts.getAccountsList())
+                //Set active account to default at this moment
+                db.setActiveAccount(AccountType.SAVINGS.name)
+                // Save this active account id, name into preferences for later use.
+                db.getActiveAccount().collect {
+                    if (it.id != null && it.name != null) {
+                        appPreferences.setActiveAccount(it.id, it.name)
+                    }
+                }
+            }
+        }
+    }
 
     fun onDeleteExpenseClicked(expense: Expense) {
         viewModelScope.launch {
@@ -144,8 +190,7 @@ class MainViewModel(
 
             val firstOccurrenceError = withContext(Dispatchers.Default) {
                 deleteType == RecurringExpenseDeleteType.TO && !db.hasExpensesForRecurringExpenseBeforeDate(
-                    associatedRecurringExpense,
-                    expense.date
+                    associatedRecurringExpense, expense.date
                 )
             }
 
@@ -159,8 +204,9 @@ class MainViewModel(
             val expensesToRestore: List<Expense>? = withContext(Dispatchers.Default) {
                 when (deleteType) {
                     RecurringExpenseDeleteType.ALL -> {
-                        val expensesToRestore =
-                            db.getAllExpenseForRecurringExpense(associatedRecurringExpense)
+                        val expensesToRestore = db.getAllExpenseForRecurringExpense(
+                            associatedRecurringExpense
+                        )
 
                         try {
                             db.deleteAllExpenseForRecurringExpense(associatedRecurringExpense)
@@ -178,14 +224,12 @@ class MainViewModel(
                     }
                     RecurringExpenseDeleteType.FROM -> {
                         val expensesToRestore = db.getAllExpensesForRecurringExpenseFromDate(
-                            associatedRecurringExpense,
-                            expense.date
+                            associatedRecurringExpense, expense.date
                         )
 
                         try {
                             db.deleteAllExpenseForRecurringExpenseFromDate(
-                                associatedRecurringExpense,
-                                expense.date
+                                associatedRecurringExpense, expense.date
                             )
                         } catch (t: Throwable) {
                             return@withContext null
@@ -195,8 +239,7 @@ class MainViewModel(
                     }
                     RecurringExpenseDeleteType.TO -> {
                         val expensesToRestore = db.getAllExpensesForRecurringExpenseBeforeDate(
-                            associatedRecurringExpense,
-                            expense.date
+                            associatedRecurringExpense, expense.date
                         )
 
                         try {
@@ -258,8 +301,7 @@ class MainViewModel(
                 } catch (t: Throwable) {
                     recurringExpenseRestoreProgressEventStream.postValue(
                         RecurringExpenseRestoreProgressState.ErrorIO(
-                            recurringExpense,
-                            expensesToRestore
+                            recurringExpense, expensesToRestore
                         )
                     )
                     return@launch
@@ -281,8 +323,7 @@ class MainViewModel(
             if (!expensesAdd) {
                 recurringExpenseRestoreProgressEventStream.value =
                     RecurringExpenseRestoreProgressState.ErrorIO(
-                        recurringExpense,
-                        expensesToRestore
+                        recurringExpense, expensesToRestore
                     )
                 return@launch
             }
@@ -296,7 +337,7 @@ class MainViewModel(
     fun onAdjustCurrentBalanceClicked() {
         viewModelScope.launch {
             val balance = withContext(Dispatchers.Default) {
-                -db.getBalanceForDay(LocalDate.now())
+                -db.getBalanceForDay(LocalDate.now(), appPreferences.activeAccount())
             }
 
             startCurrentBalanceEditorEventStream.value = balance
@@ -307,7 +348,7 @@ class MainViewModel(
         viewModelScope.launch {
             try {
                 val currentBalance = withContext(Dispatchers.Default) {
-                    -db.getBalanceForDay(LocalDate.now())
+                    -db.getBalanceForDay(LocalDate.now(), appPreferences.activeAccount())
                 }
 
                 if (newBalance == currentBalance) {
@@ -319,7 +360,8 @@ class MainViewModel(
 
                 // Look for an existing balance for the day
                 val existingExpense = withContext(Dispatchers.Default) {
-                    db.getExpensesForDay(LocalDate.now()).find { it.title == balanceExpenseTitle }
+                    db.getExpensesForDay(LocalDate.now(), appPreferences.activeAccount())
+                        .find { it.title == balanceExpenseTitle }
                 }
 
                 if (existingExpense != null) { // If the adjust balance exists, just add the diff and persist it
@@ -337,7 +379,8 @@ class MainViewModel(
                                 balanceExpenseTitle,
                                 -diff,
                                 LocalDate.now(),
-                                ExpenseCategoryType.BALANCE.name
+                                ExpenseCategoryType.BALANCE.name,
+                                appPreferences.activeAccount()
                             )
                         )
                     }
@@ -377,35 +420,39 @@ class MainViewModel(
         premiumStatusLiveData.value = if (!iab.isIabReady()) false else iab.isUserPremium()
     }
 
+    fun isPremium() = iab.isUserPremium()
+
     fun onSelectDate(date: LocalDate) {
         selectedDate = date
         refreshDataForDate(date)
     }
 
-    fun onCurrencySelected() {
+    fun refreshTodaysExpenses() {
         refreshDataForDate(selectedDate)
     }
 
     private fun refreshDataForDate(date: LocalDate) {
         viewModelScope.launch {
             val (balance, expenses) = withContext(Dispatchers.Default) {
-                Pair(getBalanceForDay(date), db.getExpensesForDay(date))
+                Pair(
+                    getBalanceForDay(date),
+                    db.getExpensesForDay(date, appPreferences.activeAccount())
+                )
             }
-            selectedDateChangeLiveData.value =
-                SelectedDateExpensesData(date, balance, expenses)
+            selectedDateChangeLiveData.value = SelectedDateExpensesData(date, balance, expenses)
         }
     }
 
     private suspend fun getExpenseForDay(date: LocalDate): Double {
         var balance = 0.0 // Just to keep a positive number if balance == 0
-        balance -= db.getBalanceForDay(date)
+        balance -= db.getBalanceForDay(date, appPreferences.activeAccount())
 
         return balance
     }
 
     private suspend fun getBalanceForDay(date: LocalDate): Double {
         var balance = 0.0 // Just to keep a positive number if balance == 0
-        balance -= db.getBalanceForDay(date)
+        balance -= db.getBalanceForDay(date, appPreferences.activeAccount())
 
         return balance
     }
@@ -422,7 +469,6 @@ class MainViewModel(
     fun onWelcomeScreenFinished() {
         refreshDataForDate(selectedDate)
     }
-
 // ----------------------------------------->
 
     override fun onCleared() {
@@ -432,15 +478,11 @@ class MainViewModel(
 }
 
 data class SelectedDateExpensesData(
-    val date: LocalDate,
-    val balance: Double,
-    val expenses: List<Expense>
+    val date: LocalDate, val balance: Double, val expenses: List<Expense>
 )
 
 data class ExpenseDeletionSuccessData(val deletedExpense: Expense, val newDayBalance: Double)
 
 data class BalanceAdjustedData(
-    val balanceExpense: Expense,
-    val diffWithOldBalance: Double,
-    val newBalance: Double
+    val balanceExpense: Expense, val diffWithOldBalance: Double, val newBalance: Double
 )

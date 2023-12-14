@@ -11,28 +11,32 @@ import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccountLabel
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 class SubItemAdapter(
-    private val subItemModel: List<Expense>,
-    private val appPreferences: AppPreferences
-) :
-    RecyclerView.Adapter<SubItemAdapter.ViewHolder>() {
+    private val subItemModel: List<Expense>, private val appPreferences: AppPreferences
+) : RecyclerView.Adapter<SubItemAdapter.ViewHolder>() {
 
     /**
      * Formatter to get day number for each date
      */
     private val dayFormatter = DateTimeFormatter.ofPattern("dd", Locale.getDefault())
 
+    /**
+     * Formatter to get day number for each date
+     */
+    private val dayFormatterDetailed =
+        DateTimeFormatter.ofPattern("E,dd/MMM/yyyy", Locale.getDefault())
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val binding = RecyclerviewMonthlyReportExpenseCellBinding.bind(itemView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context)
-                .inflate(R.layout.recyclerview_monthly_report_expense_cell, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.recyclerview_monthly_report_expense_cell, parent, false)
         return ViewHolder(view)
     }
 
@@ -40,7 +44,8 @@ class SubItemAdapter(
         holder.binding.apply {
             val obj = subItemModel[position]
             expenseTitle.text = obj.title
-            categoryType.text = String.format("%s", obj.category)
+            categoryType.text =
+                String.format("%s / %s", obj.category, appPreferences.activeAccountLabel())
             expenseAmount.text =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, -obj.amount)
             expenseAmount.setTextColor(
@@ -49,12 +54,19 @@ class SubItemAdapter(
                     if (obj.isRevenue()) R.color.budget_green else R.color.budget_red
                 )
             )
-            recurringIndicator.visibility =
-                if (obj.isRecurring()) View.VISIBLE else View.GONE
+            recurringIndicator.visibility = if (obj.isRecurring()) View.VISIBLE else View.GONE
+
+            val expenseType: String = if (obj.isFutureExpense()) {
+                holder.itemView.context.getString(R.string.future_expense)
+            } else if (obj.isPastExpense()) {
+                holder.itemView.context.getString(R.string.past_expense)
+            } else {
+                holder.itemView.context.getString(R.string.today_expense)
+            }
+            futureExpense.text = expenseType
 
             if (obj.isRecurring()) {
-                when (obj.associatedRecurringExpense?.type
-                    ?: RecurringExpenseType.NOTHING) {
+                when (obj.associatedRecurringExpense?.type ?: RecurringExpenseType.NOTHING) {
                     RecurringExpenseType.DAILY -> recurringExpenseType.text =
                         holder.itemView.context.getString(R.string.daily)
                     RecurringExpenseType.WEEKLY -> recurringExpenseType.text =
@@ -79,6 +91,7 @@ class SubItemAdapter(
                 }
             }
             dateTv.text = dayFormatter.format(obj.date)
+            dateDetailed.text = dayFormatterDetailed.format(obj.date)
         }
     }
 

@@ -61,7 +61,8 @@ class ExpenseEditViewModel(
             if (expense != null) ExistingExpenseData(
                 expense.title,
                 expense.amount,
-                expense.category
+                expense.category,
+                expense.accountId
             ) else null
     }
 
@@ -72,7 +73,8 @@ class ExpenseEditViewModel(
     fun onSave(
         value: Double,
         description: String,
-        expenseCategoryType: String
+        expenseCategoryType: String,
+        accountId: Long
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -83,18 +85,33 @@ class ExpenseEditViewModel(
             expenseAddBeforeInitDateEventStream.value = Unit
             return
         }
-        doSaveExpense(value, description, isRevenue, date, expenseCategoryType)
+        doSaveExpense(
+            value,
+            description,
+            isRevenue,
+            date,
+            expenseCategoryType,
+            accountId
+        )
     }
 
     fun onAddExpenseBeforeInitDateConfirmed(
         value: Double,
         description: String,
-        expenseCategoryType: String
+        expenseCategoryType: String,
+        accountId: Long
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
 
-        doSaveExpense(value, description, isRevenue, date, expenseCategoryType)
+        doSaveExpense(
+            value,
+            description,
+            isRevenue,
+            date,
+            expenseCategoryType,
+            accountId
+        )
     }
 
     fun onAddExpenseBeforeInitDateCancelled() {
@@ -106,7 +123,8 @@ class ExpenseEditViewModel(
         description: String,
         isRevenue: Boolean,
         date: LocalDate,
-        expenseCategoryType: String
+        expenseCategoryType: String,
+        accountId: Long
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
@@ -119,7 +137,8 @@ class ExpenseEditViewModel(
                     description,
                     if (isRevenue) -value else value,
                     date,
-                    expenseCategoryType
+                    expenseCategoryType,
+                    accountId
                 )
                 db.persistExpense(expense)
             }
@@ -149,5 +168,6 @@ data class ExpenseEditType(val isRevenue: Boolean, val editing: Boolean)
 data class ExistingExpenseData(
     val title: String,
     val amount: Double,
-    val categoryType: String
+    val categoryType: String,
+    val accountId: Long
 )

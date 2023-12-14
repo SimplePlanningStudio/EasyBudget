@@ -19,6 +19,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import java.time.LocalDate
@@ -40,7 +41,9 @@ class ExpenseEntity(
     @ColumnInfo(name = "monthly_id")
     val associatedRecurringExpenseId: Long?,
     @ColumnInfo(name = "category")
-    val category: String
+    val category: String,
+    @ColumnInfo(name = "accountId")
+    val accountId: Long
 ) {
 
     fun toExpense(associatedRecurringExpense: RecurringExpense?) = Expense(
@@ -49,6 +52,7 @@ class ExpenseEntity(
         amount / 100.0,
         date,
         associatedRecurringExpense,
-        category
+        category,
+        accountId
     )
 }

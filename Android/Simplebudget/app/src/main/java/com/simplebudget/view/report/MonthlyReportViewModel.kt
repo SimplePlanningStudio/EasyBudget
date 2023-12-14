@@ -24,6 +24,8 @@ import com.simplebudget.db.DB
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.CurrencyHelper.getFormattedAmountValue
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
+import com.simplebudget.prefs.activeAccountLabel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -294,6 +296,10 @@ class MonthlyReportViewModel(
             )
             contents.append("<hr>")
 
+            // Current Active Account
+            val activeAccount = appPreferences.activeAccountLabel()
+            contents.append("<h2 style=\"color:blue;\">${"$activeAccount ACCOUNT"}</h2>")
+
             // Incomes Total
             val revTotalFormattedAmount =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, revenuesAmount)
@@ -346,7 +352,7 @@ class MonthlyReportViewModel(
                                             "%s",
                                             format.format(data.expense.date)
                                         ))
-                                    } / ${(data.expense.category)} ${futureExpense}</p>" +
+                                    } / ${(data.expense.category)}${futureExpense}</p>" +
                                     "<p style=\"font-size:140%;color:$expenseColor\">${
                                         formattedAmount
                                     }</p>"

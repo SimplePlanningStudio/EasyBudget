@@ -2,9 +2,8 @@ package com.simplebudget.view.settings.openSource
 
 import android.os.Bundle
 import android.view.MenuItem
-import com.simplebudget.R
 import com.simplebudget.databinding.ActivityOpenSourceDisclaimerBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 
 class OpenSourceDisclaimerActivity : BaseActivity<ActivityOpenSourceDisclaimerBinding>() {
 

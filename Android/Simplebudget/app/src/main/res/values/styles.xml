@@ -10,6 +10,7 @@
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
         <item name="android:statusBarColor">@color/status_bar_color</item>
         <item name="colorBackgroundFloating">@color/window_background</item>
+        <item name="android:logo">@mipmap/ic_launcher_foreground</item>
     </style>
 
     <style name="Base.LoadingTheme" parent="android:Theme.Material">
@@ -119,8 +120,20 @@
         <item name="colorControlActivated">@color/expense_edit_field_accent_color_dark</item>
     </style>
 
+    <style name="TextLabelDark" parent="AppTheme">
+        <item name="android:textColorHint">@color/colorBlackLight</item>
+        <item name="colorAccent">@color/primary_dark</item>
+        <item name="colorControlNormal">@color/primary_dark</item>
+        <item name="colorControlActivated">@color/primary_dark</item>
+    </style>
+
     <style name="TextLabelHintTextAppearance" parent="TextAppearance.Design.Hint">
         <item name="android:textColor">@color/expense_edit_title_text_color_dark</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextLabelHintTextAppearanceDark" parent="TextAppearance.Design.Hint">
+        <item name="android:textColor">@color/divider_grey</item>
         <item name="android:textSize">14sp</item>
     </style>
 
@@ -182,14 +195,12 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
-    <style name="PinNumberStyle.Base">
+
+    <style name="PinNumberStyle">
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
         <item name="android:gravity">center</item>
         <item name="android:padding">@dimen/small_margin</item>
         <item name="android:textSize">@dimen/big_text_size</item>
-    </style>
-
-    <style name="PinNumberStyle" parent="PinNumberStyle.Base">
-        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
     </style>
 
     <style name="Base.Widget.AppCompat.ActionMode" parent="">

@@ -15,18 +15,20 @@
  */
 package com.simplebudget.view.category.choose
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
-import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.db.impl.categories.CategoryEntity
+import com.simplebudget.helper.extensions.toCategory
 import com.simplebudget.iab.Iab
 import com.simplebudget.model.category.Category
-import com.simplebudget.model.category.ExpenseCategories
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.collections.ArrayList
 
 /**
  * ExpenseEditViewModel to handle categories.
@@ -34,43 +36,45 @@ import kotlin.collections.ArrayList
 class ChooseCategoryViewModel(
     private val db: DB, private val iab: Iab
 ) : ViewModel() {
-    /**
-     * Expense that is being edited (will be null if it's a new one)
-     */
-    private var categories: ArrayList<Category> = ArrayList()
-    val categoriesLiveData = SingleLiveEvent<ArrayList<Category>>()
 
     val premiumStatusLiveData = MutableLiveData<Boolean>()
-    fun onIabStatusChanged() {
-        premiumStatusLiveData.value = iab.isUserPremium()
-    }
-
 
     /**
      *
      */
-    private fun loadCategories(currentCategories: ArrayList<Category>) {
+    private val _categoriesFlow = MutableStateFlow<List<CategoryEntity>>(emptyList())
+    val categoriesFlow: StateFlow<List<CategoryEntity>> = _categoriesFlow
+
+    /**
+     *
+     */
+    private val miscellaneousCategoryOfBudgetLiveData = MutableLiveData<Category>()
+    val miscellaneousCategory: LiveData<Category> = miscellaneousCategoryOfBudgetLiveData
+
+    fun onIabStatusChanged() {
+        premiumStatusLiveData.value = iab.isUserPremium()
+    }
+
+    /**
+     *
+     */
+    private fun loadCategories() {
         viewModelScope.launch {
-            categories.clear()
-            withContext(Dispatchers.Default) {
-                val dbCategories = db.getCategories()
-                categories.addAll(dbCategories)
-                //If changes in categories added / deleted during selection just reverse so that user can see newly added records
-                if (currentCategories.isNotEmpty() && categories.size > currentCategories.size) categories.reverse()
-                categoriesLiveData.postValue(categories)
-                //Save categories into DB
-                if (categories.isEmpty()) {
-                    refreshCategories()
-                }
+            db.getCategories().collect { categoryEntityList ->
+                _categoriesFlow.value = categoryEntityList
             }
         }
     }
 
     /**
-     * Reload categories if you have added or remove some categories call this
+     *
      */
-    fun reloadCategories(currentCategories: ArrayList<Category>) {
-        loadCategories(currentCategories)
+    fun refreshCategories() {
+        viewModelScope.launch {
+            db.getCategories().collect { categoryEntityList ->
+                _categoriesFlow.value = categoryEntityList
+            }
+        }
     }
 
     /**
@@ -79,10 +83,20 @@ class ChooseCategoryViewModel(
     fun saveCategory(category: Category) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                db.persistCategories(
+                db.persistCategory(
                     category
                 )
             }
+        }
+    }
+
+    /**
+     * Get miscellaneous category
+     */
+    private fun getMiscellaneousCategory() {
+        viewModelScope.launch {
+            val miscellaneousCategory = db.getMiscellaneousCategory()
+            miscellaneousCategoryOfBudgetLiveData.postValue(miscellaneousCategory.toCategory())
         }
     }
 
@@ -99,17 +113,6 @@ class ChooseCategoryViewModel(
         }
     }
 
-    /**
-     * Add categories and keep user's categories as well.
-     */
-    private fun refreshCategories() {
-        viewModelScope.launch {
-            ExpenseCategories.getCategoriesList().forEach { name ->
-                db.persistCategories(Category(name))
-            }
-        }
-    }
-
     override fun onCleared() {
         db.close()
         super.onCleared()
@@ -117,7 +120,8 @@ class ChooseCategoryViewModel(
 
 
     init {
-        loadCategories(ArrayList())
+        loadCategories()
+        getMiscellaneousCategory()
         premiumStatusLiveData.value = iab.isUserPremium()
     }
 }

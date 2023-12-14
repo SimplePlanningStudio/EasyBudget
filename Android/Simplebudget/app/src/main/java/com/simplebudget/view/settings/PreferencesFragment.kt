@@ -38,27 +38,22 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.roomorama.caldroid.CaldroidFragment
-import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.helper.*
-import com.simplebudget.helper.extensions.getTelegramIntent
 import com.simplebudget.iab.Iab
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
-import com.simplebudget.view.category.manage.ManageCategoriesActivity
-import com.simplebudget.view.moreApps.MoreAppsActivity
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.premium.PremiumSuccessActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
+import com.simplebudget.view.reset.ResetAppDataActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
+import com.simplebudget.view.settings.aboutus.AboutUsActivity
 import com.simplebudget.view.settings.backup.BackupSettingsActivity
-import com.simplebudget.view.settings.faq.FAQActivity
-import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
-import com.simplebudget.view.settings.releaseHistory.ReleaseHistoryTimelineActivity
+import com.simplebudget.view.settings.help.HelpActivity
 import org.koin.android.ext.android.inject
-
 
 /**
  * Fragment to display preferences
@@ -89,7 +84,6 @@ class PreferencesFragment : PreferenceFragmentCompat() {
 
     private val appPreferences: AppPreferences by inject()
 
-
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
     }
@@ -102,8 +96,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
                 if (!granted) {
                     activity?.let {
-                        MaterialAlertDialogBuilder(it)
-                            .setTitle(R.string.setting_notification_permission_rejected_dialog_title)
+                        MaterialAlertDialogBuilder(it).setTitle(R.string.setting_notification_permission_rejected_dialog_title)
                             .setMessage(R.string.setting_notification_permission_rejected_dialog_description)
                             .setPositiveButton(R.string.setting_notification_permission_rejected_dialog_accept_cta) { dialog, _ ->
                                 dialog.dismiss()
@@ -111,8 +104,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                             }
                             .setNegativeButton(R.string.setting_notification_permission_rejected_dialog_not_now_cta) { dialog, _ ->
                                 dialog.dismiss()
-                            }
-                            .show()
+                            }.show()
                     }
                 }
                 findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.isVisible =
@@ -131,7 +123,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 false
         } else {
             findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.isVisible =
-                true
+                isNotificationsPermissionGranted().not()
             findPreference<Preference>(resources.getString(R.string.setting_enable_app_notifications_key))?.setSummary(
                 if (isNotificationsPermissionGranted()) {
                     R.string.backup_settings_backups_activated
@@ -149,17 +141,6 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 }
         }
 
-        /**
-         * App version
-         */
-        val prefAppVersion: Preference =
-            findPreference(resources.getString(R.string.setting_app_version_key))!!
-        prefAppVersion.title = getString(R.string.setting_app_version)
-        prefAppVersion.summary = String.format(
-            "%s",
-            BuildConfig.VERSION_NAME
-        )
-
 
         /*
          * Rating button
@@ -173,15 +154,15 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             }
 
         /*
-         * Manage categories
+         * Reset App Data
          */
-        findPreference<Preference>(resources.getString(R.string.setting_category_manage_category_key))?.onPreferenceClickListener =
+        findPreference<Preference>(resources.getString(R.string.setting_reset_app_data_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                val startIntent = Intent(requireActivity(), ManageCategoriesActivity::class.java)
-                ActivityCompat.startActivity(requireActivity(), startIntent, null)
+                activity?.let { activity ->
+                    startActivity(Intent(activity, ResetAppDataActivity::class.java))
+                }
                 false
             }
-
         /*
          * Change language button
          */
@@ -199,17 +180,6 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             }*/
 
         /*
-         * Telegram channel button
-         */
-        findPreference<Preference>(resources.getString(R.string.setting_telegram_channel_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                activity?.let {
-                    startActivity(Intent().getTelegramIntent(it))
-                }
-                false
-            }
-
-        /*
          * Start day of week
          */
         val firstDayOfWeekPref =
@@ -220,16 +190,9 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         )
         firstDayOfWeekPref?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             val weeks = arrayOf(
-                "SUNDAY",
-                "MONDAY",
-                "TUESDAY",
-                "WEDNESDAY",
-                "THURSDAY",
-                "FRIDAY",
-                "SATURDAY"
+                "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"
             )
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.setting_category_start_day_of_week_title))
+            MaterialAlertDialogBuilder(requireContext()).setTitle(getString(R.string.setting_category_start_day_of_week_title))
                 .setItems(weeks) { dialog, which ->
                     appPreferences.setCaldroidFirstDayOfWeek(getWeekDayId(weeks[which]))
                     firstDayOfWeekPref?.summary = resources.getString(
@@ -237,8 +200,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                         getWeekDaysName(appPreferences.getCaldroidFirstDayOfWeek())
                     )
                     dialog.dismiss()
-                }
-                .show()
+                }.show()
             true
         }
 
@@ -255,32 +217,29 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 (activity as SettingsActivity).handleAppPasswordProtection()
                 true
             }
-
         /*
          * Monthly Reports
          */
         val monthlyReports =
             findPreference<Preference>(getString(R.string.setting_monthly_reports_key))
-        monthlyReports?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                val startIntent = Intent(requireActivity(), MonthlyReportBaseActivity::class.java)
-                startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, false)
-                ActivityCompat.startActivity(requireActivity(), startIntent, null)
-                true
-            }
+        monthlyReports?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val startIntent = Intent(requireActivity(), MonthlyReportBaseActivity::class.java)
+            startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, false)
+            ActivityCompat.startActivity(requireActivity(), startIntent, null)
+            true
+        }
 
         /*
          * Monthly Breakdown
          */
         val monthlyBreakDown =
             findPreference<Preference>(getString(R.string.setting_monthly_breakdown_key))
-        monthlyBreakDown?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                val startIntent = Intent(requireActivity(), BreakDownBaseActivity::class.java)
-                startIntent.putExtra(BreakDownBaseActivity.FROM_NOTIFICATION_EXTRA, false)
-                ActivityCompat.startActivity(requireActivity(), startIntent, null)
-                true
-            }
+        monthlyBreakDown?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val startIntent = Intent(requireActivity(), BreakDownBaseActivity::class.java)
+            startIntent.putExtra(BreakDownBaseActivity.FROM_NOTIFICATION_EXTRA, false)
+            ActivityCompat.startActivity(requireActivity(), startIntent, null)
+            true
+        }
 
         /*
          * Backup
@@ -291,16 +250,6 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 false
             }
         updateBackupPreferences()
-
-        /*
-         * Share app
-         */
-        findPreference<Preference>(resources.getString(R.string.setting_category_faq_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                startActivity(Intent(context, FAQActivity::class.java))
-                false
-            }
-
 
         /*
          * Share app
@@ -324,50 +273,11 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             }
 
         /*
-         * Feedback of app
+         * Help & support / Contact Us
          */
-        findPreference<Preference>(resources.getString(R.string.setting_category_feedback_app_key))?.onPreferenceClickListener =
+        findPreference<Preference>(resources.getString(R.string.setting_category_contact_us))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                context?.let { context -> Feedback.askForFeedback(context) }
-                false
-            }
-
-        /*
-         * More apps
-         */
-        findPreference<Preference>(resources.getString(R.string.setting_more_apps_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                startActivity(Intent(activity, MoreAppsActivity::class.java))
-                false
-            }
-
-        /*
-         * App version click
-         */
-        findPreference<Preference>(resources.getString(R.string.setting_app_version_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                val sendIntent =
-                    Intent(requireActivity(), ReleaseHistoryTimelineActivity::class.java)
-                startActivity(sendIntent)
-                false
-            }
-        /*
-         * Open copyright disclaimer
-         */
-        findPreference<Preference>(resources.getString(R.string.setting_app_open_source_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                val sendIntent =
-                    Intent(requireActivity(), OpenSourceDisclaimerActivity::class.java)
-                startActivity(sendIntent)
-                false
-            }
-
-        /*
-         * Open privacy policy
-         */
-        findPreference<Preference>(resources.getString(R.string.setting_privacy_policy_key))?.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener {
-                intentOpenWebsite(requireActivity(), getString(R.string.privacy_policy))
+                startActivity(Intent(requireActivity(), HelpActivity::class.java))
                 false
             }
 
@@ -378,8 +288,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             currencyPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
                 selectCurrencyDialog = SelectCurrencyFragment()
                 selectCurrencyDialog!!.show(
-                    (activity as SettingsActivity).supportFragmentManager,
-                    "SelectCurrency"
+                    (activity as SettingsActivity).supportFragmentManager, "SelectCurrency"
                 )
 
                 false
@@ -425,8 +334,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                                 appPreferences.setLowMoneyWarningAmount(newLimit)
                                 setLimitWarningPreferenceTitle(limitWarningPreference)
                             } catch (e: Exception) {
-                                AlertDialog.Builder(context)
-                                    .setTitle(R.string.oops)
+                                AlertDialog.Builder(context).setTitle(R.string.oops)
                                     .setMessage(resources.getString(R.string.adjust_limit_warning_error_message))
                                     .setPositiveButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }
                                     .show()
@@ -472,18 +380,17 @@ class PreferencesFragment : PreferenceFragmentCompat() {
          * Broadcast receiver
          */
         val filter = IntentFilter(SelectCurrencyFragment.CURRENCY_SELECTED_INTENT)
-        receiver =
-            object : BroadcastReceiver() {
-                override fun onReceive(appContext: Context, intent: Intent) {
-                    if (SelectCurrencyFragment.CURRENCY_SELECTED_INTENT == intent.action && selectCurrencyDialog != null) {
-                        findPreference<Preference>(resources.getString(R.string.setting_category_currency_change_button_key))?.let { currencyPreference ->
-                            setCurrencyPreferenceTitle(currencyPreference)
-                        }
-                        selectCurrencyDialog?.dismiss()
-                        selectCurrencyDialog = null
+        receiver = object : BroadcastReceiver() {
+            override fun onReceive(appContext: Context, intent: Intent) {
+                if (SelectCurrencyFragment.CURRENCY_SELECTED_INTENT == intent.action && selectCurrencyDialog != null) {
+                    findPreference<Preference>(resources.getString(R.string.setting_category_currency_change_button_key))?.let { currencyPreference ->
+                        setCurrencyPreferenceTitle(currencyPreference)
                     }
+                    selectCurrencyDialog?.dismiss()
+                    selectCurrencyDialog = null
                 }
             }
+        }
 
         context?.let { context ->
             LocalBroadcastManager.getInstance(context).registerReceiver(receiver, filter)
@@ -504,6 +411,13 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 RedeemPromo.openPromoCodeDialog(activity)
                 false
             }
+
+        // About Us
+        findPreference<Preference>(resources.getString(R.string.setting_about_us_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                startActivity(Intent(context, AboutUsActivity::class.java))
+                false
+            }
     }
 
     /**
@@ -514,8 +428,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             false
         } else {
             ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.POST_NOTIFICATIONS
+                requireContext(), Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
@@ -525,8 +438,9 @@ class PreferencesFragment : PreferenceFragmentCompat() {
      */
     private fun showNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT < 33) return
-        if (isNotificationsPermissionGranted().not())
-            notificationRequestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        if (isNotificationsPermissionGranted().not()) notificationRequestPermissionLauncher.launch(
+            Manifest.permission.POST_NOTIFICATIONS
+        )
     }
 
     /**
@@ -571,8 +485,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         limitWarningPreferenceTitle.title = resources.getString(
             R.string.setting_category_limit_set_button_title,
             CurrencyHelper.getFormattedCurrencyString(
-                appPreferences,
-                appPreferences.getLowMoneyWarningAmount().toDouble()
+                appPreferences, appPreferences.getLowMoneyWarningAmount().toDouble()
             )
         )
     }
@@ -597,24 +510,23 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             pref.summary = getString(R.string.setting_category_premium_status_message)
             findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.isVisible =
                 false
-            pref.onPreferenceClickListener =
-                Preference.OnPreferenceClickListener {
-                    startActivity(
-                        Intent(requireActivity(), PremiumSuccessActivity::class.java)
-                            .putExtra(PremiumSuccessActivity.REQUEST_CODE_IS_BACK_ENABLED, true)
+            pref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                startActivity(
+                    Intent(requireActivity(), PremiumSuccessActivity::class.java).putExtra(
+                        PremiumSuccessActivity.REQUEST_CODE_IS_BACK_ENABLED, true
                     )
-                    false
-                }
+                )
+                false
+            }
         } else {
             findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.isVisible =
                 true
             pref.title = getString(R.string.setting_category_not_premium_status_title)
             pref.summary = getString(R.string.setting_category_not_premium_status_message)
-            pref.onPreferenceClickListener =
-                Preference.OnPreferenceClickListener {
-                    showBecomePremiumDialog()
-                    false
-                }
+            pref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                showBecomePremiumDialog()
+                false
+            }
         }
     }
 
@@ -659,8 +571,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
      *
      */
     fun displayPasswordProtectionDisclaimer() {
-        val builder = AlertDialog.Builder(requireContext())
-            .setCancelable(false)
+        val builder = AlertDialog.Builder(requireContext()).setCancelable(false)
             .setOnDismissListener { if (!iab.isUserPremium()) (activity as SettingsActivity).showInterstitial() }
             .setTitle("App password successfully set!")
             .setMessage("Note: If you forgot your password just clear or re-install app.\n\nYou can't reset your password.That's why it is recommended to enable backup so that your data would be saved in case of reset.\n\nThank you")

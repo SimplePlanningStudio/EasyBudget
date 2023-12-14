@@ -10,7 +10,7 @@ import com.simplebudget.model.category.Category
 
 class ChooseCategoryAdapter(
     private val categoriesList: List<Category>,
-    private val listener: CategoryAdapterListener
+    private val onCategorySelected: (selectedCategory: Category) -> Unit
 ) : RecyclerView.Adapter<ChooseCategoryAdapter.SearchViewHolder>() {
 
     class SearchViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -29,13 +29,9 @@ class ChooseCategoryAdapter(
         val category = categoriesList[position]
         holder.titleTextView.text = category.name
         holder.itemView.setOnClickListener {
-            listener.onCategorySelected(category)
+            onCategorySelected(category)
         }
     }
 
     override fun getItemCount() = categoriesList.size
-
-    interface CategoryAdapterListener {
-        fun onCategorySelected(selectedCategory: Category)
-    }
 }

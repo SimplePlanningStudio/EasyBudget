@@ -19,12 +19,15 @@ import android.content.Context
 import androidx.room.*
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.simplebudget.db.impl.accounts.AccountTypeDao
+import com.simplebudget.db.impl.accounts.AccountTypeEntity
 import com.simplebudget.db.impl.categories.CategoryDao
 import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.db.impl.expenses.ExpenseDao
 import com.simplebudget.db.impl.expenses.ExpenseEntity
 import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.localDateFromTimestamp
+import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import java.time.LocalDate
@@ -33,11 +36,12 @@ const val DB_NAME = "easybudget.db"
 
 @Database(
     exportSchema = false,
-    version = 7,
+    version = 8,
     entities = [
         CategoryEntity::class,
         ExpenseEntity::class,
-        RecurringExpenseEntity::class
+        RecurringExpenseEntity::class,
+        AccountTypeEntity::class
     ]
 )
 @TypeConverters(TimestampConverters::class)
@@ -45,6 +49,7 @@ abstract class RoomDB : RoomDatabase() {
 
     abstract fun expenseDao(): ExpenseDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun accountTypeDao(): AccountTypeDao
 
     companion object {
         fun create(context: Context): RoomDB = Room
@@ -55,7 +60,8 @@ abstract class RoomDB : RoomDatabase() {
                 migrationToRoom,
                 migrationFrom4To5,
                 migrationFrom5To6,
-                migrateTimestamps6To7
+                migrateTimestamps6To7,
+                migrateTimestamps7To8
             )
             .build()
     }
@@ -70,6 +76,16 @@ class TimestampConverters {
     @TypeConverter
     fun dateToTimestamp(date: LocalDate?): Long? {
         return date?.toEpochDay()
+    }
+}
+
+private val migrateTimestamps7To8 = object : Migration(7, 8) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // Adding accountType into expenses and categories
+        database.execSQL("ALTER TABLE expense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.SAVINGS + "'")
+        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.SAVINGS + "'")
+        //Add account type table
+        database.execSQL("CREATE TABLE IF NOT EXISTS account_type ('_account_type_id' INTEGER, 'name' text not null DEFAULT 'SAVINGS','isActive' INTEGER not null DEFAULT 1, PRIMARY KEY('_account_type_id'))")
     }
 }
 
@@ -105,10 +121,11 @@ private val migrationFrom5To6 = object : Migration(5, 6) {
         database.execSQL("CREATE TABLE IF NOT EXISTS category ('_category_id' INTEGER, 'name' text not null DEFAULT 'MISCELLANEOUS', PRIMARY KEY('_category_id'))")
     }
 }
+
 private val migrationFrom4To5 = object : Migration(4, 5) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE expense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS + "'")
-        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS + "'")
+        database.execSQL("ALTER TABLE expense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS.name + "'")
+        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS.name + "'")
     }
 }
 

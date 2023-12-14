@@ -5,6 +5,8 @@ import android.content.*
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.simplebudget.view.main.MainActivity
 
 fun Context.toast(id: Int, length: Int = Toast.LENGTH_SHORT) {
     toast(getString(id), length)
@@ -52,5 +54,7 @@ val Context.actionBarHeight: Int
         return actionBarHeight.toInt()
     }
 
-
-
+fun Context.updateAccountNotifyBroadcast() {
+    val intent = Intent(MainActivity.INTENT_ACCOUNT_TYPE_UPDATED)
+    LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+}

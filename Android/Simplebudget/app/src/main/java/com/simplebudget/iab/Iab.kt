@@ -16,18 +16,32 @@
 package com.simplebudget.iab
 
 import android.app.Activity
+import com.android.billingclient.api.ProductDetails
+import kotlinx.coroutines.flow.Flow
 
 interface Iab {
     fun isIabReady(): Boolean
     fun isUserPremium(): Boolean
     fun updateIAPStatusIfNeeded()
     suspend fun launchPremiumPurchaseFlow(activity: Activity): PremiumPurchaseFlowResult
+    suspend fun launchPremiumPurchaseSubscriptionFlow(
+        activity: Activity,
+        productId: String
+    ): PremiumPurchaseFlowResult
+
+    suspend fun queryProductDetails(): Flow<List<ProductDetails>>
 }
 
 sealed class PremiumPurchaseFlowResult {
     object Cancelled : PremiumPurchaseFlowResult()
     object Success : PremiumPurchaseFlowResult()
     class Error(val reason: String) : PremiumPurchaseFlowResult()
+}
+
+enum class PremiumFlowStatus {
+    NOT_STARTED,
+    LOADING,
+    DONE
 }
 
 /**

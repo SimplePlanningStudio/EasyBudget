@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:maxHeight="@dimen/_70sdp"
     android:background="?attr/selectableItemBackground"
     android:paddingHorizontal="12dp"
     android:paddingVertical="16dp">
@@ -12,18 +13,35 @@
     <TextView
         android:id="@+id/tvCategoryName"
         android:layout_width="0dp"
-        android:layout_height="@dimen/_34sdp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:fontFamily="sans-serif-smallcaps"
         android:gravity="start|center_vertical"
-        android:textAppearance="?attr/textAppearanceHeadline5"
+        android:minHeight="@dimen/_20sdp"
+        android:textAppearance="?attr/textAppearanceHeadline6"
         android:textColor="@color/primary_dark"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/edit_icon"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Entertainment" />
+
+    <TextView
+        android:id="@+id/tvCategoryBudget"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:fontFamily="sans-serif-smallcaps"
+        android:gravity="start|center_vertical"
+        android:minHeight="@dimen/_20sdp"
+        android:visibility="gone"
+        android:textColor="@color/divider_grey"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/edit_icon"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvCategoryName"
+        tools:text="Budget: $0" />
 
     <ImageView
         android:id="@+id/edit_icon"

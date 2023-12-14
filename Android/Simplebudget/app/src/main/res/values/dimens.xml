@@ -76,4 +76,14 @@
     <dimen name="big_text_size">18sp</dimen>
     <dimen name="actionbar_text_size">20sp</dimen>
     <dimen name="extra_big_text_size">22sp</dimen>
+
+    <dimen name="nav_item_height_size">@dimen/_60sdp</dimen>
+    <dimen name="nav_item_title_text_size">@dimen/_10ssp</dimen>
+    <dimen name="nav_item_description_text_size">@dimen/_10ssp</dimen>
+
+    <dimen name="margin_end_search_hint">@dimen/_150sdp</dimen>
+    <dimen name="margin_end_monthly_report_hint">@dimen/_110sdp</dimen>
+    <dimen name="margin_end_backup_hint">@dimen/_73sdp</dimen>
+    <dimen name="margin_end_help_hint">@dimen/_36sdp</dimen>
+    <dimen name="margin_end_settings_hint">@dimen/_2sdp</dimen>
 </resources>

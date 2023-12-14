@@ -17,6 +17,7 @@ package com.simplebudget.view.report.base
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -28,11 +29,19 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityMonthlyReportBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
+import com.simplebudget.helper.updateAccountNotifyBroadcast
+import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccountLabel
+import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.report.MonthlyReportFragment
+import com.simplebudget.view.report.MonthlyReportViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
 
@@ -46,6 +55,8 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
     ViewPager.OnPageChangeListener {
 
     private val viewModel: MonthlyReportBaseViewModel by viewModel()
+
+    private val appPreferences: AppPreferences by inject()
 
     override fun createBinding(): ActivityMonthlyReportBinding {
         return ActivityMonthlyReportBinding.inflate(layoutInflater)
@@ -93,6 +104,41 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
                 if (isLastMonth) View.GONE else View.VISIBLE
             binding.monthlyReportPreviousMonthButton.visibility =
                 if (position == 0) View.GONE else View.VISIBLE
+        }
+
+        //Selected account
+        binding.layoutSelectAccount.tvSelectedAccount.text =
+            String.format("%s", appPreferences.activeAccountLabel())
+        binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
+            val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
+                binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                updateAccountNotifyBroadcast()
+
+                binding.monthlyReportProgressBar.visibility = View.VISIBLE
+                // 2 Seconds delay and re-load will do the trick :)
+                object : CountDownTimer(2000, 2000) {
+
+                    override fun onTick(millisUntilFinished: Long) {
+                    }
+
+                    override fun onFinish() {
+                        binding.monthlyReportProgressBar.visibility = View.GONE
+                        finish()
+                        val startIntent = Intent(
+                            this@MonthlyReportBaseActivity,
+                            MonthlyReportBaseActivity::class.java
+                        )
+                        ActivityCompat.startActivity(
+                            this@MonthlyReportBaseActivity,
+                            startIntent,
+                            null
+                        )
+                    }
+                }.start()
+            }
+            accountsBottomSheetDialogFragment.show(
+                supportFragmentManager, accountsBottomSheetDialogFragment.tag
+            )
         }
     }
 

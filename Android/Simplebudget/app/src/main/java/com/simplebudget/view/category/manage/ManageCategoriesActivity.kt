@@ -21,17 +21,21 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.android.gms.ads.AdListener
@@ -40,15 +44,17 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.simplebudget.R
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityManageCategoriesBinding
-import com.simplebudget.helper.AdSizeUtils
-import com.simplebudget.helper.BaseActivity
-import com.simplebudget.helper.DialogUtil
-import com.simplebudget.helper.toast
+import com.simplebudget.helper.*
+import com.simplebudget.helper.extensions.toCategories
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.category.ExpenseCategories
 import com.simplebudget.prefs.*
+import com.simplebudget.view.premium.PremiumActivity
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
@@ -61,6 +67,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
     private lateinit var manageCategoriesAdapter: ManageCategoriesAdapter
     private var adView: AdView? = null
     private lateinit var receiver: BroadcastReceiver
+    private val appPreferences: AppPreferences by inject()
 
     /**
      *
@@ -228,13 +235,12 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
      *
      */
     private fun attachAdapter(list: ArrayList<Category>) {
-        manageCategoriesAdapter = ManageCategoriesAdapter(list, this)
+        manageCategoriesAdapter =
+            ManageCategoriesAdapter(list, this, appPreferences.getUserCurrency().symbol)
         binding.recyclerViewCategories.adapter = manageCategoriesAdapter
-        val dividerItemDecoration =
-            DividerItemDecoration(
-                binding.recyclerViewCategories.context,
-                LinearLayout.VERTICAL
-            )
+        val dividerItemDecoration = DividerItemDecoration(
+            binding.recyclerViewCategories.context, LinearLayout.VERTICAL
+        )
         binding.recyclerViewCategories.addItemDecoration(dividerItemDecoration)
     }
 
@@ -242,20 +248,17 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
      * Load categories from DB
      */
     private fun loadCategories() {
-        binding.progressBar.visibility = View.VISIBLE
         //Load categories
-        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
-            categories.clear()
-            if (dbCat.isEmpty()) {
-                ExpenseCategories.getCategoriesList().forEach { item ->
-                    val category = Category(id = null, name = item.uppercase())
-                    if (!categories.contains(category)) categories.add(category)
+        binding.progressBar.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            viewModelCategory.categoriesFlow.collect { categoriesEntities ->
+                categories.clear()
+                if (categoriesEntities.isNotEmpty()) {
+                    categories.addAll(categoriesEntities.toCategories().asReversed())
+                    attachAdapter(categories)
+                    binding.progressBar.visibility = View.INVISIBLE
                 }
-            } else {
-                categories.addAll(dbCat.asReversed())
             }
-            attachAdapter(categories)
-            binding.progressBar.visibility = View.INVISIBLE
         }
     }
 
@@ -302,40 +305,48 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
             return
         }
         val options = arrayOf(
-            "Edit category '${selectedCategory.name}'",
-            "Delete category '${selectedCategory.name}'",
+            "Edit",
+            "Delete",
         )
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.how_can_i_help_you))
-            .setItems(options) { dialog, which ->
-                if (which == 0) {
-                    EditCategoryDialog.open(
-                        this,
-                        selectedCategory,
-                        updateCategory = { newCategory ->
-                            categories.add(
-                                position, Category(
-                                    selectedCategory.id,
-                                    name = newCategory
-                                )
-                            )
-                            viewModelCategory.saveCategory(
-                                Category(
-                                    selectedCategory.id,
-                                    name = newCategory
-                                )
-                            )
-                            manageCategoriesAdapter.notifyItemChanged(position)
-                            toast(getString(R.string.category_updated_successfully))
-                        }
-                    )
-                } else {
-                    removeConfirmation(selectedCategory, position)
-                }
-                dialog.dismiss()
-            }.setPositiveButton(getString(R.string.cancel)) { dialog, _ ->
-                dialog.dismiss()
-            }.setCancelable(false).show()
+        MaterialAlertDialogBuilder(this).setTitle(
+            String.format(
+                "%s %s",
+                "Manage",
+                selectedCategory.name
+            )
+        ).setItems(options) { dialog, which ->
+            when (options[which]) {
+                "Edit" -> editCategory(selectedCategory, position)
+                "Delete" -> removeConfirmation(selectedCategory, position)
+                else -> {}
+
+            }
+            dialog.dismiss()
+        }.setPositiveButton(getString(R.string.cancel)) { dialog, _ ->
+            dialog.dismiss()
+        }.setCancelable(false).show()
+    }
+
+    /**
+     * Edit Category
+     */
+    private fun editCategory(
+        selectedCategory: Category, position: Int
+    ) {
+        EditCategoryDialog.open(this, selectedCategory, updateCategory = { newCategory ->
+            categories.add(
+                position, Category(
+                    selectedCategory.id, name = newCategory
+                )
+            )
+            viewModelCategory.saveCategory(
+                Category(
+                    selectedCategory.id, name = newCategory
+                )
+            )
+            manageCategoriesAdapter.notifyItemChanged(position)
+            toast(getString(R.string.category_updated_successfully))
+        })
     }
 
     /**
@@ -344,7 +355,9 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
     private fun removeConfirmation(selectedCategory: Category, position: Int) {
         val builder = android.app.AlertDialog.Builder(this)
         builder.setCancelable(false)
-        builder.setTitle("Are you sure you want to delete category '${selectedCategory.name}'?")
+        builder
+            .setTitle("Delete Category")
+            .setMessage("Are you sure you want to delete ${selectedCategory.name}?")
             .setNegativeButton("No") { dialog, _ ->
                 dialog.cancel()
             }.setPositiveButton("Yes") { dialog, _ ->

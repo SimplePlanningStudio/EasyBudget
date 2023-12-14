@@ -23,10 +23,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.simplebudget.databinding.ActivityBreakdownExpensesBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
+import com.simplebudget.helper.updateAccountNotifyBroadcast
 import com.simplebudget.prefs.*
+import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.BreakDownFragment
 import com.simplebudget.view.main.MainActivity
 import org.koin.android.ext.android.inject
@@ -39,7 +41,11 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     ViewPager.OnPageChangeListener {
 
     private val viewModel: BreakDownBaseViewModel by viewModel()
+
     private var isAddedExpense: Boolean = false
+
+    private val appPreferences: AppPreferences by inject()
+
 
     /**
      *
@@ -88,6 +94,20 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
                 if (isLastMonth) View.GONE else View.VISIBLE
             binding.monthlyBreakdownPreviousMonthButton.visibility =
                 if (position == 0) View.GONE else View.VISIBLE
+        }
+
+        //Selected account
+        binding.layoutSelectAccount.tvSelectedAccount.text =
+            String.format("%s", appPreferences.activeAccountLabel())
+        binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
+            val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
+                binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                updateAccountNotifyBroadcast()
+                viewModel.loadData()
+            }
+            accountsBottomSheetDialogFragment.show(
+                supportFragmentManager, accountsBottomSheetDialogFragment.tag
+            )
         }
     }
 

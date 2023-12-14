@@ -19,8 +19,7 @@ import android.os.Parcel
 import android.os.Parcelable
 
 data class Category(
-    val id: Long?,
-    val name: String,
+    val id: Long?, val name: String
 ) : Parcelable {
 
     constructor(
@@ -29,12 +28,12 @@ data class Category(
 
     private constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,
-        parcel.readString() ?: "",
+        parcel.readString() ?: ""
     )
 
     init {
         if (name.isEmpty()) {
-            throw IllegalArgumentException("title is empty")
+            throw IllegalArgumentException("Category name is empty")
         }
     }
 

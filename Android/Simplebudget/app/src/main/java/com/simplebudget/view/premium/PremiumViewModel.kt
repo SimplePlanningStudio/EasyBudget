@@ -19,16 +19,28 @@ import android.app.Activity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.billingclient.api.ProductDetails
 import com.simplebudget.iab.Iab
 import com.simplebudget.iab.PremiumPurchaseFlowResult
 import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.iab.PremiumFlowStatus
 import kotlinx.coroutines.launch
 
 class PremiumViewModel(private val iab: Iab) : ViewModel() {
     val premiumFlowStatusLiveData = MutableLiveData(PremiumFlowStatus.NOT_STARTED)
+    val liveDataProductDetails = MutableLiveData(emptyList<ProductDetails>())
     val premiumFlowErrorEventStream = SingleLiveEvent<PremiumPurchaseFlowResult>()
+    val liveDataSelectedProduct = SingleLiveEvent<ProductDetails?>()
 
-    fun onBuyPremiumClicked(activity: Activity) {
+    fun getSelectedProduct(): ProductDetails? {
+        return liveDataSelectedProduct.value
+    }
+
+    fun setSelectedProduct(selectedProduct: ProductDetails?) {
+        liveDataSelectedProduct.value = selectedProduct
+    }
+
+    fun onBuyInAppPremiumClicked(activity: Activity) {
         premiumFlowStatusLiveData.value = PremiumFlowStatus.LOADING
 
         viewModelScope.launch {
@@ -47,10 +59,42 @@ class PremiumViewModel(private val iab: Iab) : ViewModel() {
             }
         }
     }
-}
 
-enum class PremiumFlowStatus {
-    NOT_STARTED,
-    LOADING,
-    DONE
+    fun onBuySubscriptionPremiumClicked(activity: Activity, productId: String) {
+        premiumFlowStatusLiveData.value = PremiumFlowStatus.LOADING
+
+        viewModelScope.launch {
+            when (val result = iab.launchPremiumPurchaseSubscriptionFlow(activity, productId)) {
+                PremiumPurchaseFlowResult.Cancelled -> {
+                    premiumFlowErrorEventStream.value = result
+                    premiumFlowStatusLiveData.value = PremiumFlowStatus.NOT_STARTED
+                }
+                PremiumPurchaseFlowResult.Success -> {
+                    premiumFlowStatusLiveData.value = PremiumFlowStatus.DONE
+                }
+                is PremiumPurchaseFlowResult.Error -> {
+                    premiumFlowErrorEventStream.value = result
+                    premiumFlowStatusLiveData.value = PremiumFlowStatus.NOT_STARTED
+                }
+            }
+        }
+    }
+
+    private fun onQueryProductDetails() {
+        viewModelScope.launch {
+            iab.queryProductDetails().collect { productList ->
+                // handle the unified list of all products, subscription and in-app
+                if (productList.isNotEmpty()) {
+                    liveDataProductDetails.value = productList
+                    setSelectedProduct(productList.first())
+                }
+            }
+        }
+    }
+
+
+    init {
+        onQueryProductDetails()
+    }
+
 }

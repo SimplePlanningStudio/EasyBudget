@@ -20,8 +20,8 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityResetAppDataBinding
-import com.simplebudget.helper.*
 import com.simplebudget.view.main.MainActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

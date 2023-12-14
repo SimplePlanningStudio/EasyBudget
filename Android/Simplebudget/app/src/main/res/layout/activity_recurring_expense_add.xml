@@ -219,6 +219,8 @@
                 android:background="@drawable/expense_date_background_drawable"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
+                android:paddingStart="@dimen/_4sdp"
+                android:gravity="center_vertical|start"
                 app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
                 app:layout_constraintStart_toStartOf="@+id/expense_date_title"
                 app:layout_constraintTop_toBottomOf="@+id/expense_date_title" />
@@ -240,16 +242,17 @@
                 android:layout_width="0dp"
                 android:layout_height="36dp"
                 android:layout_marginTop="8dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/expense_interval_spinner_background"
                 android:clickable="true"
                 android:focusable="true"
                 android:focusableInTouchMode="false"
+                android:gravity="center_vertical"
                 android:hint="@string/select_category"
                 android:inputType="textPersonName"
                 android:maxLength="20"
                 android:paddingStart="@dimen/_4sdp"
                 android:text=""
-                android:gravity="center_vertical"
                 android:textColor="@color/white"
                 android:textColorHint="@color/white"
                 android:textSize="@dimen/_11ssp"
@@ -257,19 +260,53 @@
                 app:layout_constraintStart_toStartOf="@+id/categories_title"
                 app:layout_constraintTop_toBottomOf="@+id/categories_title" />
 
+
+            <TextView
+                android:id="@+id/accountTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/select_account"
+                android:textColor="@color/primary_dark"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toTopOf="@+id/spinnerAccountTitle"
+                app:layout_constraintStart_toEndOf="@+id/guidelineMiddle"
+                app:layout_constraintTop_toBottomOf="@+id/date_button" />
+
+            <Spinner
+                android:id="@+id/spinnerAccountTitle"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/expense_interval_spinner_background"
+                android:clickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="false"
+                android:gravity="center_vertical"
+                android:hint="@string/select_account"
+                android:inputType="textPersonName"
+                android:maxLength="20"
+                android:paddingStart="@dimen/_4sdp"
+                android:text=""
+                android:textColor="@color/white"
+                android:textColorHint="@color/white"
+                android:textSize="@dimen/_11ssp"
+                app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
+                app:layout_constraintStart_toEndOf="@+id/guidelineMiddle"
+                app:layout_constraintTop_toBottomOf="@+id/categories_title" />
+
             <Button
                 android:id="@+id/save_expense_fab"
                 android:layout_width="0dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="@dimen/_8sdp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="20dp"
                 android:background="@drawable/expense_save_background_drawable"
                 android:text="@string/save"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 app:layout_constraintEnd_toEndOf="@id/guidelineEnd"
                 app:layout_constraintStart_toEndOf="@+id/guidelineMiddle"
-                app:layout_constraintTop_toBottomOf="@+id/categories_title" />
+                app:layout_constraintTop_toBottomOf="@+id/spinnerAccountTitle" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

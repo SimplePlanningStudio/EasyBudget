@@ -24,6 +24,8 @@ import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.DateHelper
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
+import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.view.report.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,7 +54,9 @@ class SearchViewModel(
     val loading: LiveData<Boolean> = loadingMutableLiveData
 
 
+    // Searched results in case of search use case
     val monthlyReportDataLiveData = MutableLiveData<DataModels.MonthlyReportData>()
+
     val expenses = mutableListOf<Expense>()
     val revenues = mutableListOf<Expense>()
     private val allExpensesOfThisMonth = mutableListOf<DataModels.SuperParent>()
@@ -140,7 +144,7 @@ class SearchViewModel(
         loadingMutableLiveData.value = true
         viewModelScope.launch {
             val results = withContext(Dispatchers.Default) {
-                db.getExpensesForDay(date)
+                db.getExpensesForDay(date, appPreferences.activeAccount())
             }
             allExpensesLiveData.postValue(results)
             loadingMutableLiveData.postValue(false)
@@ -401,6 +405,9 @@ class SearchViewModel(
             )
             contents.append("<hr>")
 
+            val activeAccount = appPreferences.activeAccountLabel()
+            contents.append("<h2 style=\"color:blue;\">${"$activeAccount ACCOUNT"}</h2>")
+
             // Incomes Total
             val revTotalFormattedAmount =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, revenuesAmount)
@@ -452,7 +459,7 @@ class SearchViewModel(
                                             "%s",
                                             format.format(data.expense.date)
                                         ))
-                                    } / ${(data.expense.category)} ${futureExpense}</p>" +
+                                    } / ${(data.expense.category)}${futureExpense}</p>" +
                                     "<p style=\"font-size:140%;color:$expenseColor\">${
                                         formattedAmount
                                     }</p>"

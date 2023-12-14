@@ -31,16 +31,20 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.androidisland.ezpermission.EzPermission
+import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
+import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentMonthlyReportBinding
 import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccountLabel
+import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.report.adapter.MainAdapter
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -75,6 +79,8 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
         READ_EXTERNAL_STORAGE
     )
 
+    lateinit var mainAdapter: MainAdapter
+
 // ---------------------------------->
 
     override fun onCreateBinding(
@@ -91,7 +97,9 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
         super.onViewCreated(view, savedInstanceState)
         date = requireArguments().getSerializable(ARG_DATE) as LocalDate
 
-        viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
+
+
+        viewModel.monthlyReportDataLiveData.observe(requireActivity()) { result ->
             binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
             binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
 
@@ -114,12 +122,13 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                     )
                 }
                 is DataModels.MonthlyReportData.Data -> {
+                    mainAdapter = MainAdapter(
+                        result.allExpensesParentList,
+                        appPreferences
+                    )
                     configureRecyclerView(
                         binding?.monthlyReportFragmentRecyclerView!!,
-                        MainAdapter(
-                            result.allExpensesParentList,
-                            appPreferences
-                        )
+                        mainAdapter
                         /*MonthlyReportRecyclerViewAdapter(
                             result.expenses,
                             result.revenues,
@@ -196,7 +205,6 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                 }
             }
         }
-
         /**
          * Banner ads
          */
@@ -240,6 +248,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
             adView = AdView(requireContext())
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             binding?.adViewContainer?.addView(adView)
+
             val actualAdRequest = AdRequest.Builder()
                 .build()
             adView?.setAdSize(adSize)

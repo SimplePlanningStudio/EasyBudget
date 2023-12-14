@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityReleaseHistoryTimelineBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.stickytimelineview.callback.SectionCallback
 import com.simplebudget.helper.stickytimelineview.model.SectionInfo
 

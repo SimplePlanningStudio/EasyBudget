@@ -14,8 +14,8 @@ android {
     defaultConfig {
         minSdkVersion 26
         targetSdkVersion 33
-        versionCode 36
-        versionName "2.1.4"
+        versionCode 43
+        versionName "3.0.0"
         vectorDrawables.useSupportLibrary = true
         flavorDimensions "default"
         multiDexEnabled true
@@ -23,7 +23,7 @@ android {
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += [
-                        "room.incremental":"true"
+                        "room.incremental": "true"
                 ]
             }
         }
@@ -104,7 +104,7 @@ dependencies {
 
     implementation platform('com.google.firebase:firebase-bom:31.4.0')
     implementation 'com.google.firebase:firebase-messaging-ktx'
-    implementation 'com.google.firebase:firebase-inappmessaging'
+    implementation("com.google.firebase:firebase-inappmessaging-display")
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
@@ -151,7 +151,7 @@ dependencies {
 
     implementation project(':MPChartLib')
 
-    implementation ('com.github.bumptech.glide:glide:4.15.1@aar') {
+    implementation('com.github.bumptech.glide:glide:4.15.1@aar') {
         transitive = true
     }
     // Localisation By Akexorcist

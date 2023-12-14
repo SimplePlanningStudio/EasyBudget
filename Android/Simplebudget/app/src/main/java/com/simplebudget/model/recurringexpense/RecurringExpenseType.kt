@@ -15,6 +15,8 @@
  */
 package com.simplebudget.model.recurringexpense
 
+import android.widget.Spinner
+
 
 enum class RecurringExpenseType {
     /**
@@ -71,4 +73,49 @@ enum class RecurringExpenseType {
      * An expense that occurs once a year
      */
     YEARLY
+}
+
+
+object ExpenseType {
+    /**
+     * Get the recurring expense type associated with the spinner selection
+     *
+     * @param spinnerSelectedItem index of the spinner selection
+     * @return the corresponding expense type
+     */
+    fun getRecurringTypeFromSpinnerSelection(spinnerSelectedItem: Int): RecurringExpenseType {
+        return when (spinnerSelectedItem) {
+            0 -> RecurringExpenseType.DAILY
+            1 -> RecurringExpenseType.WEEKLY
+            2 -> RecurringExpenseType.BI_WEEKLY
+            3 -> RecurringExpenseType.TER_WEEKLY
+            4 -> RecurringExpenseType.FOUR_WEEKLY
+            5 -> RecurringExpenseType.MONTHLY
+            6 -> RecurringExpenseType.BI_MONTHLY
+            7 -> RecurringExpenseType.TER_MONTHLY
+            8 -> RecurringExpenseType.SIX_MONTHLY
+            9 -> RecurringExpenseType.YEARLY
+            else -> RecurringExpenseType.NOTHING
+        }
+    }
+
+    fun setSpinnerSelectionFromRecurringType(
+        type: RecurringExpenseType,
+        spinner: Spinner
+    ) {
+        val selectionIndex = when (type) {
+            RecurringExpenseType.DAILY -> 0
+            RecurringExpenseType.WEEKLY -> 1
+            RecurringExpenseType.BI_WEEKLY -> 2
+            RecurringExpenseType.TER_WEEKLY -> 3
+            RecurringExpenseType.FOUR_WEEKLY -> 4
+            RecurringExpenseType.MONTHLY -> 5
+            RecurringExpenseType.BI_MONTHLY -> 6
+            RecurringExpenseType.TER_MONTHLY -> 7
+            RecurringExpenseType.SIX_MONTHLY -> 8
+            RecurringExpenseType.YEARLY -> 9
+            else -> 0
+        }
+        spinner.setSelection(selectionIndex, false)
+    }
 }

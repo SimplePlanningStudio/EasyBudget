@@ -4,68 +4,39 @@
     tools:context=".view.main.MainActivity">
 
     <item
+        android:id="@+id/action_search_expenses"
+        android:icon="@drawable/ic_action_search"
+        android:title="@string/action_search"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_monthly_report"
-        android:icon="@drawable/ic_date_range_24dp"
+        android:icon="@drawable/ic_monthly_reports_white"
         android:title="@string/monthly_report_button_title"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_breakdown"
-        android:icon="@drawable/ic_action_menu_breakdown"
-        android:orderInCategory="100"
-        android:title="@string/breakdown"
+        android:id="@+id/action_backup"
+        android:icon="@drawable/ic_backup_white"
+        android:title="@string/backup_now_cta"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_search_expenses"
-        android:icon="@drawable/ic_action_search"
-        android:orderInCategory="100"
-        android:title="@string/action_search"
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_contact_us_white"
+        android:title="@string/action_help"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_settings"
-        android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_balance"
-        android:icon="@drawable/ic_adjust_balance"
-        android:orderInCategory="100"
-        android:title="@string/action_balance"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/action_language"
         android:icon="@drawable/ic_adjust_balance"
-        android:orderInCategory="100"
         android:title="@string/change_language"
         android:visible="false"
         app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_become_premium"
-        android:icon="@drawable/ic_premium_icon_gold"
-        android:orderInCategory="100"
-        android:title="@string/become_premium_user"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_reset_ap_data"
-        android:icon="@drawable/ic_share"
-        android:orderInCategory="100"
-        android:title="@string/reset_app_data"
-        app:showAsAction="ifRoom" />
-
-
-    <item
-        android:id="@+id/action_share"
-        android:icon="@drawable/ic_share"
-        android:orderInCategory="100"
-        android:title="@string/share_app"
-        app:showAsAction="ifRoom" />
-
-
 </menu>

@@ -2,13 +2,12 @@ package com.simplebudget.view.welcome
 
 import android.content.Intent
 import androidx.annotation.ColorRes
-import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import android.view.View
 import androidx.viewbinding.ViewBinding
 
 import com.simplebudget.db.DB
-import com.simplebudget.helper.BaseFragment
+import com.simplebudget.base.BaseFragment
 import org.koin.android.ext.android.inject
 
 /**

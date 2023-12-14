@@ -25,9 +25,8 @@ import android.view.MenuItem
 import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
-import com.simplebudget.R
 import com.simplebudget.databinding.ActivityPdfReportBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.MultiClick
 
 /**

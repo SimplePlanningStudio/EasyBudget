@@ -26,24 +26,34 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
 import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityExpenseEditBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.showCaseView
+import com.simplebudget.helper.extensions.toAccount
+import com.simplebudget.helper.extensions.toAccounts
+import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.model.account.Account
+import com.simplebudget.model.category.Category
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.*
 import com.simplebudget.view.DatePickerDialogFragment
+import com.simplebudget.view.accounts.AccountsSpinnerAdapter
+import com.simplebudget.view.accounts.AccountsViewModel
 import com.simplebudget.view.category.choose.ChooseCategoryActivity
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
@@ -60,11 +70,18 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: ExpenseEditViewModel by viewModel()
+    private val accountsViewModel: AccountsViewModel by viewModel()
     private lateinit var receiver: BroadcastReceiver
     private var adView: AdView? = null
     private var existingExpenseCategory: String = ""
     private var isEdit: Boolean = false
     private var isRevenue: Boolean = false
+    private var selectedCategory: Category? = null
+
+    private var activeAccount: Account? = null // Currently active account
+    private var selectedAccount: Account? = null // Selected on list for display
+    private var accountsSpinnerAdapter: AccountsSpinnerAdapter? = null
+    private var accounts: List<Account>? = emptyList()
 
 
     override fun createBinding(): ActivityExpenseEditBinding =
@@ -104,18 +121,48 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
             }
         }
 
+        // Getting account of budget
+        accountsViewModel.getAccountFromId.observe(this) { account ->
+            selectedAccount = account
+            binding.spinnerAccountTitle.setSelection(accounts?.indexOf(selectedAccount) ?: 0, false)
+        }
+        // Load accounts
+        lifecycleScope.launch {
+            accountsViewModel.allAccountsFlow.collect { accountEntities ->
+                accounts = accountEntities.toAccounts()
+                accountsSpinnerAdapter = AccountsSpinnerAdapter(
+                    this@ExpenseEditActivity, R.layout.spinner_item, accounts ?: emptyList()
+                )
+                binding.spinnerAccountTitle.adapter = accountsSpinnerAdapter
+                binding.spinnerAccountTitle.onItemSelectedListener =
+                    object : AdapterView.OnItemSelectedListener {
+                        override fun onItemSelected(
+                            parentView: AdapterView<*>?,
+                            selectedItemView: View?,
+                            position: Int,
+                            id: Long
+                        ) {
+                            selectedAccount = accountsSpinnerAdapter?.getItem(position)
+                        }
+
+                        override fun onNothingSelected(parentView: AdapterView<*>?) {
+                            // Handle the case where nothing is selected (optional)
+                        }
+                    }
+            }
+        }
+
         viewModel.existingExpenseEventStream.observe(this) { existingValues ->
             if (existingValues != null) {
                 setUpTextFields(
                     existingValues.title,
                     existingValues.amount,
-                    existingValues.categoryType
+                    existingValues.categoryType,
+                    existingValues.accountId
                 )
             } else {
                 setUpTextFields(
-                    description = null,
-                    amount = null,
-                    categoryType = null
+                    description = null, amount = null, categoryType = null, accountId = 0L
                 )
             }
         }
@@ -159,20 +206,19 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         }
 
         viewModel.expenseAddBeforeInitDateEventStream.observe(this) {
-            AlertDialog.Builder(this)
-                .setTitle(R.string.expense_add_before_init_date_dialog_title)
+            AlertDialog.Builder(this).setTitle(R.string.expense_add_before_init_date_dialog_title)
                 .setMessage(R.string.expense_add_before_init_date_dialog_description)
                 .setPositiveButton(R.string.expense_add_before_init_date_dialog_positive_cta) { _, _ ->
                     viewModel.onAddExpenseBeforeInitDateConfirmed(
                         getCurrentAmount(),
                         binding.descriptionEdittext.text.toString(),
-                        binding.tvCategoryName.text?.toString() ?: ""
+                        binding.tvCategoryName.text?.toString() ?: "",
+                        selectedAccount?.id ?: appPreferences.activeAccount()
                     )
                 }
                 .setNegativeButton(R.string.expense_add_before_init_date_dialog_negative_cta) { _, _ ->
                     viewModel.onAddExpenseBeforeInitDateCancelled()
-                }
-                .show()
+                }.show()
         }
 
         //Handle categories
@@ -182,6 +228,17 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
         //Show hint switch income / expense
         showCaseChangeExpenseIncomeSwitch()
+
+
+        // Load accounts data
+        lifecycleScope.launch {
+            accountsViewModel.activeAccountFlow.collect { activeAccountTypeEntity ->
+                activeAccountTypeEntity?.let {
+                    activeAccount = activeAccountTypeEntity.toAccount()
+                    selectedAccount = activeAccountTypeEntity.toAccount()
+                }
+            }
+        }
     }
 
     /**
@@ -194,7 +251,6 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
                 return true
             }
         }
-
         return super.onOptionsItemSelected(item)
     }
 
@@ -205,13 +261,11 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      */
     private fun validateInputs(): Boolean {
         var ok = true
-
         val description = binding.descriptionEdittext.text.toString()
         if (description.trim { it <= ' ' }.isEmpty()) {
             binding.descriptionEdittext.error = resources.getString(R.string.no_description_error)
             ok = false
         }
-
         val amount = binding.amountEdittext.text.toString()
         if (amount.trim { it <= ' ' }.isEmpty()) {
             binding.amountEdittext.error = resources.getString(R.string.no_amount_error)
@@ -230,8 +284,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
             }
         }
         val category = binding.tvCategoryName.text.toString()
-        if (category.trim().isEmpty())
-            binding.tvCategoryName.text = ExpenseCategoryType.MISCELLANEOUS.name.uppercase()
+        if (category.trim().isEmpty()) binding.tvCategoryName.text =
+            ExpenseCategoryType.MISCELLANEOUS.name.uppercase()
 
         return ok
     }
@@ -254,8 +308,14 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
                     getCurrentAmount(),
                     binding.descriptionEdittext.text.toString(),
                     binding.tvCategoryName.text?.toString()?.uppercase()
-                        ?: ExpenseCategoryType.MISCELLANEOUS.name.uppercase()
+                        ?: ExpenseCategoryType.MISCELLANEOUS.name.uppercase(),
+                    selectedAccount?.id ?: appPreferences.activeAccount()
                 )
+                // TODO: Should we update active account upon adding expenses into different account?
+                /*if (selectedAccount?.id != activeAccount.id) {
+                    accountsViewModel.updateActiveAccount(selectedAccount!!)
+                    this@ExpenseEditActivity.updateAccountNotifyBroadcast()
+                }*/
             }
         }
     }
@@ -285,9 +345,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      * Set up text field focus behavior
      */
     private fun setUpTextFields(
-        description: String?,
-        amount: Double?,
-        categoryType: String?
+        description: String?, amount: Double?, categoryType: String?, accountId: Long
     ) {
         binding.amountInputlayout.hint =
             resources.getString(R.string.amount, appPreferences.getUserCurrency().symbol)
@@ -295,8 +353,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         if (description != null) {
             binding.descriptionEdittext.setText(description)
             binding.descriptionEdittext.setSelection(
-                binding.descriptionEdittext.text?.length
-                    ?: 0
+                binding.descriptionEdittext.text?.length ?: 0
             ) // Put focus at the end of the text
         }
 
@@ -308,6 +365,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         //Hold this to display over category spinner
         existingExpenseCategory = categoryType ?: ""
         binding.tvCategoryName.text = existingExpenseCategory
+
+        accountsViewModel.getAccountFromId(if (accountId != 0L) accountId else appPreferences.activeAccount())
     }
 
     /**
@@ -315,8 +374,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      */
     private fun setUpDateButton(date: LocalDate) {
         val formatter = DateTimeFormatter.ofPattern(
-            resources.getString(R.string.add_expense_date_format),
-            Locale.getDefault()
+            resources.getString(R.string.add_expense_date_format), Locale.getDefault()
         )
         binding.dateButton.text = formatter.format(date)
 
@@ -324,7 +382,6 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
             val fragment = DatePickerDialogFragment(date) { _, year, monthOfYear, dayOfMonth ->
                 viewModel.onDateChanged(LocalDate.of(year, monthOfYear + 1, dayOfMonth))
             }
-
             fragment.show(supportFragmentManager, "datePicker")
         }
     }
@@ -347,8 +404,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
             adView = AdView(this)
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             adContainerView.addView(adView)
-            val actualAdRequest = AdRequest.Builder()
-                .build()
+            val actualAdRequest = AdRequest.Builder().build()
             adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
@@ -386,9 +442,10 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
     private var securityActivityLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val category =
-                result.data?.getStringExtra(ChooseCategoryActivity.REQUEST_CODE_SELECTED_CATEGORY)
-                    ?: ""
-            binding.tvCategoryName.text = category
+                result.data?.getParcelableExtra(ChooseCategoryActivity.REQUEST_CODE_SELECTED_CATEGORY) as Category?
+            selectedCategory = category
+            binding.tvCategoryName.text = selectedCategory?.name ?: ""
+
         }
 
     /**
@@ -396,11 +453,10 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      */
     private fun handleCategoryLaunch() {
         securityActivityLauncher.launch(
-            Intent(this, ChooseCategoryActivity::class.java)
-                .putExtra(
-                    ChooseCategoryActivity.REQUEST_CODE_CURRENT_EDIT_CATEGORY,
-                    (binding.tvCategoryName.text?.toString() ?: existingExpenseCategory)
-                )
+            Intent(this, ChooseCategoryActivity::class.java).putExtra(
+                ChooseCategoryActivity.REQUEST_CODE_CURRENT_EDIT_CATEGORY,
+                (binding.tvCategoryName.text?.toString() ?: existingExpenseCategory)
+            )
         )
     }
 
@@ -410,14 +466,12 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
     private fun showCaseChangeExpenseIncomeSwitch() {
         if (appPreferences.hasUserSawSwitchExpenseHint().not()) {
             switchDemo()
-            showCaseView(
-                targetView = binding.expenseTypeSwitch,
+            showCaseView(targetView = binding.expenseTypeSwitch,
                 title = getString(R.string.switch_expense_income_hint_title),
                 message = getString(R.string.switch_expense_income_hint_message),
                 handleGuideListener = {
                     appPreferences.setUserSawSwitchExpenseHint()
-                }
-            )
+                })
         }
     }
 

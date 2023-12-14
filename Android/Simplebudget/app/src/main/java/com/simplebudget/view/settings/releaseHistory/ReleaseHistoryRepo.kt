@@ -9,6 +9,12 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 3.0.0
+            releaseList.add(ReleaseHistory("Version", "3.0.0", "Added multiple accounts."))
+            releaseList.add(ReleaseHistory("Version", "3.0.0", "Updated premium payments."))
+            releaseList.add(ReleaseHistory("Version", "3.0.0", "Added side navigation for more options."))
+            releaseList.add(ReleaseHistory("Version", "3.0.0", "Added overall designs enhancements."))
+
             // 2.1.4
             releaseList.add(ReleaseHistory("Version", "2.1.4", "Search expenses issues fixed."))
             releaseList.add(ReleaseHistory("Version", "2.1.4", "Fixed few bugs and crashes."))

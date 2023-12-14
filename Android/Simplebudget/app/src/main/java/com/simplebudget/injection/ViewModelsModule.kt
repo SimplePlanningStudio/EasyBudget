@@ -15,6 +15,7 @@
  */
 package com.simplebudget.injection
 
+import com.simplebudget.view.accounts.AccountsViewModel
 import com.simplebudget.view.category.choose.ChooseCategoryViewModel
 import com.simplebudget.view.breakdown.base.BreakDownBaseViewModel
 import com.simplebudget.view.expenseedit.ExpenseEditViewModel
@@ -37,7 +38,7 @@ val viewModelModule = module {
     /**
      * Main activity view model
      */
-    viewModel { MainViewModel(get(), get()) }
+    viewModel { MainViewModel(get(), get(), get()) }
 
     /**
      * Categories view model
@@ -88,4 +89,9 @@ val viewModelModule = module {
      * Reset app data view model
      */
     viewModel { ResetAppDataViewModel(get(), get()) }
+
+    /**
+     * Accounts view model
+     */
+    viewModel { AccountsViewModel(get(), get()) }
 }

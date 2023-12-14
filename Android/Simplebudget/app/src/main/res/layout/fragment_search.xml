@@ -97,10 +97,10 @@
                     android:id="@+id/exportReport"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
                     android:layout_marginHorizontal="@dimen/_2sdp"
                     android:contentDescription="@string/export"
-                    android:src="@drawable/ic_export_report" />
+                    android:src="@drawable/ic_export_report"
+                    android:visibility="gone" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipReset"
@@ -109,9 +109,9 @@
                     android:layout_marginHorizontal="@dimen/_2sdp"
                     android:checkable="false"
                     android:checked="false"
-                    android:visibility="gone"
                     android:text="@string/reset"
                     android:textColor="@color/white"
+                    android:visibility="gone"
                     app:chipBackgroundColor="@color/budget_red"
                     app:chipIcon="@drawable/ic_clear"
                     app:chipIconTint="@color/white" />
@@ -166,6 +166,26 @@
             android:layout_marginStart="@dimen/_8sdp"
             android:textColor="@color/track_deactivated"
             android:textSize="@dimen/_10ssp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_marginVertical="@dimen/_2sdp"
+            android:background="@color/divider_grey" />
+
+        <TextView
+            android:id="@+id/revenueDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:textColor="@color/track_deactivated"
+            android:textSize="@dimen/_12ssp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_marginVertical="@dimen/_2sdp"
+            android:background="@color/divider_grey" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewSearch"

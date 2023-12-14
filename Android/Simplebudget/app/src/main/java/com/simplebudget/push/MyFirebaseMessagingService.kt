@@ -188,6 +188,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         const val WEEKLY_REMINDER_KEY = "weekly"
 
         /**
+         * Key to retrieve the multiple accounts key for a push
+         */
+        const val MULTIPLE_ACCOUNT_KEY = "multi_accounts"
+
+        /**
          * Package to download
          */
         const val PACKAGE_TO_DOWNLOAD = "KeyPackageToDownload"

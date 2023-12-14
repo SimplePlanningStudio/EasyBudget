@@ -29,7 +29,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySettingsBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.SHOW_PIN
 import com.simplebudget.prefs.*
 import com.simplebudget.view.security.SecurityActivity

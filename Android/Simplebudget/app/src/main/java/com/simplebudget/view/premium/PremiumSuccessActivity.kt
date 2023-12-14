@@ -19,7 +19,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySuccessPremiumBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.view.main.MainActivity
 
 /**

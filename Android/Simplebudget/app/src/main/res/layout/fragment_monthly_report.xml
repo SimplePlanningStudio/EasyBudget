@@ -27,10 +27,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_8sdp"
             android:clickable="true"
-            android:paddingHorizontal="@dimen/_2sdp"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/_2sdp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -66,9 +66,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingLeft="20dp"
-            android:paddingTop="10dp"
+            android:paddingTop="@dimen/_4sdp"
             android:paddingRight="20dp"
-            android:paddingBottom="10dp">
+            android:paddingBottom="@dimen/_4sdp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -108,7 +108,7 @@
                     android:id="@+id/llExpenseTotal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -136,7 +136,7 @@
                     android:id="@+id/llBalanceTotal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 

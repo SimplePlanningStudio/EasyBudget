@@ -27,10 +27,9 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import com.simplebudget.R
 import com.simplebudget.databinding.DialogSecurityBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.interfaces.HashListener
 
 

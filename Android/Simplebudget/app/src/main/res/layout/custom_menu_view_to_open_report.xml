@@ -16,6 +16,6 @@
         android:text="@string/title_budget_report"
         android:textAllCaps="true"
         android:textColor="@color/white"
-        app:drawableEndCompat="@drawable/ic_date_range_24dp" />
+        app:drawableEndCompat="@drawable/ic_monthly_reports_white" />
 
 </LinearLayout>

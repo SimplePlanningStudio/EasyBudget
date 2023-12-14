@@ -35,10 +35,6 @@ class DatePickerDialogFragment(
 
     private val appPreferences: AppPreferences by inject()
 
-    constructor() : this(LocalDate.now(), DatePickerDialog.OnDateSetListener { _, _, _, _ -> }) {
-        throw RuntimeException("DatePickerDialogFragment is supposed to be instantiated with the date+listener constructor")
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // Create a new instance of DatePickerDialog and return it
         val dialog = DatePickerDialog(
@@ -48,6 +44,7 @@ class DatePickerDialogFragment(
             originalDate.monthValue - 1,
             originalDate.dayOfMonth
         )
+
         dialog.datePicker.minDate =
             (appPreferences.getInitDate() ?: LocalDate.now()).computeCalendarMinDateFromInitDate()
                 .toStartOfDayDate().time

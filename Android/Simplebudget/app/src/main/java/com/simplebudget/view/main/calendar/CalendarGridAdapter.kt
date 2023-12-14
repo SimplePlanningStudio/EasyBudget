@@ -26,6 +26,8 @@ import com.simplebudget.R
 import com.simplebudget.db.DB
 import com.roomorama.caldroid.CaldroidGridAdapter
 import com.roomorama.caldroid.CalendarHelper
+import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
 
 import kotlinx.coroutines.runBlocking
 
@@ -33,6 +35,7 @@ import kotlinx.coroutines.runBlocking
 class CalendarGridAdapter(
     context: Context,
     private val db: DB,
+    private val appPreferences: AppPreferences,
     month: Int,
     year: Int,
     caldroidData: Map<String, Any>,
@@ -132,8 +135,9 @@ class CalendarGridAdapter(
             }
 
             val date = CalendarHelper.convertDateTimeToDate(dateTime)
-            if (runBlocking { db.hasExpenseForDay(date) }) {
-                val balance = runBlocking { db.getBalanceForDay(date) }
+            if (runBlocking { db.hasExpenseForDay(date, appPreferences.activeAccount()) }) {
+                val balance =
+                    runBlocking { db.getBalanceForDay(date, appPreferences.activeAccount()) }
 
                 if (!viewData.containsExpenses) {
                     tv2.visibility = View.VISIBLE

@@ -22,6 +22,7 @@ import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import com.simplebudget.model.recurringexpense.RecurringExpenseType
@@ -68,7 +69,8 @@ class RecurringExpenseEditViewModel(
             expense.title,
             expense.amount,
             expense.associatedRecurringExpense!!.type,
-            expense.associatedRecurringExpense.category
+            expense.associatedRecurringExpense.category,
+            expense.accountId
         ) else null
     }
 
@@ -78,7 +80,8 @@ class RecurringExpenseEditViewModel(
 
     fun onSave(
         value: Double, description: String, recurringExpenseType: RecurringExpenseType,
-        expenseCategoryType: String
+        expenseCategoryType: String,
+        accountId: Long
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -96,7 +99,8 @@ class RecurringExpenseEditViewModel(
             editedExpense,
             isRevenue,
             date,
-            expenseCategoryType
+            expenseCategoryType,
+            accountId
         )
     }
 
@@ -104,7 +108,8 @@ class RecurringExpenseEditViewModel(
         value: Double,
         description: String,
         recurringExpenseType: RecurringExpenseType,
-        expenseCategoryType: String
+        expenseCategoryType: String,
+        accountId: Long
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -116,7 +121,8 @@ class RecurringExpenseEditViewModel(
             editedExpense,
             isRevenue,
             date,
-            expenseCategoryType
+            expenseCategoryType,
+            accountId
         )
     }
 
@@ -131,7 +137,8 @@ class RecurringExpenseEditViewModel(
         editedExpense: Expense?,
         isRevenue: Boolean,
         date: LocalDate,
-        expenseCategoryType: String
+        expenseCategoryType: String,
+        accountId: Long
     ) {
         savingIsRevenueEventStream.value = isRevenue
 
@@ -145,7 +152,8 @@ class RecurringExpenseEditViewModel(
                                 if (isRevenue) -value else value,
                                 date,
                                 recurringExpenseType,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -159,7 +167,8 @@ class RecurringExpenseEditViewModel(
                     if (!flattenExpensesForRecurringExpense(
                             insertedExpense,
                             date,
-                            expenseCategoryType
+                            expenseCategoryType,
+                            accountId
                         )
                     ) {
                         Logger.error(
@@ -185,7 +194,8 @@ class RecurringExpenseEditViewModel(
                             recurringDate = date,
                             title = description,
                             amount = if (isRevenue) -value else value,
-                            category = expenseCategoryType
+                            category = expenseCategoryType,
+                            accountId = accountId
                         )
                         db.persistRecurringExpense(newRecurringExpense)
                     } catch (t: Throwable) {
@@ -199,7 +209,8 @@ class RecurringExpenseEditViewModel(
                     if (!flattenExpensesForRecurringExpense(
                             recurringExpense,
                             date,
-                            expenseCategoryType
+                            expenseCategoryType,
+                            accountId
                         )
                     ) {
                         Logger.error(
@@ -224,7 +235,8 @@ class RecurringExpenseEditViewModel(
     private suspend fun flattenExpensesForRecurringExpense(
         expense: RecurringExpense,
         date: LocalDate,
-        expenseCategoryType: String
+        expenseCategoryType: String,
+        accountId: Long
     ): Boolean {
         var currentDate = date
 
@@ -239,7 +251,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -262,7 +275,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -286,7 +300,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -310,7 +325,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -335,7 +351,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -359,7 +376,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -383,7 +401,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -407,7 +426,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -432,7 +452,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -457,7 +478,8 @@ class RecurringExpenseEditViewModel(
                                 expense.amount,
                                 currentDate,
                                 expense,
-                                expenseCategoryType
+                                expenseCategoryType,
+                                accountId
                             )
                         )
                     } catch (t: Throwable) {
@@ -498,5 +520,6 @@ data class ExistingExpenseData(
     val title: String,
     val amount: Double,
     val type: RecurringExpenseType,
-    val categoryType: String
+    val categoryType: String,
+    val accountId: Long
 )

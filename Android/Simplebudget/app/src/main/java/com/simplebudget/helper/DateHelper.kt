@@ -62,6 +62,9 @@ object DateHelper {
 
     val startDayOfMonth: LocalDate = today.withDayOfMonth(1)
 
+    val lastThreeMonth: LocalDate = today.minusMonths(3)
+
+    val endDayOfMonth: LocalDate = startDayOfMonth.plusMonths(1).minusDays(1)
 }
 
 /**
@@ -108,6 +111,20 @@ fun LocalDate.computeCalendarMinDateFromInitDate(): LocalDate = minusYears(1)
 fun LocalDate.getMonthTitle(context: Context): String {
     val format = DateTimeFormatter.ofPattern(
         context.resources.getString(R.string.monthly_report_month_title_format),
+        Locale.getDefault()
+    )
+    return format.format(this)
+}
+
+/**
+ * Get the formatted date
+ *
+ * @param context non null context
+ * @return a formatted string like "04 Dec 2023"
+ */
+fun LocalDate.getFormattedDate(context: Context): String {
+    val format = DateTimeFormatter.ofPattern(
+        context.resources.getString(R.string.budgets_date_format),
         Locale.getDefault()
     )
     return format.format(this)

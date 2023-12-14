@@ -20,7 +20,6 @@ import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.MenuItem
 import android.view.View
-import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -29,7 +28,7 @@ import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityBackupSettingsBinding
 import com.simplebudget.helper.AdSizeUtils
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
 import org.koin.android.ext.android.inject

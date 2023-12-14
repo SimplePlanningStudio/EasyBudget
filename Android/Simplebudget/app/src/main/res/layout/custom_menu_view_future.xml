@@ -16,6 +16,6 @@
         android:text="@string/breakdown"
         android:textAllCaps="true"
         android:textColor="@color/white"
-        app:drawableEndCompat="@drawable/ic_action_menu_breakdown" />
+        app:drawableEndCompat="@drawable/ic_breakdown_white" />
 
 </LinearLayout>

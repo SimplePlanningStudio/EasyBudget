@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.helper
+package com.simplebudget.base
 
 import android.app.AlertDialog
 import android.app.NotificationManager
@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewbinding.ViewBinding
 import com.simplebudget.R
+import com.simplebudget.helper.Rate
 import com.simplebudget.push.MyFirebaseMessagingService.Companion.ACTION_TRIGGER_DOWNLOAD
 import com.simplebudget.push.MyFirebaseMessagingService.Companion.NOTIFICATION_ID_NEW_FEATURES
 
@@ -35,7 +36,6 @@ abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
     protected lateinit var binding: V
     private lateinit var listener: MyBroadcastReceiver
     private lateinit var localBroadcastManager: LocalBroadcastManager
-
 
     abstract fun createBinding(): V
 

@@ -19,15 +19,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
-import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.iab.Iab
 import com.simplebudget.model.category.Category
-import com.simplebudget.model.category.ExpenseCategories
-import com.simplebudget.model.category.ExpenseCategoryType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.collections.ArrayList
 
 /**
  * ExpenseEditViewModel to handle categories.
@@ -38,40 +36,19 @@ class ManageCategoriesViewModel(
     /**
      * Expense that is being edited (will be null if it's a new one)
      */
-    private var categories: ArrayList<Category> = ArrayList()
-    val categoriesLiveData = SingleLiveEvent<ArrayList<Category>>()
-
+    lateinit var categoriesFlow: Flow<List<CategoryEntity>>
     val premiumStatusLiveData = MutableLiveData<Boolean>()
     fun onIabStatusChanged() {
         premiumStatusLiveData.value = iab.isUserPremium()
     }
 
+    fun isUserPremium(): Boolean = premiumStatusLiveData.value ?: false
 
     /**
      *
      */
-    private fun loadCategories(currentCategories: ArrayList<Category>) {
-        viewModelScope.launch {
-            categories.clear()
-            withContext(Dispatchers.Default) {
-                val dbCategories = db.getCategories()
-                categories.addAll(dbCategories)
-                // Removing 'MISCELLANEOUS' to not to show so that user can remove / edit it.
-                for (cat in categories) {
-                    if (cat.name == ExpenseCategoryType.MISCELLANEOUS.name) {
-                        categories.remove(cat)
-                        break
-                    }
-                }
-                //If changes in categories added / deleted during selection just reverse so that user can see newly added records
-                if (currentCategories.isNotEmpty() && categories.size > currentCategories.size) categories.reverse()
-                categoriesLiveData.postValue(categories)
-                //Save categories into DB
-                if (categories.isEmpty()) {
-                    refreshCategories()
-                }
-            }
-        }
+    private fun loadCategories() {
+        categoriesFlow = db.getCategories()
     }
 
     /**
@@ -80,7 +57,7 @@ class ManageCategoriesViewModel(
     fun saveCategory(category: Category) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                db.persistCategories(
+                db.persistCategory(
                     category
                 )
             }
@@ -100,17 +77,6 @@ class ManageCategoriesViewModel(
         }
     }
 
-    /**
-     * Add categories and keep user's categories as well.
-     */
-    private fun refreshCategories() {
-        viewModelScope.launch {
-            ExpenseCategories.getCategoriesList().forEach { name ->
-                db.persistCategories(Category(name))
-            }
-        }
-    }
-
     override fun onCleared() {
         db.close()
         super.onCleared()
@@ -118,7 +84,7 @@ class ManageCategoriesViewModel(
 
 
     init {
-        loadCategories(ArrayList())
+        loadCategories()
         premiumStatusLiveData.value = iab.isUserPremium()
     }
 }

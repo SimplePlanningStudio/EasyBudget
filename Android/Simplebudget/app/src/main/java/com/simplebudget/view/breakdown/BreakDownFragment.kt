@@ -25,12 +25,10 @@ import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.view.*
 import android.view.animation.AnimationUtils
-import android.widget.AbsListView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.mikephil.charting.data.PieData
@@ -43,6 +41,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
+import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentBreakDownBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.beGone
@@ -151,9 +150,11 @@ class BreakDownFragment : BaseFragment<FragmentBreakDownBinding>() {
                         )
                     )
                     binding?.balancesContainer?.visibility = View.GONE
+                    binding?.chart?.beGone()
                 }
                 is BreakDownViewModel.MonthlyBreakDownData.Data -> {
                     lisOfExpenses.clear()
+                    binding?.chart?.beVisible()
                     binding?.breakDownEmptyState?.visibility = View.GONE
                     binding?.llRecyclerViewContents?.visibility = View.VISIBLE
                     lisOfExpenses.addAll(result.allExpensesOfThisMonth)

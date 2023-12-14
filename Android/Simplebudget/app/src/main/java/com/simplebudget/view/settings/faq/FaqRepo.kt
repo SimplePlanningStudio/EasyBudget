@@ -91,6 +91,26 @@ class FaqRepo {
                         "If I delete or edit any category. Would it also update or delete expenses attached to this category?",
                         "No, By editing or deleting any category won\'t affect expenses. If you want to update categories in expenses you can directly edit / update in your expenses."
                     ),
+                    Question(
+                        "I can't see any amount, my balance is replaced with dashes -- what should I do?",
+                        "You have enabled balance privacy, you can turn it OFF from the switch under the calendar from the main screen! "
+                    ),
+                    Question(
+                        "Can I create multiple account?",
+                        "Yes, you can create multiple accounts!"
+                    ),
+                    Question(
+                        "How many account I can create?",
+                        "You can add 5 more accounts. Savings account is a default account so you'll be having total 6 accounts to manage your expenses!"
+                    ),
+                    Question(
+                        "What would happen if I accidentally delete any account?",
+                        "If you delete an account your transactions of that account would also be deleted! But if you have enabled data backup you can restore it quickly before the next auto-backup happened as it would overwrite your last backup with new changes and you can't restore it!"
+                    ),
+                    Question(
+                        "How can I refund muy purchases?",
+                        "You can ask your refund via Feedback section of the app under settings."
+                    ),
                     // Add more questions here
                 )
             )

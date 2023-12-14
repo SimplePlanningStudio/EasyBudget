@@ -15,14 +15,27 @@
  */
 package com.simplebudget.view.search.base
 
+import android.content.Intent
 import android.os.Bundle
+import android.os.CountDownTimer
+import android.view.View
+import androidx.core.app.ActivityCompat
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySearchExpensesBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.updateAccountNotifyBroadcast
+import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccountLabel
+import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
+import com.simplebudget.view.report.base.MonthlyReportBaseActivity
 import com.simplebudget.view.search.SearchFragment
+import org.koin.android.ext.android.inject
 
 
 class SearchBaseActivity : BaseActivity<ActivitySearchExpensesBinding>() {
+
+    private val appPreferences: AppPreferences by inject()
+    private lateinit var searchFragment: SearchFragment
 
     override fun createBinding(): ActivitySearchExpensesBinding {
         return ActivitySearchExpensesBinding.inflate(layoutInflater)
@@ -33,9 +46,44 @@ class SearchBaseActivity : BaseActivity<ActivitySearchExpensesBinding>() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        searchFragment = SearchFragment.newInstance()
+
         //Add search fragment
         val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.frameLayoutSearchExpenses, SearchFragment.newInstance())
+        transaction.replace(R.id.frameLayoutSearchExpenses, searchFragment)
         transaction.commit()
+
+        //Selected account
+        binding.layoutSelectAccount.tvSelectedAccount.text =
+            String.format("%s", appPreferences.activeAccountLabel())
+        binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
+            val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
+                binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                updateAccountNotifyBroadcast()
+
+                binding.monthlyReportProgressBar.visibility = View.VISIBLE
+                // 2 Seconds delay and re-load will do the trick :)
+                object : CountDownTimer(2000, 2000) {
+
+                    override fun onTick(millisUntilFinished: Long) {
+                    }
+
+                    override fun onFinish() {
+                        binding.monthlyReportProgressBar.visibility = View.GONE
+                        finish()
+                        ActivityCompat.startActivity(
+                            this@SearchBaseActivity,
+                            Intent(this@SearchBaseActivity, SearchBaseActivity::class.java),
+                            null
+                        )
+                    }
+                }.start()
+
+            }
+            accountsBottomSheetDialogFragment.show(
+                supportFragmentManager, accountsBottomSheetDialogFragment.tag
+            )
+        }
     }
 }

@@ -20,14 +20,14 @@ fun Intent.addExtrasForDownloadCampaign(packageId: String): Intent {
  * Telegram channel page
  */
 fun Intent.getTelegramIntent(context: Context): Intent {
-    try {
+    return try {
         try {
             context.packageManager.getPackageInfo("org.telegram.messenger", 0)//Check for Telegram Messenger App
         } catch (e : Exception){
             context.packageManager.getPackageInfo("org.thunderdog.challegram", 0)//Check for Telegram X App
         }
-        return  Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=${TELEGRAM_SUPPORT_PAGE_ID}"))
+        Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=${TELEGRAM_SUPPORT_PAGE_ID}"))
     }catch (e : Exception){ //App not found open in browser
-        return Intent(Intent.ACTION_VIEW, Uri.parse("http://www.telegram.me/$TELEGRAM_SUPPORT_PAGE_ID"))
+        Intent(Intent.ACTION_VIEW, Uri.parse("http://www.telegram.me/$TELEGRAM_SUPPORT_PAGE_ID"))
     }
 }

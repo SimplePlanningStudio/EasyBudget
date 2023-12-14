@@ -1,8 +1,6 @@
 package com.simplebudget.helper
 
-import android.annotation.TargetApi
 import android.content.Context
-import android.os.Build
 import android.preference.PreferenceManager
 import java.util.*
 
@@ -14,9 +12,7 @@ object LocaleHelper {
      */
     fun setLocale(context: Context, language: String): Context {
         persist(context, language)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            updateResources(context, language)
-        else updateResourcesLegacy(context, language)
+        return updateResources(context, language)
     }
 
     /**
@@ -32,7 +28,6 @@ object LocaleHelper {
     /**
      *
      */
-    @TargetApi(Build.VERSION_CODES.N)
     private fun updateResources(context: Context, language: String): Context {
         val locale = Locale(language)
         Locale.setDefault(locale)

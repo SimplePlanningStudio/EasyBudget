@@ -1,15 +1,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/_64sdp"
+    android:layout_height="@dimen/_70sdp"
     android:background="#CCFFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp">
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
 
         <TextView
             android:id="@+id/date_tv"
@@ -59,29 +59,60 @@
                 android:maxLines="1"
                 android:minLines="1" />
 
+            <TextView
+                android:id="@+id/dateDetailed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:minLines="1"
+                android:textSize="@dimen/_8ssp" />
+
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/recurring_indicator"
-            android:layout_width="60dp"
+            android:layout_width="70dp"
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical">
 
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_marginBottom="1dp"
-                android:contentDescription="@string/category"
-                app:srcCompat="@drawable/ic_autorenew_grey_26dp" />
+            <LinearLayout
+                android:id="@+id/recurring_indicator"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginBottom="1dp"
+                    android:contentDescription="@string/category"
+                    app:srcCompat="@drawable/ic_autorenew_grey_26dp" />
+
+                <TextView
+                    android:id="@+id/recurring_expense_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="@string/monthly"
+                    android:textColor="@color/caldroid_black"
+                    android:textSize="@dimen/_8ssp" />
+
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/recurring_expense_type"
+                android:id="@+id/future_expense"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="1dp"
-                android:text="@string/monthly"
-                android:textColor="@color/caldroid_black"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:minLines="2"
+                android:textColor="@color/budget_green"
                 android:textSize="@dimen/_8ssp" />
 
         </LinearLayout>

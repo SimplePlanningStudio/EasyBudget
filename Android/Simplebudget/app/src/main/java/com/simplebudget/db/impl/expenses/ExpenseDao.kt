@@ -27,20 +27,27 @@ interface ExpenseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun persistExpense(expenseEntity: ExpenseEntity): Long
 
-    @Query("SELECT COUNT(*) FROM expense WHERE date = :dayDate LIMIT 1")
-    suspend fun hasExpenseForDay(dayDate: LocalDate): Int
+    @Query("SELECT COUNT(*) FROM expense WHERE date = :dayDate AND accountId = :accountId LIMIT 1")
+    suspend fun hasExpenseForDay(dayDate: LocalDate, accountId: Long): Int
 
-    @Query("SELECT * FROM expense WHERE date = :dayDate")
-    suspend fun getExpensesForDay(dayDate: LocalDate): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE date = :dayDate AND accountId = :accountId")
+    suspend fun getExpensesForDay(dayDate: LocalDate, accountId: Long): List<ExpenseEntity>
 
-    @Query("SELECT * FROM expense WHERE date >= :monthStartDate AND date <= :monthEndDate")
+    @Query("SELECT * FROM expense WHERE date >= :monthStartDate AND date <= :monthEndDate AND accountId = :accountId")
     suspend fun getExpensesForMonth(
         monthStartDate: LocalDate,
-        monthEndDate: LocalDate
+        monthEndDate: LocalDate,
+        accountId: Long
     ): List<ExpenseEntity>
 
-    @Query("SELECT SUM(amount) FROM expense WHERE date <= :dayDate")
-    suspend fun getBalanceForDay(dayDate: LocalDate): Long?
+    @Query("SELECT * FROM expense WHERE date >= :monthStartDate AND date <= :monthEndDate")
+    suspend fun getExpensesForMonthWithoutCheckingAccount(
+        monthStartDate: LocalDate,
+        monthEndDate: LocalDate,
+    ): List<ExpenseEntity>
+
+    @Query("SELECT SUM(amount) FROM expense WHERE date <= :dayDate AND accountId = :accountId")
+    suspend fun getBalanceForDay(dayDate: LocalDate, accountId: Long): Long?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun persistRecurringExpense(recurringExpenseEntity: RecurringExpenseEntity): Long
@@ -54,8 +61,11 @@ interface ExpenseDao {
     @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId")
     suspend fun deleteAllExpenseForRecurringExpense(recurringExpenseId: Long)
 
-    @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId")
-    suspend fun getAllExpenseForRecurringExpense(recurringExpenseId: Long): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND accountId = :accountId")
+    suspend fun getAllExpenseForRecurringExpense(
+        recurringExpenseId: Long,
+        accountId: Long
+    ): List<ExpenseEntity>
 
     @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId AND date > :fromDate")
     suspend fun deleteAllExpenseForRecurringExpenseFromDate(
@@ -63,49 +73,74 @@ interface ExpenseDao {
         fromDate: LocalDate
     )
 
-    @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date > :fromDate")
+    @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date > :fromDate AND accountId = :accountId")
     suspend fun getAllExpensesForRecurringExpenseFromDate(
         recurringExpenseId: Long,
-        fromDate: LocalDate
+        fromDate: LocalDate,
+        accountId: Long
     ): List<ExpenseEntity>
 
-    @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate")
+    @Query("DELETE FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate AND accountId = :accountId")
     suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(
         recurringExpenseId: Long,
-        beforeDate: LocalDate
+        beforeDate: LocalDate,
+        accountId: Long
     )
 
-    @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate")
+    @Query("SELECT * FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate AND accountId = :accountId")
     suspend fun getAllExpensesForRecurringExpenseBeforeDate(
         recurringExpenseId: Long,
-        beforeDate: LocalDate
+        beforeDate: LocalDate,
+        accountId: Long
     ): List<ExpenseEntity>
 
-    @Query("SELECT count(*) FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate LIMIT 1")
+    @Query("SELECT count(*) FROM expense WHERE monthly_id = :recurringExpenseId AND date < :beforeDate AND accountId = :accountId LIMIT 1")
     suspend fun hasExpensesForRecurringExpenseBeforeDate(
         recurringExpenseId: Long,
-        beforeDate: LocalDate
+        beforeDate: LocalDate,
+        accountId: Long
     ): Int
 
-    @Query("SELECT * FROM monthlyexpense WHERE _expense_id = :recurringExpenseId LIMIT 1")
-    suspend fun findRecurringExpenseForId(recurringExpenseId: Long): RecurringExpenseEntity?
+    @Query("SELECT * FROM monthlyexpense WHERE _expense_id = :recurringExpenseId AND accountId = :accountId LIMIT 1")
+    suspend fun findRecurringExpenseForId(
+        recurringExpenseId: Long,
+        accountId: Long
+    ): RecurringExpenseEntity?
 
     @RawQuery
     suspend fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int
 
-    @Query("SELECT * FROM expense ORDER BY date LIMIT 1")
-    suspend fun getOldestExpense(): ExpenseEntity?
+    @Query("SELECT * FROM expense ORDER BY date AND accountId = :accountId LIMIT 1")
+    suspend fun getOldestExpense(accountId: Long): ExpenseEntity?
 
     // SELECT * FROM user WHERE name LIKE :searchQuery
-    @Query("SELECT * FROM expense WHERE UPPER(title) LIKE UPPER(:search_query) OR UPPER(category) LIKE UPPER(:search_query)")
-    suspend fun searchExpenses(search_query: String): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate AND accountId = :accountId AND (UPPER(title) LIKE UPPER(:search_query) OR UPPER(category) LIKE UPPER(:search_query))")
+    suspend fun searchExpenses(search_query: String,startDate: LocalDate, endDate: LocalDate, accountId: Long): List<ExpenseEntity>
 
-    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate")
-    suspend fun getAllExpenses(startDate: LocalDate, endDate: LocalDate): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate AND accountId = :accountId")
+    suspend fun getAllExpenses(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        accountId: Long
+    ): List<ExpenseEntity>
 
-    @Query("SELECT * FROM expense")
-    suspend fun getAllExpenses(): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE accountId = :accountId")
+    suspend fun getAllExpenses(accountId: Long): List<ExpenseEntity>
 
-    @Query("SELECT * FROM expense WHERE date > :todayDate")
-    suspend fun getAllFutureExpenses(todayDate: LocalDate): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE date > :todayDate AND accountId = :accountId")
+    suspend fun getAllFutureExpenses(
+        todayDate: LocalDate,
+        accountId: Long
+    ): List<ExpenseEntity>
+
+
+    @Query("DELETE FROM expense WHERE accountId = :accountId")
+    suspend fun deleteAllExpenses(accountId: Long)
+
+    @Query("DELETE FROM monthlyexpense WHERE accountId = :accountId")
+    suspend fun deleteAllRecurringExpenses(accountId: Long)
+
+    // Update query example
+    /*@Query("UPDATE expense SET accountId = :accountId")
+    suspend fun updateAccountType(accountId: Long)*/
 }

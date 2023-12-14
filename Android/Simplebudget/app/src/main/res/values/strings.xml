@@ -1,10 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="ExtraTranslation">
 
     <string name="action_settings">Settings</string>
-    <string name="action_balance">Adjust current balance</string>
+    <string name="action_balance">Adjust Balance</string>
     <string name="fab_add_expense">Add\nSingle Expense</string>
     <string name="fab_add_monthly_expense">Add\nRecurring Expenses</string>
     <string name="title_activity_add_expense">Add expense</string>
+    <string name="title_activity_add_budget">Add Budget</string>
     <string name="title_activity_add_income">Add income</string>
     <string name="title_activity_edit_expense">Edit expense</string>
     <string name="title_activity_edit_income">Edit income</string>
@@ -17,18 +18,23 @@
     <string name="title_activity_premium">Premium</string>
     <string name="title_activity_more_apps">More Apps</string>
     <string name="title_budget_report">Budget report</string>
+    <string name="search_expenses">Search expenses</string>
     <string name="title_search_expenses">Search expenses by title or category</string>
     <string name="title_upcoming">Upcoming expenses</string>
-    <string name="title_expenses_breakdown">Expenses breakdown</string>
+    <string name="title_expenses_breakdown">Expenses Breakdown</string>
     <string name="cancel">Cancel</string>
     <string name="undo">UNDO</string>
     <string name="ok">OK</string>
     <string name="amount">Amount ( %s )</string>
+    <string name="budget_amount_hint">Budget Amount ( %s )</string>
     <string name="description">Description</string>
+    <string name="budget_description">Your budget goal. Education, Home, Car, Wedding ....</string>
     <string name="type">Type</string>
     <string name="payment">Expense</string>
     <string name="income">Income</string>
     <string name="date">Date</string>
+    <string name="start_date">Start Date:</string>
+    <string name="end_date">End Date:</string>
     <string name="first_occurence">First instance</string>
     <string name="no_expense_for_today">No income or expense found</string>
     <string name="no_records_found">No records found</string>
@@ -81,7 +87,8 @@
     <string name="account_expense_format">Expense on %s</string>
     <string name="account_balance_date_format">MMM dd</string>
     <string name="add_expense_date_format">MMM dd yyyy</string>
-    <string name="date_format_calender_reveal">E, dd MMM yyyy</string>
+    <string name="budgets_date_format">dd MMM yyyy</string>
+    <string name="date_format_calender_reveal">E, dd MMM</string>
     <string name="adjust_limit_warning_title">Change warning threshold for low balance</string>
     <string name="adjust_limit_warning_message">Set the threshold value (must be > 0)</string>
     <string name="adjust_limit_warning_error_title">Oops</string>
@@ -139,12 +146,22 @@
     <string name="account_title_loans_account">Loans Account</string>
     <string name="account_title_credit_cards_account">Credit Cards Account</string>
 
+    <string-array name="accounts_array">
+        <item>@string/account_title_default_account</item>
+        <item>@string/account_title_current_account</item>
+        <item>@string/account_title_savings_account</item>
+        <item>@string/account_title_checking_account</item>
+        <item>@string/account_title_loans_account</item>
+        <item>@string/account_title_credit_cards_account</item>
+    </string-array>
+
     <string name="setting_category_general">General</string>
     <string name="setting_category_app_title">App</string>
-    <string name="setting_category_app_support_and_help">Help and Support</string>
+    <string name="setting_category_app_support_and_help">Feedback, Help and Support</string>
     <string name="setting_category_rate_button_title">Rate the app?</string>
+    <string name="setting_title_category_contact_us">Contact Us</string>
     <string name="setting_category_faq_title">FAQ</string>
-    <string name="setting_category_rate_button_message">Let me know what you think</string>
+    <string name="setting_category_rate_button_message">Let me know what you think?</string>
     <string name="setting_category_faq_message">Frequently asked questioned</string>
     <string name="setting_category_bug_report_send_button_title">Report a bug</string>
     <string name="bug_report_email" translatable="false">wavetechstudio@gmail.com</string>
@@ -158,13 +175,14 @@
     <string name="setting_category_limit_set_button_title">Low balance threshold (%s)</string>
     <string name="setting_category_limit_set_button_message">Change the threshold at which you want to be warned about a low balance</string>
     <string name="setting_category_start_day_of_week_title">Change start day of weeks</string>
-    <string name="setting_category_manage_category_title">Manage Categories</string>
+    <string name="setting_category_manage_category_title">Manage Categories / Budget</string>
     <string name="setting_category_start_day_of_week_summary">Start day of week is (%s)</string>
-    <string name="setting_category_manage_category_summary">Add or remove categories</string>
+    <string name="setting_category_manage_category_summary">Set budget and add or remove categories</string>
     <string name="setting_category_app_version_title" translatable="false">SimpleBudget %s</string>
     <string name="setting_category_share_app_title">Share with friends</string>
-    <string name="setting_category_rate_app_title">Feedback</string>
+    <string name="setting_category_rate_app_title">Feedback / Contact Us</string>
     <string name="setting_category_share_app_message">SimpleBudget is free, so why not share it with your friends!</string>
+    <string name="app_is_free_why_not_share_it">App is free, why not share it!</string>
     <string name="setting_category_feedback_app_message">Share your feedback to improve SimpleBudget!</string>
     <string name="setting_category_dev_title" translatable="false">Dev</string>
     <string name="setting_category_show_welcome_screen_button_title" translatable="false">Show welcome screen</string>
@@ -183,14 +201,14 @@
     <string name="setting_category_notifications_daily_title">Daily reminder</string>
     <string name="setting_category_notifications_daily_message">Receive a notification at the end of the day if you didn\'t enter your expenses</string>
     <string name="setting_category_not_premium_status_title">Remove Ads</string>
-    <string name="setting_category_not_premium_status_message">Lifetime access of all features without Ads.</string>
+    <string name="setting_category_not_premium_status_message">Lifetime access of all premium features without Ads.</string>
     <string name="setting_category_notifications_weekly_title">Weekly reports</string>
     <string name="setting_category_notifications_monthly_message">Receive a notification when a new monthly report is complete</string>
     <string name="setting_category_theme_title">Theme</string>
     <string name="setting_theme_light">Light</string>
     <string name="setting_theme_dark">Dark</string>
     <string name="setting_theme_platform">System default</string>
-    <string name="setting_app_version">App version</string>
+    <string name="setting_app_version">App releases</string>
 
     <string name="premium_popup_premium_title">You are premium!</string>
     <string name="premium_popup_premium_message">You have access to premium features:\n\n- Monthly report: Get a sum-up of your expenses and incomes of the month\n- Daily reminder if you forgot to enter your expenses during the day\n- Dark Theme support\n- Data backup\n…and more premium features that will be added soon!</string>
@@ -206,7 +224,7 @@
     <string name="premium_popup_not_premium_feature_more_title">… and more features that would be added soon!</string>
     <string name="premium_popup_not_premium_cta">Buy</string>
     <string name="premium_popup_become_title">Become a premium user</string>
-    <string name="become_premium_user">Become premium user</string>
+    <string name="become_premium_user">Become Premium User</string>
     <string name="premium_popup_become_message">It seems that you like using SimpleBudget!\nWould you like to take it to next level and discover premium features?</string>
     <string name="premium_popup_become_cta">Discover</string>
     <string name="premium_popup_become_not_now">Not now</string>
@@ -267,7 +285,6 @@
 
     <string name="app_invite_message">You should try SimpleBudget: An incredibly easy to use app to manage your budget!</string>
     <!-- 100 chars or less -->
-
     <string name="action_search">Search expenses</string>
     <string name="monthly_report_button_title">Monthly report</string>
     <string name="monthly_report_month_title_format">MMMM yyyy</string>
@@ -281,7 +298,9 @@
     <string name="adjust_balance_hint">You can adjust balance from here!</string>
     <string name="future_expense_hint">You can access future expenses from here!</string>
     <string name="breakdown_hint">You can access monthly expenses breakdown from here!</string>
+    <string name="backup_hint">You can manage cloud backups from here!</string>
     <string name="search_dialog_hint">You can quickly search expenses from here!</string>
+    <string name="help_dialog_hint">You can access FAQ, Feedback, Contact us from here!</string>
     <string name="settings_hint">You can access app settings from here!</string>
 
     <string name="backup_settings_activity_title">Data Backup</string>
@@ -329,7 +348,6 @@
     <string name="backup_wipe_data_error_title">Unable to delete cloud backup</string>
     <string name="backup_wipe_data_error_message">An error occurred while deleting your backup data. Please check your connexion and try again later.</string>
 
-
     <!-- Keys, not for translations. -->
     <string name="setting_category_bug_report_send_button_key" translatable="false">send_bug_report</string>
     <string name="setting_category_show_welcome_screen_button_key" translatable="false">show_welcome_screen</string>
@@ -337,6 +355,7 @@
     <string name="setting_category_currency_change_button_key" translatable="false">change_currency</string>
     <string name="setting_category_dev_key" translatable="false">dev_category</string>
     <string name="setting_category_rate_button_key" translatable="false">rate</string>
+    <string name="setting_category_contact_us" translatable="false">contact_us</string>
     <string name="setting_category_faq_key" translatable="false">faq</string>
     <string name="setting_category_app_version_key" translatable="false">app_version</string>
     <string name="setting_category_share_app_key" translatable="false">share_app</string>
@@ -352,8 +371,8 @@
     <string name="setting_category_not_premium_status_key" translatable="false">not_premium</string>
     <string name="setting_category_dev_show_premium_key" translatable="false">show_premium</string>
     <string name="setting_category_start_day_of_week_key" translatable="false">start_day_of_week</string>
-    <string name="setting_category_manage_category_key" translatable="false">manage_category</string>
     <string name="setting_enable_app_protection_key" translatable="false">enable_app_protection</string>
+    <string name="setting_enable_multiple_account_key" translatable="false">enable_multiple_account</string>
     <string name="setting_enable_app_notifications_key" translatable="false">enable_app_notification</string>
 
     <string name="setting_category_reports_title">Reports</string>
@@ -373,6 +392,7 @@
     <string name="setting_app_version_key" translatable="false">app_version</string>
     <string name="setting_enable_app_protection_off">Enable app password protection</string>
     <string name="setting_enable_app_protection_general">App password protection</string>
+    <string name="setting_enable_multiple_account_general">Multiple Accounts</string>
     <string name="setting_enable_app_notification_general">Notifications permission</string>
     <string name="setting_category_backup" translatable="false">backup</string>
     <string name="enter_amount">Enter amount</string>
@@ -492,9 +512,10 @@
     <string name="not_now">Not now</string>
     <string name="generate_this_month_report">Generate this month report</string>
     <string name="print_download_as_pdf">Print / Download as PDF</string>
-    <string name="proceed_with_adding_expenses">Proceed with adding expenses!</string>
-    <string name="iab_success_message">Thank you so much for your support! You can enjoy all the features lifetime without ads.</string>
+    <string name="proceed_with_adding_expenses">Use premium features!</string>
+    <string name="iab_success_message">Thank you! Your purchase is appreciated! Enjoy premium features, ad-free.</string>
     <string name="category">Category</string>
+    <string name="budget_amount">Budget amount</string>
     <string name="save">Save</string>
     <string name="todayWithColon">Today:</string>
     <string name="today_expense">Today\'s\nExpense</string>
@@ -513,6 +534,10 @@
     <string name="hide_balance_hint_title">Balance Privacy</string>
     <string name="hide_balance_hint_message">Your can hide/show balance of expenses from here.</string>
 
+    <string name="hide_multi_account_hint_title">Accounts</string>
+    <string name="hide_multi_account_hint_message">Easily manage and organize your finances across multiple accounts.</string>
+    <string name="hide_calendar_hint_message">You can open and close calendar from here.</string>
+
     <string name="add_single_expense_hint_title">Single Expense</string>
     <string name="add_single_expense_hint_message">You can add your one time income/expense from here.</string>
 
@@ -522,8 +547,7 @@
     <string name="add_recurring_expense_hint_title">Recurring Expenses</string>
     <string name="add_recurring_expense_hint_message">You can add your recurring income/expense from here.</string>
     <string name="dotted_divider">--------------------------------------</string>
-    <string name="_7_jxl_excel_sheet">7. JXL (Excel Sheet)</string>
-    <string name="_6_shimmer_facebook">6. Shimmer (Facebook)</string>
+    <string name="_6_jxl_excel_sheet">6. JXL (Excel Sheet)</string>
     <string name="_5_lottie">5. Lottie</string>
     <string name="_4_showcaseview">4. ShowCaseView</string>
     <string name="_3_mpandroidchart">3. MPAndroidChart</string>
@@ -546,9 +570,11 @@
     <string name="add_or_search_category">Add or search category</string>
     <string name="search_faq">Search…</string>
     <string name="removed">Removed</string>
-    <string name="deleted">Deleted</string>
+    <string name="deleted">Successfully deleted</string>
     <string name="no_category_found">%s Not found</string>
+    <string name="no_budget_found">Budgets Not Found</string>
     <string name="category_not_found_do_you_want_add_now">Do you want to add it as a category?</string>
+    <string name="budget_not_found_do_you_want_add_now">Do you want to add a budget?</string>
     <string name="categories">Categories</string>
     <string name="edit_categories">Edit Categories</string>
     <string name="manage_categories">Manage Categories</string>
@@ -556,6 +582,7 @@
     <string name="skip">Skip</string>
     <string name="add">Add</string>
     <string name="top_search">Top searches 🔥</string>
+    <string name="account_details_until_today">Account details until Today are</string>
     <string name="search_results_for_">Search results for \'%s\'</string>
     <string name="search_results_for_range">Search results from \'%s\' -  \'%s\'</string>
     <string name="reset">Reset</string>
@@ -574,18 +601,30 @@
     <string name="setting_notification_permission_rejected_dialog_accept_cta">Allow</string>
     <string name="setting_notification_permission_rejected_dialog_not_now_cta">Not now</string>
     <string name="title_account">Account</string>
-    <string name="select_account">Select Account</string>
+    <string name="select_account">Select Account:</string>
+    <string name="change_account">Change Account</string>
+    <string name="accounts">Accounts</string>
+    <string name="add_account">Add Account</string>
+    <string name="change_account_to">Change to \'%s\'</string>
+    <string name="on">ON</string>
+    <string name="off">OFF</string>
+    <string name="enabled">Enabled</string>
+    <string name="enable">Enable</string>
+    <string name="disabled">Disabled</string>
+    <string name="disable">Disable</string>
     <string name="edit_category">Edit your category</string>
     <string name="enter_your_category">Enter your category</string>
     <string name="how_can_i_help_you">How can I help you?</string>
     <string name="edit_category_note">Note: By editing or deleting any category won\'t affect expenses.</string>
     <string name="category_updated_successfully">Category updated successfully!</string>
     <string name="category_cant_be_empty">Category can\'t be empty.</string>
+    <string name="account_cant_be_empty">Account can\'t be empty.</string>
     <string name="cant_edit_miscellaneous">You can\'t edit or delete \'MISCELLANEOUS\' as it is a default category.</string>
     <string name="miscellaneous">MISCELLANEOUS</string>
     <string name="show_pie_chart">Show Pie Chart</string>
     <string name="hide_pie_chart">Hide Pie Chart</string>
     <string name="thank_you_you_are_premium_user">Thank you! You are a premium user!</string>
+    <string name="setting_reset_app_data_key">reset_app_data_key</string>
     <string name="reset_app_data">Reset App Data</string>
     <string name="delete_app_data">Delete App\'s Local Data</string>
     <string name="simple_budget_delete_all_app_data">SimpleBudget Reset App Data</string>
@@ -594,4 +633,45 @@
     <string name="delete_app_data_description_three"><u>Cloud data won\'t be deleted</u> by deleting with this option. If you want to delete cloud data you can delete it from app settings. If you have enabled data backup <u>you can restore it from app settings.</u></string>
     <string name="proceed_with_deleting_your_data">Proceed with resetting local data?</string>
     <string name="proceed_deleting">Proceed With Reset</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="subscribe_monthly">Subscribe monthly</string>
+    <string name="buy">Buy</string>
+    <string name="buy_permanently">Buy permanently</string>
+    <string name="premium_caption_one">1. Ad-Free Experience</string>
+    <string name="premium_caption_two">2. Multiple Accounts</string>
+    <string name="premium_caption_three">3. Set Budgets (Coming soon)</string>
+    <string name="premium_caption_four">4. Premium Features</string>
+    <string name="try_free_and_subscribe">Try free and subscribe</string>
+    <string name="onetime_payment">One Time Payment</string>
+    <string name="subscription_payment">Subscription Payment</string>
+    <string name="become_premium">Become Premium User</string>
+    <string name="to_access_this_feature_you_need_to_upgrade_to_premium">Sorry! To access this feature you need to upgrade to premium!\nExplore premium options?</string>
+    <string name="to_add_more_accounts_you_need_to_upgrade_to_premium">Sorry! To add more accounts you need to upgrade to premium!\n\nExplore premium options?</string>
+    <string name="to_setup_more_budgets_you_need_to_upgrade_to_premium">Sorry! To setup more budgets you need to upgrade to premium!\n\nExplore premium options?</string>
+    <string name="set_category_budget_title">Set Category Budget</string>
+    <string name="set_category_budget_detail">Once you set the budget for a category each month you\'ll be notified upon reaching the threshold!</string>
+    <string name="action_help">Help</string>
+    <string name="setting_about_us_key">about_us</string>
+    <string name="title_about_us">About us</string>
+    <string name="title_about_us_description">Privacy policy, about app, release notes, more apps</string>
+    <string name="manage_accounts">(Manage Accounts)</string>
+    <string name="navigation_drawer_open">Open</string>
+    <string name="navigation_drawer_close">Close</string>
+    <string name="manage_app_settings">Currencies, notifications and settings.</string>
+    <string name="adjust_balance_details">Topup your balance</string>
+    <string name="expenses_breakdown_details">Top expenses charts, details</string>
+    <string name="premium_features_nav_menu_title">Become Premium</string>
+    <string name="manage_categories_nav_menu_details">Add, edit and remove categories</string>
+    <string name="set_up_budgets_title">Budgets</string>
+    <string name="set_up_budgets_description">Set budgets for each category</string>
+    <string name="category_for_budget_goal">Category for budget goal:</string>
+    <string name="label_add">Add</string>
+    <string name="accounts_description">Manage and check account balances</string>
+    <string name="this_month">This Month</string>
+    <string name="available_balance">Available Balance</string>
+    <string name="update">Update</string>
+    <string name="saving_account_delete_disclaimer">Sorry, Savings account can\'t be deleted!</string>
+    <string name="title_delete_account_and_its_transactions">Delete account and it\'s transactions</string>
+    <string name="description_delete_account_and_its_transactions">Are you sure you want to delete %s?\n\nNote: You can restore it if you have a backup otherwise with newly auto-backup it would be overwrite and you can\'t restore it!</string>
+    <string name="yes_delete_it">Yes, Delete it!</string>
 </resources>

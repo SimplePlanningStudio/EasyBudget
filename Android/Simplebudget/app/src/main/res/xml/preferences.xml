@@ -6,40 +6,42 @@
             app:summary="@string/setting_category_language_change_button_message"
             app:title="@string/setting_category_language_change_button_title" />-->
         <Preference
+            app:icon="@drawable/ic_change_currency_black"
             app:key="@string/setting_category_currency_change_button_key"
             app:summary="@string/setting_category_currency_change_button_message" />
 
         <Preference
+            app:icon="@drawable/ic_low_balance_threshold_black"
             app:key="@string/setting_category_limit_set_button_key"
             app:summary="@string/setting_category_limit_set_button_message"
             app:title="@string/setting_category_limit_set_button_title" />
 
         <Preference
+            app:icon="@drawable/ic_start_day_of_week_black"
             app:key="@string/setting_category_start_day_of_week_key"
             app:summary="@string/setting_category_start_day_of_week_summary"
             app:title="@string/setting_category_start_day_of_week_title" />
 
         <Preference
-            app:key="@string/setting_category_manage_category_key"
-            app:summary="@string/setting_category_manage_category_summary"
-            app:title="@string/setting_category_manage_category_title" />
-
-        <Preference
-            app:key="@string/setting_enable_app_protection_key"
-            app:title="@string/setting_enable_app_protection_general" />
-
-        <Preference
+            app:icon="@drawable/ic_notification_permission_black"
             app:key="@string/setting_enable_app_notifications_key"
             app:title="@string/setting_enable_app_notification_general" />
+
+        <Preference
+            app:icon="@drawable/ic_password_protection_black"
+            app:key="@string/setting_enable_app_protection_key"
+            app:title="@string/setting_enable_app_protection_general" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_reports_title">
         <Preference
+            app:icon="@drawable/ic_monthly_reports_black"
             app:key="@string/setting_monthly_reports_key"
             app:summary="@string/setting_monthly_reports_summary"
             app:title="@string/setting_monthly_reports_title" />
 
         <Preference
+            app:icon="@drawable/ic_breakdown_black"
             app:key="@string/setting_monthly_breakdown_key"
             app:summary="@string/setting_monthly_breakdown_summary"
             app:title="@string/setting_monthly_breakdown_title" />
@@ -47,6 +49,7 @@
 
     <PreferenceCategory app:title="@string/setting_category_data_backup_title">
         <Preference
+            app:icon="@drawable/ic_backup_black"
             app:key="@string/setting_category_backup"
             app:title="@string/backup_settings_activity_title" />
     </PreferenceCategory>
@@ -54,11 +57,13 @@
     <PreferenceCategory app:title="@string/setting_category_premium_title">
 
         <Preference
+            app:icon="@drawable/ic_premium_black"
             app:key="@string/setting_category_premium_key"
             app:summary="@string/setting_category_not_premium_status_message"
             app:title="@string/setting_category_not_premium_status_title" />
 
         <Preference
+            app:icon="@drawable/ic_promo_code_black"
             app:key="@string/setting_category_premium_redeem_key"
             app:summary="@string/setting_category_premium_redeem_message"
             app:title="@string/setting_category_premium_redeem_title" />
@@ -66,54 +71,36 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_app_title">
+
         <Preference
+            app:icon="@drawable/ic_contact_us_black"
+            app:key="@string/setting_category_contact_us"
+            app:summary="@string/setting_category_app_support_and_help"
+            app:title="@string/setting_title_category_contact_us" />
+
+        <Preference
+            app:icon="@drawable/ic_rate_the_app_black"
             app:key="@string/setting_category_rate_button_key"
             app:summary="@string/setting_category_rate_button_message"
             app:title="@string/setting_category_rate_button_title" />
 
         <Preference
+            app:icon="@drawable/ic_share_black"
             app:key="@string/setting_category_share_app_key"
             app:summary="@string/setting_category_share_app_message"
             app:title="@string/setting_category_share_app_title" />
 
         <Preference
-            app:key="@string/setting_more_apps_key"
-            app:summary="@string/setting_more_apps_summary"
-            app:title="@string/setting_more_apps_title" />
-
-    </PreferenceCategory>
-
-    <PreferenceCategory app:title="@string/setting_category_app_support_and_help">
-        <Preference
-            app:key="@string/setting_category_faq_key"
-            app:summary="@string/setting_category_faq_message"
-            app:title="@string/setting_category_faq_title" />
-        <Preference
-            app:key="@string/setting_category_feedback_app_key"
-            app:summary="@string/setting_category_feedback_app_message"
-            app:title="@string/setting_category_rate_app_title" />
-        <Preference
-            app:key="@string/setting_telegram_channel_key"
-            app:summary="@string/setting_telegram_channel_summary"
-            app:title="@string/setting_telegram_channel_title" />
-    </PreferenceCategory>
-
-    <PreferenceCategory app:title="@string/setting_category_copyrights_title">
-        <Preference
-            app:key="@string/setting_privacy_policy_key"
-            app:summary="@string/setting_privacy_policy_summary"
-            app:title="@string/setting_privacy_policy_title" />
-        <Preference
-            app:key="@string/setting_app_open_source_key"
-            app:summary="@string/setting_app_open_source_summary"
-            app:title="@string/text_open_source" />
-    </PreferenceCategory>
-
-    <PreferenceCategory app:title="@string/release_history">
+            app:icon="@drawable/ic_about_us_black"
+            app:key="@string/setting_about_us_key"
+            app:summary="@string/title_about_us_description"
+            app:title="@string/title_about_us" />
 
         <Preference
-            app:key="@string/setting_app_version_key"
-            app:summary="@string/setting_app_version"
-            app:title="@string/setting_app_version" />
+            app:icon="@drawable/ic_reset_app_data"
+            app:key="@string/setting_reset_app_data_key"
+            app:summary="@string/delete_app_data_description_two"
+            app:title="@string/reset_app_data" />
+
     </PreferenceCategory>
 </PreferenceScreen>

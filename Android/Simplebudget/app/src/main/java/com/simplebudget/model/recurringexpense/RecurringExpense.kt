@@ -17,6 +17,8 @@ package com.simplebudget.model.recurringexpense
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.simplebudget.model.account.AccountType
+import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategoryType
 import java.time.LocalDate
 
@@ -27,7 +29,8 @@ data class RecurringExpense(
     val recurringDate: LocalDate,
     val modified: Boolean,
     val type: RecurringExpenseType,
-    val category: String
+    val category: String,
+    val accountId: Long
 ) : Parcelable {
 
     private constructor(parcel: Parcel) : this(
@@ -37,7 +40,8 @@ data class RecurringExpense(
         LocalDate.ofEpochDay(parcel.readLong()),
         parcel.readByte() != 0.toByte(),
         RecurringExpenseType.values()[parcel.readInt()],
-        parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name
+        parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name,
+        parcel.readLong()
     )
 
     constructor(
@@ -45,8 +49,18 @@ data class RecurringExpense(
         originalAmount: Double,
         recurringDate: LocalDate,
         type: RecurringExpenseType,
-        category: String
-    ) : this(null, title, originalAmount, recurringDate, false, type, category)
+        category: String,
+        accountId: Long
+    ) : this(
+        null,
+        title,
+        originalAmount,
+        recurringDate,
+        false,
+        type,
+        category,
+        accountId
+    )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeValue(id)
@@ -56,6 +70,7 @@ data class RecurringExpense(
         parcel.writeByte(if (modified) 1 else 0)
         parcel.writeInt(type.ordinal)
         parcel.writeString(category)
+        parcel.writeLong(accountId)
     }
 
     override fun describeContents(): Int = 0

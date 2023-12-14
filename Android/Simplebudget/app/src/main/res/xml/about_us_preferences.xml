@@ -1,0 +1,26 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Preference
+        app:icon="@drawable/ic_privacy_policy_black"
+        app:key="@string/setting_privacy_policy_key"
+        app:summary="@string/setting_privacy_policy_summary"
+        app:title="@string/setting_privacy_policy_title" />
+
+    <Preference
+        app:icon="@drawable/ic_open_source_black"
+        app:key="@string/setting_app_open_source_key"
+        app:summary="@string/setting_app_open_source_summary"
+        app:title="@string/text_open_source" />
+
+    <Preference
+        app:icon="@drawable/ic_more_apps_black"
+        app:key="@string/setting_more_apps_key"
+        app:summary="@string/setting_more_apps_summary"
+        app:title="@string/setting_more_apps_title" />
+
+    <Preference
+        app:icon="@drawable/ic_app_releases_black"
+        app:key="@string/setting_app_version_key"
+        app:summary="@string/setting_app_version"
+        app:title="@string/setting_app_version" />
+
+</PreferenceScreen>

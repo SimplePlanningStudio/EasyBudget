@@ -18,20 +18,24 @@ package com.simplebudget.view.premium
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
-import com.bumptech.glide.Glide
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.android.billingclient.api.BillingClient
 import com.simplebudget.iab.PremiumPurchaseFlowResult
-import com.simplebudget.SimpleBudget
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityPremiumBinding
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.RedeemPromo
+import com.simplebudget.iab.InAppProductsAdapter
+import com.simplebudget.iab.PremiumFlowStatus
+import com.simplebudget.iab.SKU_SUBSCRIPTION
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
- * Activity that contains the premium onboarding screen. This activity should return with a
+ * Activity that contains the premium screen. This activity should return with a
  * [Activity.RESULT_OK] if user has successfully purchased premium.
  *
  */
@@ -46,18 +50,6 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding.premiumNotNowButton.setOnClickListener {
-            finish()
-        }
-
-        binding.premiumCtaButton.setOnClickListener {
-            viewModel.onBuyPremiumClicked(this)
-        }
-
-        binding.tvPromoCode.setOnClickListener {
-            RedeemPromo.openPromoCodeDialog(this)
-        }
-
         var loadingProgressDialog: ProgressDialog? = null
         viewModel.premiumFlowErrorEventStream.observe(this) { status ->
             when (status) {
@@ -69,13 +61,11 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
 
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.oops)
+                    AlertDialog.Builder(this).setTitle(R.string.oops)
                         .setMessage(getString(R.string.iab_purchase_error_message, status.reason))
                         .setPositiveButton(R.string.ok) { dialog, _ ->
                             dialog.dismiss()
-                        }
-                        .show()
+                        }.show()
                 }
                 else -> {}
             }
@@ -92,7 +82,8 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                         this@PremiumActivity,
                         resources.getString(R.string.iab_purchase_wait_title),
                         resources.getString(R.string.iab_purchase_wait_message),
-                        true, false
+                        true,
+                        false
                     )
                 }
                 PremiumFlowStatus.DONE -> {
@@ -100,8 +91,9 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     loadingProgressDialog = null
                     //Update Premium Status So That Ad can't be displayed
                     startActivity(
-                        Intent(this, PremiumSuccessActivity::class.java)
-                            .putExtra(PremiumSuccessActivity.REQUEST_CODE_IS_BACK_ENABLED, false)
+                        Intent(this, PremiumSuccessActivity::class.java).putExtra(
+                            PremiumSuccessActivity.REQUEST_CODE_IS_BACK_ENABLED, false
+                        )
                     )
                     finish()
                 }
@@ -110,12 +102,44 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                 }
             }
         }
+        viewModel.liveDataProductDetails.observe(this) { productList ->
+            productList?.let { products ->
+                binding.recyclerViewInAppProducts.layoutManager = LinearLayoutManager(this)
+                val adapter = InAppProductsAdapter(products) { selectedProduct ->
+                    viewModel.setSelectedProduct(selectedProduct)
+                }
+                binding.recyclerViewInAppProducts.adapter = adapter
+                val dividerItemDecoration =
+                    DividerItemDecoration(
+                        this,
+                        LinearLayout.VERTICAL
+                    )
+                binding.recyclerViewInAppProducts.addItemDecoration(dividerItemDecoration)
+            }
+        }
 
-        // Load no ads image
-        Glide.with(this)
-            .load(Uri.parse("file:///android_asset/ic_no_ads.png"))
-            .circleCrop()
-            .into(binding.animationViewNoAds)
+        viewModel.liveDataSelectedProduct.observe(this) { selectedProduct ->
+            selectedProduct?.let {
+                if (selectedProduct.productType == BillingClient.ProductType.INAPP) {
+                    binding.buttonBuy.text = getString(R.string.buy_permanently)
+                    binding.screenTitle.text = getString(R.string.onetime_payment)
+                } else {
+                    binding.buttonBuy.text = getString(R.string.subscribe_monthly)
+                    binding.screenTitle.text = getString(R.string.subscription_payment)
+                }
+            }
+        }
+
+        binding.promoCode.setOnClickListener { RedeemPromo.openPromoCodeDialog(this) }
+        binding.buttonBuy.setOnClickListener {
+            if (viewModel.getSelectedProduct()?.productType == BillingClient.ProductType.INAPP) {
+                viewModel.onBuyInAppPremiumClicked(this)
+            } else {
+                viewModel.onBuySubscriptionPremiumClicked(
+                    this,
+                    viewModel.getSelectedProduct()?.productId ?: SKU_SUBSCRIPTION
+                )
+            }
+        }
     }
-
 }

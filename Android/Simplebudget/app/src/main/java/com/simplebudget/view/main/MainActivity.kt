@@ -28,14 +28,17 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,26 +55,34 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
 import com.simplebudget.R
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.FirebaseAnalyticsHelper
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
 import com.simplebudget.prefs.*
 import com.simplebudget.push.MyFirebaseMessagingService
+import com.simplebudget.view.RatingPopup
+import com.simplebudget.view.accounts.AccountDetailsActivity
+import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
+import com.simplebudget.view.category.manage.ManageCategoriesActivity
 import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import com.simplebudget.view.main.calendar.CalendarFragment
 import com.simplebudget.view.premium.PremiumActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
-import com.simplebudget.view.reset.ResetAppDataActivity
 import com.simplebudget.view.search.base.SearchBaseActivity
 import com.simplebudget.view.security.SecurityActivity
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
 import com.simplebudget.view.settings.SettingsActivity
 import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INTENT_KEY
+import com.simplebudget.view.settings.aboutus.AboutUsActivity
+import com.simplebudget.view.settings.backup.BackupSettingsActivity
+import com.simplebudget.view.settings.help.HelpActivity
 import com.simplebudget.view.welcome.WelcomeActivity
 import com.simplebudget.view.welcome.getOnboardingStep
 import org.koin.android.ext.android.inject
@@ -110,13 +121,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun handleAppPasswordProtection() {
         if (appPreferences.isAppPasswordProtectionOn()) {
             binding.framelayoutOpaque.visibility = View.VISIBLE
-            val intent = Intent(this, SecurityActivity::class.java)
-                .putExtra("HASH", appPreferences.appPasswordHash())
-                .putExtra("TAB_INDEX", appPreferences.appProtectionType())
-                .putExtra(
-                    SecurityActivity.REQUEST_CODE_SECURITY_TYPE,
-                    SecurityActivity.VERIFICATION
-                )
+            val intent = Intent(this, SecurityActivity::class.java).putExtra(
+                "HASH", appPreferences.appPasswordHash()
+            ).putExtra("TAB_INDEX", appPreferences.appProtectionType()).putExtra(
+                SecurityActivity.REQUEST_CODE_SECURITY_TYPE, SecurityActivity.VERIFICATION
+            )
             securityActivityLauncher.launch(intent)
         }
     }
@@ -147,11 +156,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         window.setBackgroundDrawable(
             ColorDrawable(Color.TRANSPARENT)
         )
-        this.window
-            .setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN
-            )
+        this.window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
 
         //Check if on boarding done
         if (appPreferences.getOnboardingStep() != WelcomeActivity.STEP_COMPLETED) {
@@ -160,6 +167,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         setSupportActionBar(binding.toolbar)
+        try {
+            binding.toolbar.apply {
+                logo = ContextCompat.getDrawable(context, R.drawable.ic_logo_white)
+                setOnLongClickListener {
+                    startActivity(Intent(this@MainActivity, AboutUsActivity::class.java))
+                    true
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         handleAppPasswordProtection()
         initCalendarFragment(savedInstanceState)
         initRecyclerView()
@@ -169,15 +187,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
            Init firebase in app messaging click
         */
         //////////////////////////////////////////////////////////////////////
-        FirebaseInAppMessaging.getInstance().addClickListener { inAppMessage, action ->
+        /*FirebaseInAppMessaging.getInstance().addClickListener { inAppMessage, action ->
             try {
-                val mapData: Map<*, *>? = inAppMessage.data
-                action.button?.text?.toString()?.let { act ->
-                    if (act == "Let's Try") {
-                        mapData?.containsKey("route")?.let {
-                            if (it) {
-                                if (mapData["route"].toString() == "display_premium_screen") {
-                                    becomePremium()
+                if (viewModel.isPremium().not()) {
+                    val mapData: Map<*, *>? = inAppMessage.data
+                    action.button?.text?.toString()?.let { act ->
+                        if (act == "Let's Try") {
+                            mapData?.containsKey("route")?.let {
+                                if (it) {
+                                    if (mapData["route"].toString() == "display_premium_screen") {
+                                        becomePremium()
+                                    }
                                 }
                             }
                         }
@@ -186,7 +206,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
+        }*/
         //////////////////////////////////////////////////////////////////////
 
         // Register receiver
@@ -197,6 +217,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         filter.addAction(INTENT_SHOW_WELCOME_SCREEN)
         filter.addAction(INTENT_IAB_STATUS_CHANGED)
         filter.addAction(Intent.ACTION_VIEW)
+        filter.addAction(INTENT_ACCOUNT_TYPE_UPDATED)
 
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -213,24 +234,42 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         val expense = intent.getParcelableExtra<Expense>("expense")!!
                         val deleteType = RecurringExpenseDeleteType.fromValue(
                             intent.getIntExtra(
-                                "deleteType",
-                                RecurringExpenseDeleteType.ALL.value
+                                "deleteType", RecurringExpenseDeleteType.ALL.value
                             )
                         )!!
 
                         viewModel.onDeleteRecurringExpenseClicked(expense, deleteType)
                     }
-                    SelectCurrencyFragment.CURRENCY_SELECTED_INTENT -> viewModel.onCurrencySelected()
+                    SelectCurrencyFragment.CURRENCY_SELECTED_INTENT -> {
+                        viewModel.refreshTodaysExpenses()
+                    }
                     INTENT_SHOW_WELCOME_SCREEN -> {
                         val startIntent = Intent(this@MainActivity, WelcomeActivity::class.java)
                         ActivityCompat.startActivityForResult(
-                            this@MainActivity,
-                            startIntent,
-                            WELCOME_SCREEN_ACTIVITY_CODE,
-                            null
+                            this@MainActivity, startIntent, WELCOME_SCREEN_ACTIVITY_CODE, null
                         )
                     }
-                    INTENT_IAB_STATUS_CHANGED -> viewModel.onIabStatusChanged()
+                    INTENT_IAB_STATUS_CHANGED -> {
+                        viewModel.onIabStatusChanged()
+                    }
+                    INTENT_ACCOUNT_TYPE_UPDATED -> {
+                        // Default Account Type Updated, Refresh Calendar and Expenses as well.
+                        binding.layoutSelectAccount.tvSelectedAccount.text =
+                            String.format("%s", appPreferences.activeAccountLabel())
+                        viewModel.refreshTodaysExpenses() // Refresh to re-setup
+                        val message =
+                            if (appPreferences.activeAccountLabel().uppercase().contains("ACCOUNT"))
+                                String.format(
+                                    "%s %s",
+                                    appPreferences.activeAccountLabel(),
+                                    "is selected!"
+                                ) else String.format(
+                                "%s %s",
+                                appPreferences.activeAccountLabel(),
+                                "Account is selected!"
+                            )
+                        toast(message)
+                    }
                 }
             }
         }
@@ -263,8 +302,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
             snackbar.setActionTextColor(
                 ContextCompat.getColor(
-                    this@MainActivity,
-                    R.color.snackbar_action_undo
+                    this@MainActivity, R.color.snackbar_action_undo
                 )
             )
 
@@ -273,11 +311,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
         viewModel.expenseDeletionErrorEventStream.observe(this, Observer {
-            AlertDialog.Builder(this@MainActivity)
-                .setTitle(R.string.oops)
+            AlertDialog.Builder(this@MainActivity).setTitle(R.string.oops)
                 .setMessage(R.string.error_occurred_try_again)
-                .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-                .show()
+                .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }.show()
         })
 
         viewModel.expenseRecoverySuccessEventStream.observe(this) {
@@ -306,11 +342,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     expenseDeletionDialog?.dismiss()
                     expenseDeletionDialog = null
 
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.oops)
+                    AlertDialog.Builder(this@MainActivity).setTitle(R.string.oops)
                         .setMessage(R.string.recurring_expense_delete_first_error_message)
-                        .setNegativeButton(R.string.ok, null)
-                        .show()
+                        .setNegativeButton(R.string.ok, null).show()
                 }
                 is MainViewModel.RecurringExpenseDeleteProgressState.ErrorRecurringExpenseDeleteNotAssociated -> {
                     showGenericRecurringDeleteErrorDialog()
@@ -341,8 +375,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                     snackbar.setActionTextColor(
                         ContextCompat.getColor(
-                            this@MainActivity,
-                            R.color.snackbar_action_undo
+                            this@MainActivity, R.color.snackbar_action_undo
                         )
                     )
                     snackbar.duration = BaseTransientBottomBar.LENGTH_LONG
@@ -369,11 +402,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     expenseRestoreDialog = dialog
                 }
                 is MainViewModel.RecurringExpenseRestoreProgressState.ErrorIO -> {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.oops)
+                    AlertDialog.Builder(this@MainActivity).setTitle(R.string.oops)
                         .setMessage(resources.getString(R.string.error_occurred_try_again))
-                        .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-                        .show()
+                        .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }.show()
 
                     expenseRestoreDialog?.dismiss()
                     expenseRestoreDialog = null
@@ -402,9 +433,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             amountEditText.preventUnsupportedInputForDecimals()
             amountEditText.setSelection(amountEditText.text.length) // Put focus at the end of the text
 
+            val description = String.format(
+                "%s %s",
+                getString(R.string.adjust_balance_message),
+                "'${appPreferences.activeAccountLabel()}'"
+            )
             val builder = AlertDialog.Builder(this)
             builder.setTitle(R.string.adjust_balance_title)
-            builder.setMessage(R.string.adjust_balance_message)
+            builder.setMessage(description)
             builder.setView(dialogView)
             builder.setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             builder.setPositiveButton(R.string.ok) { dialog, _ ->
@@ -413,8 +449,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     if (stringValue.isNotBlank()) {
                         val newBalance = java.lang.Double.valueOf(stringValue)
                         viewModel.onNewBalanceSelected(
-                            newBalance,
-                            getString(R.string.adjust_balance_expense_title)
+                            newBalance, getString(R.string.adjust_balance_expense_title)
                         )
                     }
                 } catch (e: Exception) {
@@ -435,41 +470,35 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
-        viewModel.currentBalanceEditingErrorEventStream.observe(this, Observer { exception ->
+        viewModel.currentBalanceEditingErrorEventStream.observe(this) { exception ->
             Logger.error("Error while adjusting balance", exception)
-
-            AlertDialog.Builder(this@MainActivity)
-                .setTitle(R.string.oops)
+            AlertDialog.Builder(this@MainActivity).setTitle(R.string.oops)
                 .setMessage(R.string.adjust_balance_error_message)
-                .setNegativeButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }
-                .show()
-        })
+                .setNegativeButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }.show()
+        }
 
         viewModel.currentBalanceEditedEventStream.observe(
-            this,
-            Observer { (expense, diff, newBalance) ->
-                //Show snackbar
-                val snackbar = Snackbar.make(
-                    binding.coordinatorLayout,
-                    resources.getString(
-                        R.string.adjust_balance_snackbar_text,
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, newBalance)
-                    ),
-                    Snackbar.LENGTH_LONG
+            this
+        ) { (expense, diff, newBalance) ->
+            //Show snackbar
+            val snackbar = Snackbar.make(
+                binding.coordinatorLayout, resources.getString(
+                    R.string.adjust_balance_snackbar_text,
+                    CurrencyHelper.getFormattedCurrencyString(appPreferences, newBalance)
+                ), Snackbar.LENGTH_LONG
+            )
+            snackbar.setAction(R.string.undo) {
+                viewModel.onCurrentBalanceEditedCancelled(expense, diff)
+            }
+            snackbar.setActionTextColor(
+                ContextCompat.getColor(
+                    this@MainActivity, R.color.snackbar_action_undo
                 )
-                snackbar.setAction(R.string.undo) {
-                    viewModel.onCurrentBalanceEditedCancelled(expense, diff)
-                }
-                snackbar.setActionTextColor(
-                    ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.snackbar_action_undo
-                    )
-                )
+            )
 
-                snackbar.duration = BaseTransientBottomBar.LENGTH_LONG
-                snackbar.show()
-            })
+            snackbar.duration = BaseTransientBottomBar.LENGTH_LONG
+            snackbar.show()
+        }
 
         viewModel.currentBalanceRestoringEventStream.observe(this) {
             // Nothing to do
@@ -478,11 +507,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         viewModel.currentBalanceRestoringErrorEventStream.observe(this) { exception ->
             Logger.error("An error occurred during balance", exception)
 
-            AlertDialog.Builder(this@MainActivity)
-                .setTitle(R.string.oops)
+            AlertDialog.Builder(this@MainActivity).setTitle(R.string.oops)
                 .setMessage(R.string.adjust_balance_error_message)
-                .setNegativeButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }
-                .show()
+                .setNegativeButton(R.string.ok) { dialog1, _ -> dialog1.dismiss() }.show()
         }
 
         viewModel.premiumStatusLiveData.observe(this) { isPremium ->
@@ -502,6 +529,80 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
 
+        observeAndRefreshExpenses()
+
+        // Handle drawer layout
+        handleDrawerLayout()
+    }
+
+    /**
+     *
+     */
+    private fun handleDrawerLayout() {
+        val toggle = ActionBarDrawerToggle(
+            this,
+            binding.drawerLayout,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+        binding.drawerLayout.addDrawerListener(toggle)
+        // Display the hamburger icon
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+        // Synchronize the state of the DrawerToggle with the state of the DrawerLayout
+        toggle.syncState()
+        binding.navView.setNavigationItemSelectedListener { item: MenuItem ->
+            when (item.itemId) {
+                R.id.nav_action_accounts -> {
+                    AccountDetailsActivity.start(this)
+                }
+                R.id.nav_action_balance -> {
+                    viewModel.onAdjustCurrentBalanceClicked()
+                }
+                R.id.nav_action_categories -> {
+                    val startIntent = Intent(this, ManageCategoriesActivity::class.java)
+                    ActivityCompat.startActivity(this, startIntent, null)
+                }
+                R.id.nav_action_setup_budgets -> {
+                    toast("Coming soon...")
+                }
+                R.id.nav_goto_settings -> {
+                    goToSettings()
+                }
+                R.id.nav_action_breakdown -> {
+                    openBreakDown()
+                }
+                R.id.nav_action_share -> {
+                    shareApp()
+                }
+                R.id.nav_action_rate -> {
+                    RatingPopup(this, appPreferences).show(true)
+                }
+            }
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            true
+        }
+
+        try {
+            binding.navView.getHeaderView(0)?.let {
+                val headerImage: ImageView =
+                    binding.navView.getHeaderView(0).findViewById(R.id.header_image)
+                val headerText: TextView =
+                    binding.navView.getHeaderView(0).findViewById(R.id.header_text)
+
+                headerImage.setOnClickListener {
+                    startActivity(Intent(this@MainActivity, AboutUsActivity::class.java))
+                }
+                headerText.setOnClickListener {
+                    startActivity(Intent(this@MainActivity, AboutUsActivity::class.java))
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun observeAndRefreshExpenses() {
         viewModel.selectedDateChangeLiveData.observe(this) { (date, balance, expenses) ->
             refreshAllForDate(date, balance, expenses)
 
@@ -515,8 +616,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }.run()
 
             val format = DateTimeFormatter.ofPattern(
-                resources.getString(R.string.account_balance_date_format),
-                Locale.getDefault()
+                resources.getString(R.string.account_balance_date_format), Locale.getDefault()
             )
 
             var formatted =
@@ -524,13 +624,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
             if (formatted.endsWith(".:")) {
                 formatted = formatted.substring(
-                    0,
-                    formatted.length - 2
+                    0, formatted.length - 2
                 ) + "" // Remove . at the end of the month (ex: nov.: -> nov:)
             } else if (formatted.endsWith(". :")) {
                 formatted = formatted.substring(
-                    0,
-                    formatted.length - 3
+                    0, formatted.length - 3
                 ) + "" // Remove . at the end of the month (ex: nov. : -> nov :)
             }
             binding.expenseLine.text = formatted
@@ -551,14 +649,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (intent?.hasExtra(MyFirebaseMessagingService.WEEKLY_REMINDER_KEY) == true) {
             val startIntent = Intent(this, MonthlyReportBaseActivity::class.java)
             ActivityCompat.startActivity(this@MainActivity, startIntent, null)
+        } else if (intent?.hasExtra(MyFirebaseMessagingService.MULTIPLE_ACCOUNT_KEY) == true) {
+            appPreferences.setUserSawMultiAccountsHint(false)
+            binding.multiAccountsHint.visibility = View.VISIBLE
+            binding.layoutSelectAccount.llSelectAccount.callOnClick()
         }
 
         // Check and launch download campaign.
         checkIfItsDownloadCampaign()
 
         binding.ivPremiumIcon.setBackgroundResource(if (isUserPremium) R.drawable.ic_premium_icon_gold else R.drawable.ic_premium_icon_grey)
+        binding.llBalances.setOnClickListener { revealHideCalendar() }
+        binding.ivPremiumIcon.setOnClickListener {
+            if (isUserPremium) toast(getString(R.string.thank_you_you_are_premium_user))
+            else becomePremium()
+        }
 
-        //checkToken()
+        // Check firebase token
+        checkToken()
     }
 
     /**
@@ -596,30 +704,35 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         })
     }
 
-
     /**
      *
      */
     private fun calendarRevealAnimation() {
         try {
-            val format = DateTimeFormatter.ofPattern(
-                resources.getString(R.string.date_format_calender_reveal),
-                Locale.getDefault()
+            // TODAY's DATE
+            /*val format = DateTimeFormatter.ofPattern(
+                resources.getString(R.string.date_format_calender_reveal), Locale.getDefault()
             )
             val formattedDate = format.format(expensesViewAdapter.getDate())
-            binding.todaysDate.text = String.format("%s", formattedDate)
+            String.format("%s", formattedDate)*/
+            binding.llBalances.setOnClickListener { revealHideCalendar() }
 
-            binding.revealCalendar.setOnClickListener {
-                revealHideCalendar()
-            }
-            binding.llBalances.setOnClickListener { binding.revealCalendar.callOnClick() }
-            binding.ivPremiumIcon.setOnClickListener {
-                if (isUserPremium) toast(getString(R.string.thank_you_you_are_premium_user))
-                else
-                    becomePremium()
+            binding.ivCalendarCollapse.setOnClickListener { revealHideCalendar() }
+
+            //Selected account
+            binding.layoutSelectAccount.tvSelectedAccount.text =
+                String.format("%s", appPreferences.activeAccountLabel())
+            binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
+                val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
+                    binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                    updateAccountNotifyBroadcast()
+                }
+                accountsBottomSheetDialogFragment.show(
+                    supportFragmentManager, accountsBottomSheetDialogFragment.tag
+                )
             }
         } catch (e: Exception) {
-            Log.d("", e.message ?: "")
+            Log.i("", "${e.message}")
         }
     }
 
@@ -628,13 +741,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun revealHideCalendar() {
         if (binding.calendarView.visibility == View.VISIBLE) {
-            binding.arrowDown.setImageResource(R.drawable.ic_arrow_down)
             binding.calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.debounce))
             binding.calendarView.visibility = View.GONE
         } else {
             binding.calendarView.visibility = View.VISIBLE
             binding.calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
-            binding.arrowDown.setImageResource(R.drawable.ic_arrow_up)
         }
     }
 
@@ -685,7 +796,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         if (requestCode == ADD_EXPENSE_ACTIVITY_CODE || requestCode == MANAGE_RECURRING_EXPENSE_ACTIVITY_CODE) {
             if (resultCode == RESULT_OK) {
                 viewModel.onExpenseAdded()
@@ -703,7 +813,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Deprecated("Deprecated in Java", ReplaceWith("finish()"))
     override fun onBackPressed() {
-        finish()
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            finish()
+        }
     }
 
     @SuppressLint("MissingSuperCall")
@@ -724,48 +838,98 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
 
-        val itemBecomePremium: MenuItem? = menu.findItem(R.id.action_become_premium)
-        itemBecomePremium?.let {
-            it.isVisible = isUserPremium.not()
-        }
-
-        // Remove monthly report for non premium users
-        if (!appPreferences.hasUserSawMonthlyReportHint()) {
-            binding.introOverlay.visibility = View.VISIBLE
-            binding.monthlyReportHint.visibility = View.VISIBLE
-            binding.monthlyReportHintButton.setOnClickListener {
-                appPreferences.setUserSawMonthlyReportHint()
-                binding.monthlyReportHint.visibility = View.GONE
-                binding.futureExpenseHint.visibility = View.VISIBLE
-            }
-        }
-
-        if (!appPreferences.hasUserSawBreakDownHint()) {
-            binding.futureExpenseHintButton.setOnClickListener {
-                appPreferences.setUserSawBreakDownHint()
-                binding.futureExpenseHint.visibility = View.GONE
-                binding.searchHint.visibility = View.VISIBLE
-            }
-        }
-
+        // Search Hint
         if (!appPreferences.hasUserSawSearchHint()) {
+            binding.searchHint.visibility = View.VISIBLE
             binding.searchHintButton.setOnClickListener {
                 appPreferences.setUserSawSearchHint()
                 binding.searchHint.visibility = View.GONE
+                binding.monthlyReportHint.visibility = View.VISIBLE
+            }
+        }
+
+        // Monthly Report Hint
+        if (!appPreferences.hasUserSawMonthlyReportHint()) {
+            binding.monthlyReportHintButton.setOnClickListener {
+                appPreferences.setUserSawMonthlyReportHint()
+                binding.monthlyReportHint.visibility = View.GONE
+                binding.backupHint.visibility = View.VISIBLE
+            }
+        }
+        // Backup Hint
+        if (!appPreferences.hasUserSawBackupHint()) {
+            binding.backupHintButton.setOnClickListener {
+                appPreferences.setUserSawBackupHint()
+                binding.backupHint.visibility = View.GONE
+                binding.helpHint.visibility = View.VISIBLE
+            }
+        }
+
+        //Help Hint
+        if (!appPreferences.hasUserSawHelpHint()) {
+            binding.helpHintButton.setOnClickListener {
+                appPreferences.setUserSawHelpHint()
+                binding.helpHint.visibility = View.GONE
                 binding.settingsHint.visibility = View.VISIBLE
             }
         }
 
+        // Settings Hint
         if (!appPreferences.hasUserSawSettingsHint()) {
             binding.settingsHintButton.setOnClickListener {
                 appPreferences.setUserSawSettingsHint()
                 binding.settingsHint.visibility = View.GONE
-                binding.introOverlay.visibility = View.GONE
-                openHideBalanceShowCase()
+                binding.multiAccountsHint.visibility = View.VISIBLE
+                openMultipleAccountsShowCase()
             }
         }
 
+        // Multiple accounts hint in sequence
+        if (appPreferences.hasUserSawMultiAccountsHint().not()) {
+            binding.multiAccountsHintButton.setOnClickListener {
+                appPreferences.setUserSawMultiAccountsHint()
+                binding.multiAccountsHint.visibility = View.GONE
+                binding.calendarHint.visibility = View.VISIBLE
+                openCalendarHintShowCase()
+            }
+        }
+        // Calendar icon hint in sequence
+        if (appPreferences.hasUserSawCalendarIconHint().not()) {
+            binding.calendarHintButton.setOnClickListener {
+                appPreferences.setUserSawCalendarIconHint()
+                binding.calendarHint.visibility = View.GONE
+                openHideBalanceShowCase()
+            }
+        }
         return true
+    }
+
+    /**
+     * Show case Hint for multiple accounts
+     */
+    private fun openMultipleAccountsShowCase() {
+        if (appPreferences.hasUserSawMultiAccountsHint().not()) {
+            binding.multiAccountsHint.visibility = View.VISIBLE
+            binding.multiAccountsHintButton.setOnClickListener {
+                binding.multiAccountsHint.visibility = View.GONE
+                appPreferences.setUserSawMultiAccountsHint()
+                openCalendarHintShowCase()
+            }
+        }
+    }
+
+    /**
+     * Show case Hint for calendar hint
+     */
+    private fun openCalendarHintShowCase() {
+        if (appPreferences.hasUserSawCalendarIconHint().not()) {
+            binding.calendarHint.visibility = View.VISIBLE
+            binding.multiAccountsHintButton.setOnClickListener {
+                appPreferences.setUserSawCalendarIconHint()
+                binding.calendarHint.visibility = View.GONE
+                openHideBalanceShowCase()
+            }
+        }
     }
 
     /**
@@ -773,15 +937,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun openHideBalanceShowCase() {
         if (appPreferences.hasUserSawHideBalanceHint().not()) {
-            showCaseView(
-                targetView = binding.contSwitchBalance,
+            showCaseView(targetView = binding.contSwitchBalance,
                 title = getString(R.string.hide_balance_hint_title),
                 message = getString(R.string.hide_balance_hint_message),
                 handleGuideListener = {
-                    binding.introOverlay.visibility = View.GONE
                     showCaseAddSingleExpense()
-                }
-            )
+                })
         }
     }
 
@@ -790,15 +951,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun showCaseAddSingleExpense() {
         if (appPreferences.hasUserSawAddSingleExpenseHint().not()) {
-            showCaseView(
-                targetView = binding.tvDummyViewForSingleHint,
+            showCaseView(targetView = binding.tvDummyViewForSingleHint,
                 title = getString(R.string.add_single_expense_hint_title),
                 message = getString(R.string.add_single_expense_hint_message),
                 handleGuideListener = {
-                    binding.introOverlay.visibility = View.GONE
                     showCaseAddRecurringExpense()
-                }
-            )
+                })
         }
     }
 
@@ -807,38 +965,71 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun showCaseAddRecurringExpense() {
         if (appPreferences.hasUserSawAddRecurringExpenseHint().not()) {
-            showCaseView(
-                targetView = binding.tvDummyViewForRecurringHint,
+            showCaseView(targetView = binding.tvDummyViewForRecurringHint,
                 title = getString(R.string.add_recurring_expense_hint_title),
                 message = getString(R.string.add_recurring_expense_hint_message),
                 handleGuideListener = {
-                    binding.introOverlay.visibility = View.GONE
                     binding.llDummyViewForHint.visibility = View.GONE
-                }
-            )
+                    binding.drawerLayout.open()
+                    binding.counter.visibility = View.VISIBLE
+                    // 3 Seconds delay we'll close the drawer!
+                    toast("Side navigation for more options!")
+                    object : CountDownTimer(3000, 1000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            binding.counter.text = String.format("%d", (millisUntilFinished / 1000))
+                        }
+
+                        override fun onFinish() {
+                            binding.drawerLayout.closeDrawer(GravityCompat.START)
+                            binding.counter.visibility = View.GONE
+                        }
+                    }.start()
+
+                })
         }
     }
+
+    /**
+     * Open settings screen
+     */
+    private fun goToSettings() {
+        val startIntent = Intent(this, SettingsActivity::class.java)
+        ActivityCompat.startActivityForResult(
+            this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
+        )
+    }
+
+    /**
+     * Share App
+     */
+    private fun shareApp() {
+        try {
+            val sendIntent = Intent()
+            sendIntent.action = Intent.ACTION_SEND
+            sendIntent.putExtra(
+                Intent.EXTRA_TEXT,
+                resources.getString(R.string.app_invite_message) + "\n" + "https://play.google.com/store/apps/details?id=gplx.simple.budgetapp"
+            )
+            sendIntent.type = "text/plain"
+            startActivity(sendIntent)
+        } catch (e: Exception) {
+            Logger.error("An error occurred during sharing app activity start", e)
+        }
+    }
+
+    /**
+     * Open Break Down
+     */
+    private fun openBreakDown() {
+        val startIntent = Intent(this, BreakDownBaseActivity::class.java)
+        ActivityCompat.startActivity(this@MainActivity, startIntent, null)
+    }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_settings -> {
-                val startIntent = Intent(this, SettingsActivity::class.java)
-                ActivityCompat.startActivityForResult(
-                    this@MainActivity,
-                    startIntent,
-                    SETTINGS_SCREEN_ACTIVITY_CODE,
-                    null
-                )
-
-                return true
-            }
-            R.id.action_balance -> {
-                viewModel.onAdjustCurrentBalanceClicked()
-                return true
-            }
-            R.id.action_breakdown -> {
-                val startIntent = Intent(this, BreakDownBaseActivity::class.java)
-                ActivityCompat.startActivity(this@MainActivity, startIntent, null)
+                goToSettings()
                 return true
             }
             R.id.action_monthly_report -> {
@@ -846,39 +1037,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 ActivityCompat.startActivity(this@MainActivity, startIntent, null)
                 return true
             }
-            R.id.action_share -> {
-                try {
-                    val sendIntent = Intent()
-                    sendIntent.action = Intent.ACTION_SEND
-                    sendIntent.putExtra(
-                        Intent.EXTRA_TEXT,
-                        resources.getString(R.string.app_invite_message) + "\n" + "https://play.google.com/store/apps/details?id=gplx.simple.budgetapp"
-                    )
-                    sendIntent.type = "text/plain"
-                    startActivity(sendIntent)
-                } catch (e: Exception) {
-                    Logger.error("An error occurred during sharing app activity start", e)
-                }
-                return true
-            }
             R.id.action_search_expenses -> {
                 ActivityCompat.startActivity(
-                    this@MainActivity,
-                    Intent(this, SearchBaseActivity::class.java),
-                    null
+                    this@MainActivity, Intent(this, SearchBaseActivity::class.java), null
                 )
                 return true
             }
-            R.id.action_become_premium -> {
-                if (!isUserPremium) {
-                    becomePremium()
-                } else {
-                    toast(getString(R.string.thank_you_you_are_premium_user))
-                }
+            R.id.action_help -> {
+                startActivity(Intent(this, HelpActivity::class.java))
                 return true
             }
-            R.id.action_reset_ap_data -> {
-                startActivity(Intent(this, ResetAppDataActivity::class.java))
+            R.id.action_backup -> {
+                startActivity(Intent(this, BackupSettingsActivity::class.java))
+                return true
+            }
+            android.R.id.home -> {
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    binding.drawerLayout.openDrawer(GravityCompat.START)
+                }
                 return true
             }
             /*R.id.action_language -> {
@@ -901,19 +1079,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun updateBalanceDisplayForDay(day: LocalDate, balance: Double) {
         val formatter = DateTimeFormatter.ofPattern(
-            resources.getString(R.string.account_balance_date_format),
-            Locale.getDefault()
+            resources.getString(R.string.account_balance_date_format), Locale.getDefault()
         )
         var formatted = resources.getString(R.string.account_balance_format, formatter.format(day))
         if (formatted.endsWith(".:")) {
             formatted = formatted.substring(
-                0,
-                formatted.length - 2
+                0, formatted.length - 2
             ) + "" // Remove . at the end of the month (ex: nov.: -> nov:)
         } else if (formatted.endsWith(". :")) {
             formatted = formatted.substring(
-                0,
-                formatted.length - 3
+                0, formatted.length - 3
             ) + "" // Remove . at the end of the month (ex: nov. : -> nov :)
         }
         binding.budgetLine.text = formatted
@@ -953,10 +1128,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (intent.getBooleanExtra(INTENT_REDIRECT_TO_SETTINGS_EXTRA, false)) {
             val startIntent = Intent(this, SettingsActivity::class.java)
             ActivityCompat.startActivityForResult(
-                this@MainActivity,
-                startIntent,
-                SETTINGS_SCREEN_ACTIVITY_CODE,
-                null
+                this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
             )
         }
     }
@@ -971,10 +1143,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 putExtra(SHOW_BACKUP_INTENT_KEY, true)
             }
             ActivityCompat.startActivityForResult(
-                this@MainActivity,
-                startIntent,
-                SETTINGS_SCREEN_ACTIVITY_CODE,
-                null
+                this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
             )
         }
     }
@@ -1010,10 +1179,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             startIntent.putExtra("date", LocalDate.now().toEpochDay())
 
             ActivityCompat.startActivityForResult(
-                this,
-                startIntent,
-                ADD_EXPENSE_ACTIVITY_CODE,
-                null
+                this, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
             )
         }
     }
@@ -1030,10 +1196,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             startIntent.putExtra("dateStart", LocalDate.now().toEpochDay())
 
             ActivityCompat.startActivityForResult(
-                this,
-                startIntent,
-                ADD_EXPENSE_ACTIVITY_CODE,
-                null
+                this, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
             )
         }
     }
@@ -1053,8 +1216,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             args.putBoolean(CaldroidFragment.ENABLE_SWIPE, true)
             args.putBoolean(CaldroidFragment.SIX_WEEKS_IN_CALENDAR, false)
             args.putInt(
-                CaldroidFragment.START_DAY_OF_WEEK,
-                appPreferences.getCaldroidFirstDayOfWeek()
+                CaldroidFragment.START_DAY_OF_WEEK, appPreferences.getCaldroidFirstDayOfWeek()
             )
             args.putBoolean(CaldroidFragment.ENABLE_CLICK_ON_DISABLED_DATES, false)
             args.putInt(CaldroidFragment.THEME_RESOURCE, R.style.caldroid_style)
@@ -1085,10 +1247,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 startIntent.putExtra(CENTER_Y_KEY, viewLocation[1] + view.height / 2)
 
                 ActivityCompat.startActivityForResult(
-                    this@MainActivity,
-                    startIntent,
-                    ADD_EXPENSE_ACTIVITY_CODE,
-                    null
+                    this@MainActivity, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
                 )
             }
 
@@ -1144,14 +1303,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                 textView.setTextColor(
                     ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.calendar_header_month_color
+                        this@MainActivity, R.color.calendar_header_month_color
                     )
                 )
                 topLayout.setBackgroundColor(
                     ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.calendar_header_background
+                        this@MainActivity, R.color.calendar_header_background
                     )
                 )
 
@@ -1160,8 +1317,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 leftButton.gravity = Gravity.CENTER
                 leftButton.setTextColor(
                     ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.calendar_month_button_color
+                        this@MainActivity, R.color.calendar_month_button_color
                     )
                 )
                 leftButton.setBackgroundResource(R.drawable.calendar_month_switcher_button_drawable)
@@ -1171,8 +1327,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 rightButton.gravity = Gravity.CENTER
                 rightButton.setTextColor(
                     ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.calendar_month_button_color
+                        this@MainActivity, R.color.calendar_month_button_color
                     )
                 )
                 rightButton.setBackgroundResource(R.drawable.calendar_month_switcher_button_drawable)
@@ -1186,14 +1341,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                 viewPager.setBackgroundColor(
                     ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.calendar_background
+                        this@MainActivity, R.color.calendar_background
                     )
                 )
                 (viewPager.parent as View?)?.setBackgroundColor(
                     ContextCompat.getColor(
-                        this@MainActivity,
-                        R.color.calendar_background
+                        this@MainActivity, R.color.calendar_background
                     )
                 )
             }
@@ -1222,10 +1375,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             )
 
             ActivityCompat.startActivityForResult(
-                this@MainActivity,
-                startIntent,
-                ADD_EXPENSE_ACTIVITY_CODE,
-                null
+                this@MainActivity, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
             )
         }
 
@@ -1244,10 +1394,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             )
 
             ActivityCompat.startActivityForResult(
-                this@MainActivity,
-                startIntent,
-                ADD_EXPENSE_ACTIVITY_CODE,
-                null
+                this@MainActivity, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
             )
         }
 
@@ -1265,11 +1412,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 if (dy > 0) {
                     // Scrolling up
                     if (binding.calendarView.visibility == View.VISIBLE) {
-                        binding.arrowDown.setImageResource(R.drawable.ic_arrow_down)
                         binding.calendarView.startAnimation(
                             AnimationUtils.loadAnimation(
-                                this@MainActivity,
-                                R.anim.debounce
+                                this@MainActivity, R.anim.debounce
                             )
                         )
                         binding.calendarView.visibility = View.GONE
@@ -1318,11 +1463,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Show a generic alert dialog telling the user an error occured while deleting recurring expense
      */
     private fun showGenericRecurringDeleteErrorDialog() {
-        AlertDialog.Builder(this@MainActivity)
-            .setTitle(R.string.oops)
+        AlertDialog.Builder(this@MainActivity).setTitle(R.string.oops)
             .setMessage(R.string.error_occurred_try_again)
-            .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-            .show()
+            .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }.show()
     }
 
 
@@ -1337,8 +1480,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             adView = AdView(this)
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             adContainerView.addView(adView)
-            val actualAdRequest = AdRequest.Builder()
-                .build()
+            val actualAdRequest = AdRequest.Builder().build()
             adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
@@ -1370,6 +1512,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val MANAGE_RECURRING_EXPENSE_ACTIVITY_CODE = 102
         const val WELCOME_SCREEN_ACTIVITY_CODE = 103
         const val SETTINGS_SCREEN_ACTIVITY_CODE = 104
+        const val INTENT_ACCOUNT_TYPE_UPDATED = "intent.account.type.updated"
         const val INTENT_EXPENSE_DELETED = "intent.expense.deleted"
         const val INTENT_EXPENSE_ADDED = "intent.expense.added"
         const val INTENT_RECURRING_EXPENSE_DELETED = "intent.expense.monthly.deleted"

@@ -1,0 +1,52 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".view.main.MainActivity">
+
+    <item
+        android:id="@+id/nav_action_accounts"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_accounts" />
+    <item
+        android:id="@+id/nav_action_setup_budgets"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_setup_budgets" />
+
+    <item
+        android:id="@+id/nav_action_categories"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_manage_categories" />
+
+    <item
+        android:id="@+id/nav_action_breakdown"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_expenses_breakdown" />
+
+    <item
+        android:id="@+id/nav_action_balance"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_adjust_balance" />
+
+    <item
+        android:id="@+id/nav_action_language"
+        android:icon="@drawable/ic_adjust_balance"
+        android:title="@string/change_language"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/nav_goto_settings"
+        android:title="@null"
+        android:visible="false"
+        app:actionLayout="@layout/custom_nav_menu_item_settings" />
+
+    <item
+        android:id="@+id/nav_action_share"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_share" />
+    <item
+        android:id="@+id/nav_action_rate"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_rate" />
+
+</menu>

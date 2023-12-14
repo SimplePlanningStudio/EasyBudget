@@ -29,6 +29,7 @@ import com.simplebudget.db.impl.RoomDB
 import com.simplebudget.iab.IabImpl
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
 import org.koin.dsl.module
 import java.time.LocalDate
 import java.util.concurrent.Executor
@@ -45,6 +46,7 @@ val appModule = module {
         object : CacheDBStorage {
             override val expenses: MutableMap<LocalDate, List<Expense>> = ArrayMap()
             override val balances: MutableMap<LocalDate, Double> = ArrayMap()
+            override var accountId: Long = 1  // Default value
         }
     }
 
@@ -54,13 +56,13 @@ val appModule = module {
 
     single<CloudStorage> {
         FirebaseStorage(com.google.firebase.storage.FirebaseStorage.getInstance().apply {
-            maxOperationRetryTimeMillis = TimeUnit.SECONDS.toMillis(10)
-            maxDownloadRetryTimeMillis = TimeUnit.SECONDS.toMillis(10)
-            maxUploadRetryTimeMillis = TimeUnit.SECONDS.toMillis(10)
+            maxOperationRetryTimeMillis = TimeUnit.SECONDS.toMillis(20)
+            maxDownloadRetryTimeMillis = TimeUnit.SECONDS.toMillis(20)
+            maxUploadRetryTimeMillis = TimeUnit.SECONDS.toMillis(20)
         })
     }
 
-    factory<DB> { CachedDBImpl(DBImpl(RoomDB.create(get())), get(), get()) }
+    factory<DB> { CachedDBImpl(DBImpl(RoomDB.create(get()), get()), get(), get()) }
 
-    factory { CachedDBImpl(DBImpl(RoomDB.create(get())), get(), get()) }
+    factory { CachedDBImpl(DBImpl(RoomDB.create(get()), get()), get(), get()) }
 }

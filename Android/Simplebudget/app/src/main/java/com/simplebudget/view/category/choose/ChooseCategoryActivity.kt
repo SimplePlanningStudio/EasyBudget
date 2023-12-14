@@ -31,6 +31,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.google.android.gms.ads.AdListener
@@ -40,23 +41,25 @@ import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySearchCategoryBinding
 import com.simplebudget.helper.AdSizeUtils
-import com.simplebudget.helper.BaseActivity
+import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.extensions.showCaseView
+import com.simplebudget.helper.extensions.toCategories
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.category.ExpenseCategories
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.*
 import com.simplebudget.view.category.manage.ManageCategoriesActivity
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.collections.ArrayList
 
 
-class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>(),
-    ChooseCategoryAdapter.CategoryAdapterListener {
+class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
 
-    private var selectedCategoryName = ""
+    private lateinit var miscellaneousCategory: Category
+    private var selectedCategory: Category? = null
     private var currentCategoryName = ""
     private val viewModelCategory: ChooseCategoryViewModel by viewModel()
     private var categories: ArrayList<Category> = ArrayList()
@@ -184,7 +187,7 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>(),
     private var manageCategoriesActivityLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             //Re-load categories from DB
-            viewModelCategory.reloadCategories(categories)
+            viewModelCategory.refreshCategories()
         }
 
     /**
@@ -269,7 +272,10 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>(),
      *
      */
     private fun attachAdapter(list: List<Category>) {
-        searchAdapter = ChooseCategoryAdapter(list, this)
+        searchAdapter = ChooseCategoryAdapter(list) { selectedCategory ->
+            this.selectedCategory = selectedCategory
+            doneWithSelection()
+        }
         binding.recyclerViewCategories.adapter = searchAdapter
         val dividerItemDecoration = DividerItemDecoration(
             binding.recyclerViewCategories.context, LinearLayout.VERTICAL
@@ -282,20 +288,18 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>(),
      */
     private fun loadCategories() {
         binding.progressBar.visibility = View.VISIBLE
-        //Load categories
-        viewModelCategory.categoriesLiveData.observe(this) { dbCat ->
-            categories.clear()
-            if (dbCat.isEmpty()) {
-                ExpenseCategories.getCategoriesList().forEach { item ->
-                    val category = Category(id = null, name = item.uppercase())
-                    if (!categories.contains(category)) categories.add(category)
+        lifecycleScope.launch {
+            viewModelCategory.categoriesFlow.collect { categoriesEntities ->
+                categories.clear()
+                if (categoriesEntities.isNotEmpty()) {
+                    categories.addAll(categoriesEntities.toCategories().asReversed())
+                    attachAdapter(categories)
+                    binding.progressBar.visibility = View.INVISIBLE
                 }
-            } else {
-                categories.addAll(dbCat.asReversed())
             }
-
-            attachAdapter(categories)
-            binding.progressBar.visibility = View.INVISIBLE
+        }
+        viewModelCategory.miscellaneousCategory.observe(this) { category ->
+            miscellaneousCategory = category
         }
     }
 
@@ -303,18 +307,10 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>(),
      *
      */
     private fun doneWithSelection() {
-        if (selectedCategoryName.trim().isEmpty()) {
-            selectedCategoryName = if (selectedCategoryName.trim().isEmpty()) {
-                if (currentCategoryName.trim()
-                        .isEmpty()
-                ) ExpenseCategoryType.MISCELLANEOUS.name else currentCategoryName
-            } else {
-                ExpenseCategoryType.MISCELLANEOUS.name
-            }
-        }
         setResult(
-            Activity.RESULT_OK,
-            Intent().putExtra(REQUEST_CODE_SELECTED_CATEGORY, selectedCategoryName)
+            Activity.RESULT_OK, Intent().putExtra(
+                REQUEST_CODE_SELECTED_CATEGORY, selectedCategory ?: miscellaneousCategory
+            )
         )
         finish()
     }
@@ -352,14 +348,6 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>(),
         } else if (query.isEmpty()) {
             binding.voiceSearchQuery.visibility = View.VISIBLE
         }
-    }
-
-    /**
-     *
-     */
-    override fun onCategorySelected(selectedCategory: Category) {
-        this.selectedCategoryName = selectedCategory.name
-        doneWithSelection()
     }
 
     /**

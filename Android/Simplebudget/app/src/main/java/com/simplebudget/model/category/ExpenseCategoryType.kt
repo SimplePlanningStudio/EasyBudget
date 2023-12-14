@@ -19,59 +19,7 @@ import java.util.ArrayList
 
 
 enum class ExpenseCategoryType {
-    MISCELLANEOUS,
-    GROCERY,
-    UTILITIES,
-    SHOPPING,
-    CLOTHING,
-    ENTERTAINMENT,
-    TRANSPORTATION,
-    EDUCATION,
-    MEDICAL,
-    HOUSEHOLD,
-    FOOD,
-    BREAKFAST,
-    DINNER,
-    LUNCH,
-    PERSONAL,
-    INSURANCE,
-    RETIREMENT,
-    DONATIONS,
-    SALARY,
-    INCOME,
-    PROFIT,
-    DEBIT,
-    CREDIT,
-    DEBT,
-    BALANCE,
-    SAVINGS,
-    RENT,
-    AIRBNB,
-    MORTGAGE,
-    FURNITURE,
-    GYM,
-    TAXES,
-    MEMBERSHIP,
-    FUEL,
-    TRAVEL,
-    GIFT,
-    CAR_PAYMENT,
-    PARKING_FEE,
-    REPAIRS,
-    DENTAL_CARE,
-    BOOKS,
-    WEDDING,
-    BIRTHDAY,
-    GAMES,
-    MOVIES,
-    CHARITIES,
-    SUBSCRIPTIONS,
-    COLLEGE,
-    HAIRCUTS,
-    CLEANING,
-    HEALTH_INSURANCE,
-    LIFE_INSURANCE,
-    AUTO_INSURANCE
+    GROCERY, UTILITIES, SHOPPING, CLOTHING, ENTERTAINMENT, TRANSPORTATION, EDUCATION, MEDICAL, HOUSEHOLD, FOOD, BREAKFAST, DINNER, LUNCH, PERSONAL, INSURANCE, RETIREMENT, DONATIONS, SALARY, INCOME, PROFIT, DEBIT, CREDIT, DEBT, BALANCE, SAVINGS, RENT, AIRBNB, MORTGAGE, FURNITURE, GYM, TAXES, MEMBERSHIP, FUEL, TRAVEL, GIFT, CAR_PAYMENT, PARKING_FEE, REPAIRS, DENTAL_CARE, BOOKS, WEDDING, BIRTHDAY, GAMES, MOVIES, CHARITIES, SUBSCRIPTIONS, COLLEGE, HAIRCUTS, CLEANING, HEALTH_INSURANCE, LIFE_INSURANCE, AUTO_INSURANCE, MISCELLANEOUS
 }
 
 
@@ -79,10 +27,18 @@ object ExpenseCategories {
     fun contains(category: String): Boolean =
         ExpenseCategoryType.values().none { this.equals(category) }
 
-    fun getCategoriesList(): ArrayList<String> {
+    fun getCategoriesArrayList(): ArrayList<String> {
         val categories: ArrayList<String> = ArrayList()
         ExpenseCategoryType.values().forEach {
             categories.add(it.name)
+        }
+        return categories
+    }
+
+    fun getCategoriesList(): List<Category> {
+        val categories: ArrayList<Category> = ArrayList()
+        ExpenseCategoryType.values().forEach {
+            categories.add(Category(it.name))
         }
         return categories
     }

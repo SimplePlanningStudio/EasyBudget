@@ -21,6 +21,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.db.DB
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

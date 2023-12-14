@@ -67,7 +67,8 @@
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="true"
             android:label="@string/app_name_simplebudget_title"
-            android:launchMode="singleInstancePerTask"
+            android:launchMode="standard"
+            android:logo="@drawable/ic_logo"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
@@ -90,6 +91,13 @@
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_premium"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".view.accounts.AccountDetailsActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/accounts"
             android:screenOrientation="portrait" />
 
         <activity
@@ -160,6 +168,18 @@
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_settings"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.simplebudget.view.settings.help.HelpActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/setting_category_app_support_and_help"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.simplebudget.view.settings.aboutus.AboutUsActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/title_about_us"
             android:screenOrientation="portrait" />
         <activity
             android:name=".view.settings.openSource.OpenSourceDisclaimerActivity"

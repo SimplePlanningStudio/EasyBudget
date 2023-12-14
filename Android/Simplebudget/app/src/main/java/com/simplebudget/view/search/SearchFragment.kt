@@ -18,9 +18,13 @@ package com.simplebudget.view.search
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -32,6 +36,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.androidisland.ezpermission.EzPermission
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
@@ -40,12 +45,15 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
+import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentSearchBinding
 import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.view.report.DataModels
 import com.simplebudget.view.report.PDFReportActivity
+import com.simplebudget.view.report.adapter.MainAdapter
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.File
@@ -102,12 +110,46 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                 } else {
                     String.format("%s %d %s", "Only", result.size, "record")
                 }
-                binding?.recyclerViewSearch?.layoutManager =
+                //If we want to display normal listings like old version.
+                /*binding?.recyclerViewSearch?.layoutManager =
                     LinearLayoutManager(activity)
                 binding?.recyclerViewSearch?.adapter = SearchRecyclerViewAdapter(
                     result,
                     appPreferences
-                )
+                )*/
+            }
+        }
+
+        /**
+         * Observe this for only revenue, expenses (as this livedata holds search results for reports to print, export)
+         * Now: We are displaying expandable search results like monthly reports as these are easy to visualise.
+         */
+        viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                DataModels.MonthlyReportData.Empty -> {
+                    binding?.revenueDetails?.visibility = View.GONE
+                    binding?.recyclerViewSearch?.visibility = View.GONE
+                }
+                is DataModels.MonthlyReportData.Data -> {
+                    if (result.allExpensesOfThisMonth.isNotEmpty()) {
+                        binding?.revenueDetails?.visibility = View.VISIBLE
+                        binding?.recyclerViewSearch?.visibility = View.VISIBLE
+                        setRevenueDetails(result.revenuesAmount, result.expensesAmount)
+                        configureRecyclerView(
+                            binding?.recyclerViewSearch!!,
+                            MainAdapter(
+                                result.allExpensesParentList,
+                                appPreferences
+                            )
+                            /*MonthlyReportRecyclerViewAdapter(
+                                result.expenses,
+                                result.revenues,
+                                result.allExpensesOfThisMonth,
+                                appPreferences
+                            )*/
+                        )
+                    }
+                }
             }
         }
 
@@ -136,6 +178,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
             binding?.ivClearTick?.visibility = if (query.isEmpty()) View.GONE else View.VISIBLE
             if (query.isEmpty()) viewModel.loadThisMonthExpenses()
         }
+
 
         /**
          * Clear search
@@ -175,8 +218,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
          *
          */
         binding?.chipReset?.setOnClickListener {
-            resetToDefaultChipThisMonth()
-            viewModel.loadThisMonthExpenses()
+            chipResetAndReloadThisMonthExpenses()
         }
 
         /**
@@ -221,6 +263,60 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                     shareCsvFile(file)
                 }
             }
+        }
+    }
+
+    /**
+     * Chip reset and reload expenses of this monthh
+     */
+    fun chipResetAndReloadThisMonthExpenses() {
+        resetToDefaultChipThisMonth()
+        viewModel.loadThisMonthExpenses()
+    }
+
+
+    /**
+     * Configure recycler view LayoutManager & adapter
+     */
+    private fun configureRecyclerView(
+        recyclerView: RecyclerView,
+        /*adapter: MonthlyReportRecyclerViewAdapter*/
+        adapter: MainAdapter
+    ) {
+        recyclerView.layoutManager = LinearLayoutManager(activity)
+        recyclerView.adapter = adapter
+    }
+
+    /**
+     * Set revenues , expenses details
+     */
+    private fun setRevenueDetails(revenuesAmount: Double, expensesAmount: Double) {
+        try {
+            val rev = CurrencyHelper.getFormattedCurrencyString(appPreferences, revenuesAmount)
+            val exp = CurrencyHelper.getFormattedCurrencyString(appPreferences, expensesAmount)
+            val sentence = "Revenues: $rev, Expenses: $exp"
+            // Create a SpannableString
+            val spannableString = SpannableString(sentence)
+            // Define the start and end indices for each word
+            val colorfulWords = mapOf(
+                "Revenues: " to Color.parseColor("#4CAF50"), // Green
+                "Expenses: " to Color.parseColor("#F44336"), // Red
+            )
+            // Apply ForegroundColorSpan to each word
+            for ((word, color) in colorfulWords) {
+                val startIndex = sentence.indexOf(word)
+                val endIndex = startIndex + word.length
+                spannableString.setSpan(
+                    ForegroundColorSpan(color),
+                    startIndex,
+                    endIndex,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            // Set the SpannableString to the TextView
+            binding?.revenueDetails?.text = spannableString
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
