@@ -186,9 +186,13 @@ class AccountsViewModel(
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 progressLiveData.postValue(true)
-                appPreferences.setActiveAccount(account.id, account.name)
+                if (account.id == 1L && account.name == "SAVINGS") {
+                    appPreferences.setActiveAccount(account.id, AccountType.DEFAULT_ACCOUNT.name)
+                } else {
+                    appPreferences.setActiveAccount(account.id, account.name)
+                }
                 db.persistAccountType(account)
-                db.setActiveAccount(account.id ?: Accounts.SAVINGS)
+                db.setActiveAccount(account.id ?: Accounts.DEFAULT_ACCOUNT)
                 progressLiveData.postValue(false)
             }
         }
@@ -215,7 +219,10 @@ class AccountsViewModel(
     fun addAccount(account: Account) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                db.persistAccountType(account)
+                val count = db.accountAlreadyExists(account.name.uppercase())
+                if (count <= 0) {
+                    db.persistAccountType(account)
+                }
             }
         }
     }

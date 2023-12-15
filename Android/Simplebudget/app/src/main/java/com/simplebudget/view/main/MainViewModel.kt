@@ -21,6 +21,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.helper.extensions.toInt
 import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategories
@@ -30,6 +31,7 @@ import com.simplebudget.model.recurringexpense.RecurringExpense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccount
+import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.prefs.setActiveAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -124,17 +126,24 @@ class MainViewModel(
      */
     private fun refreshAccountTypes() {
         viewModelScope.launch {
+            if (appPreferences.activeAccount().toInt() == 1 && appPreferences.activeAccountLabel() == "SAVINGS") {
+                appPreferences.setActiveAccount(1.toLong(), AccountType.DEFAULT_ACCOUNT.name)
+            }
             val accountsNotAvailable = db.isAccountsTypeTableEmpty()
             if (accountsNotAvailable) {
                 //So it's first time accounts being added that's why DB accounts are empty
                 //Adding default / fixed accounts into DB
                 db.persistAccountTypes(Accounts.getAccountsList())
                 //Set active account to default at this moment
-                db.setActiveAccount(AccountType.SAVINGS.name)
+                db.setActiveAccount(AccountType.DEFAULT_ACCOUNT.name)
                 // Save this active account id, name into preferences for later use.
                 db.getActiveAccount().collect {
-                    if (it.id != null && it.name != null) {
-                        appPreferences.setActiveAccount(it.id, it.name)
+                    if (it.id != null) {
+                        if (it.id == 1L && it.name == "SAVINGS") {
+                            appPreferences.setActiveAccount(it.id, AccountType.DEFAULT_ACCOUNT.name)
+                        } else {
+                            appPreferences.setActiveAccount(it.id, it.name)
+                        }
                     }
                 }
             }

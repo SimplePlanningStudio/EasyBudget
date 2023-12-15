@@ -91,6 +91,10 @@ class CachedDBImpl(
         wrappedDB.persistAccountType(account)
     }
 
+    override suspend fun accountAlreadyExists(name: String): Int {
+        return wrappedDB.accountAlreadyExists(name)
+    }
+
     override suspend fun deleteAccountType(account: Account) {
         wrappedDB.deleteAccountType(account)
     }
@@ -181,7 +185,8 @@ class CachedDBImpl(
         monthStartDate: LocalDate
     ): List<Expense> = wrappedDB.getExpensesForMonth(monthStartDate)
 
-    override suspend fun getExpensesForMonthWithoutCheckingAccount(): List<Expense> = wrappedDB.getExpensesForMonthWithoutCheckingAccount()
+    override suspend fun getExpensesForMonthWithoutCheckingAccount(): List<Expense> =
+        wrappedDB.getExpensesForMonthWithoutCheckingAccount()
 
     override suspend fun searchExpenses(search_query: String): List<Expense> =
         wrappedDB.searchExpenses(search_query)

@@ -18,13 +18,13 @@ package com.simplebudget.model.account
 import java.util.ArrayList
 
 enum class AccountType {
-    SAVINGS
+    DEFAULT_ACCOUNT
 }
 
 
 object Accounts {
 
-    const val SAVINGS = 1L // Default account has ID 1
+    const val DEFAULT_ACCOUNT = 1L // Default account has ID 1
 
     fun getAccountsList(): List<Account> {
         val accounts: ArrayList<Account> = ArrayList()
@@ -32,6 +32,17 @@ object Accounts {
             accounts.add(Account(it.name))
         }
         return accounts
+    }
+}
+
+/**
+ * Check if account word is already there otherwise it'll append and return the updated string
+ */
+fun String.appendAccount(): String {
+    return when {
+        (uppercase() == AccountType.DEFAULT_ACCOUNT.name) -> AccountType.DEFAULT_ACCOUNT.name.replace("_"," ")
+        (uppercase().contains("ACCOUNT") || uppercase().contains("AC")) -> this
+        else -> String.format("%s %s", this, "ACCOUNT")
     }
 }
 

@@ -33,6 +33,7 @@ import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
 import com.simplebudget.helper.updateAccountNotifyBroadcast
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
@@ -108,10 +109,10 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
 
         //Selected account
         binding.layoutSelectAccount.tvSelectedAccount.text =
-            String.format("%s", appPreferences.activeAccountLabel())
+            String.format("%s", appPreferences.activeAccountLabel().appendAccount())
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
             val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
                 updateAccountNotifyBroadcast()
 
                 binding.monthlyReportProgressBar.visibility = View.VISIBLE

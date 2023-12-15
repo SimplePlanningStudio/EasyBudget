@@ -27,6 +27,7 @@ import com.simplebudget.db.impl.expenses.ExpenseDao
 import com.simplebudget.db.impl.expenses.ExpenseEntity
 import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.localDateFromTimestamp
+import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.model.recurringexpense.RecurringExpenseType
@@ -36,7 +37,7 @@ const val DB_NAME = "easybudget.db"
 
 @Database(
     exportSchema = false,
-    version = 8,
+    version = 9,
     entities = [
         CategoryEntity::class,
         ExpenseEntity::class,
@@ -61,7 +62,8 @@ abstract class RoomDB : RoomDatabase() {
                 migrationFrom4To5,
                 migrationFrom5To6,
                 migrateTimestamps6To7,
-                migrateTimestamps7To8
+                migrateTimestamps7To8,
+                migrateTimestamps8To9
             )
             .build()
     }
@@ -79,13 +81,19 @@ class TimestampConverters {
     }
 }
 
+private val migrateTimestamps8To9 = object : Migration(8, 9) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        //Update default account table only the name SAVINGS to DEFAULT_ACCOUNT
+        database.execSQL("UPDATE account_type SET name = 'DEFAULT_ACCOUNT' WHERE _account_type_id = 1")
+    }
+}
 private val migrateTimestamps7To8 = object : Migration(7, 8) {
     override fun migrate(database: SupportSQLiteDatabase) {
         // Adding accountType into expenses and categories
-        database.execSQL("ALTER TABLE expense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.SAVINGS + "'")
-        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.SAVINGS + "'")
+        database.execSQL("ALTER TABLE expense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.DEFAULT_ACCOUNT + "'")
+        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.DEFAULT_ACCOUNT + "'")
         //Add account type table
-        database.execSQL("CREATE TABLE IF NOT EXISTS account_type ('_account_type_id' INTEGER, 'name' text not null DEFAULT 'SAVINGS','isActive' INTEGER not null DEFAULT 1, PRIMARY KEY('_account_type_id'))")
+        database.execSQL("CREATE TABLE IF NOT EXISTS account_type ('_account_type_id' INTEGER, 'name' text not null DEFAULT 'DEFAULT_ACCOUNT','isActive' INTEGER not null DEFAULT 1, PRIMARY KEY('_account_type_id'))")
     }
 }
 

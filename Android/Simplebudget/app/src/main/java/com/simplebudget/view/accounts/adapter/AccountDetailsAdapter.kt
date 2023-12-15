@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
 import com.simplebudget.databinding.RecyclerviewAccountDetailsCellBinding
 import com.simplebudget.helper.CurrencyHelper
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.category.Category
 import com.simplebudget.prefs.AppPreferences
 
@@ -33,12 +34,8 @@ class AccountDetailsAdapter(
     override fun onBindViewHolder(holder: CollectionsViewHolder, position: Int) {
         holder.binding.apply {
             val obj = allExpensesParentList[position]
-            val accountLabeling =
-                if (obj.account.contains("ACCOUNT"))
-                    obj.account else
-                    String.format("%s %s", obj.account, "ACCOUNT")
             val amountSpend = (obj.totalCredit - obj.totalDebit)
-            accountTitle.text = String.format("%s", accountLabeling)
+            accountTitle.text = String.format("%s", obj.account.appendAccount())
             ivBolt.setBackgroundResource(if (amountSpend > 0.0) R.drawable.ic_bolt_green else R.drawable.ic_bolt_red)
             ivBolt.visibility = if (amountSpend == 0.0) View.GONE else View.VISIBLE
             accountBalanceAmount.text = String.format(

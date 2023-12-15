@@ -45,6 +45,9 @@ interface AccountTypeDao {
     @Query("SELECT * FROM account_type WHERE _account_type_id = :accountId")
     suspend fun getAccount(accountId: Long): AccountTypeEntity
 
+    @Query("SELECT COUNT(*) FROM account_type WHERE name = :name")
+    suspend fun accountAlreadyExists(name: String): Int
+
     @Query("UPDATE account_type SET isActive = 0")
     suspend fun updateAllAccountTypesInactive()
 
@@ -54,8 +57,8 @@ interface AccountTypeDao {
     @Query("UPDATE account_type SET isActive = CASE WHEN name = :accountName THEN 1 ELSE 0 END WHERE name = :accountName OR isActive = 1")
     suspend fun setActiveAccount(accountName: String)
 
-    @Query("UPDATE account_type SET isActive = CASE WHEN name = 'SAVINGS' THEN 1 ELSE 0 END WHERE name = 'SAVINGS' OR isActive = 1")
-    suspend fun resetActiveAccount()
+    @Query("UPDATE account_type SET isActive = CASE WHEN name = :defaultAccount THEN 1 ELSE 0 END WHERE name = :defaultAccount OR isActive = 1")
+    suspend fun resetActiveAccount(defaultAccount: String)
 
     @Query("SELECT COUNT(*) FROM account_type")
     suspend fun getRowCount(): Int

@@ -13,11 +13,21 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true" />
 
+    <TextView
+        android:id="@+id/tvSearchingAccount"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_20sdp"
+        android:layout_below="@+id/layoutSelectAccount"
+        android:layout_marginStart="@dimen/_8sdp"
+        android:gravity="center_vertical"
+        android:textColor="@color/colorBlack"
+        android:textSize="@dimen/_11ssp" />
+
     <FrameLayout
         android:id="@+id/frameLayoutSearchExpenses"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/layoutSelectAccount" />
+        android:layout_below="@+id/tvSearchingAccount" />
 
     <ProgressBar
         android:id="@+id/monthly_report_progress_bar"

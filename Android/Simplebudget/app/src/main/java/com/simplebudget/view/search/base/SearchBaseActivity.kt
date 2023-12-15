@@ -24,6 +24,7 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySearchExpensesBinding
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.updateAccountNotifyBroadcast
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
@@ -56,12 +57,17 @@ class SearchBaseActivity : BaseActivity<ActivitySearchExpensesBinding>() {
 
         //Selected account
         binding.layoutSelectAccount.tvSelectedAccount.text =
-            String.format("%s", appPreferences.activeAccountLabel())
+            String.format("%s", appPreferences.activeAccountLabel().appendAccount())
+        binding.tvSearchingAccount.text = getString(
+            R.string.you_are_searching_in,
+            appPreferences.activeAccountLabel().appendAccount()
+        )
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
             val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
                 updateAccountNotifyBroadcast()
-
+                binding.tvSearchingAccount.text =
+                    getString(R.string.you_are_searching_in, it.name.appendAccount())
                 binding.monthlyReportProgressBar.visibility = View.VISIBLE
                 // 2 Seconds delay and re-load will do the trick :)
                 object : CountDownTimer(2000, 2000) {

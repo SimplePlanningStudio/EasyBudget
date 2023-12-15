@@ -27,6 +27,7 @@ import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
 import com.simplebudget.helper.updateAccountNotifyBroadcast
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.*
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.BreakDownFragment
@@ -98,10 +99,10 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
 
         //Selected account
         binding.layoutSelectAccount.tvSelectedAccount.text =
-            String.format("%s", appPreferences.activeAccountLabel())
+            String.format("%s", appPreferences.activeAccountLabel().appendAccount())
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
             val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
                 updateAccountNotifyBroadcast()
                 viewModel.loadData()
             }

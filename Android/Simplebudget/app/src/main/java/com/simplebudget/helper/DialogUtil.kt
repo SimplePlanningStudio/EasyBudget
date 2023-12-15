@@ -11,7 +11,9 @@ import androidx.appcompat.app.AlertDialog
  */
 object DialogUtil {
     fun createDialog(
-        context: Context, title: String?, message: String,
+        context: Context,
+        title: String? = null,
+        message: String,
         positiveBtn: String,
         negativeBtn: String,
         isCancelable: Boolean,

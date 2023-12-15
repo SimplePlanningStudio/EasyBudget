@@ -114,8 +114,8 @@ interface ExpenseDao {
     suspend fun getOldestExpense(accountId: Long): ExpenseEntity?
 
     // SELECT * FROM user WHERE name LIKE :searchQuery
-    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate AND accountId = :accountId AND (UPPER(title) LIKE UPPER(:search_query) OR UPPER(category) LIKE UPPER(:search_query))")
-    suspend fun searchExpenses(search_query: String,startDate: LocalDate, endDate: LocalDate, accountId: Long): List<ExpenseEntity>
+    @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate AND accountId = :accountId AND (UPPER(title) LIKE UPPER(:search_query) OR UPPER(category) LIKE UPPER(:search_query) OR amount = :amount OR amount = :minusAmount)")
+    suspend fun searchExpenses(search_query: String,startDate: LocalDate, endDate: LocalDate, accountId: Long, amount:Long, minusAmount:Long): List<ExpenseEntity>
 
     @Query("SELECT * FROM expense WHERE date >= :startDate AND date <= :endDate AND accountId = :accountId")
     suspend fun getAllExpenses(

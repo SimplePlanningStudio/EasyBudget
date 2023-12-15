@@ -93,7 +93,7 @@ class FaqRepo {
                     ),
                     Question(
                         "I can't see any amount, my balance is replaced with dashes -- what should I do?",
-                        "You have enabled balance privacy, you can turn it OFF from the switch under the calendar from the main screen! "
+                        "You have enabled balance privacy, you can turn it OFF from the switch under the calendar on main screen! "
                     ),
                     Question(
                         "Can I create multiple account?",
@@ -101,7 +101,7 @@ class FaqRepo {
                     ),
                     Question(
                         "How many account I can create?",
-                        "You can add 5 more accounts. Savings account is a default account so you'll be having total 6 accounts to manage your expenses!"
+                        "You can add 5 more accounts other than DEFAULT ACCOUNT so you'll be having total 6 accounts to manage your expenses!"
                     ),
                     Question(
                         "What would happen if I accidentally delete any account?",

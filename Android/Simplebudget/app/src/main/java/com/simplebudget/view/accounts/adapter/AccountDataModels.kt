@@ -1,5 +1,6 @@
 package com.simplebudget.view.accounts.adapter
 
+import com.simplebudget.model.account.Account
 import com.simplebudget.model.expense.Expense
 
 class AccountDataModels {

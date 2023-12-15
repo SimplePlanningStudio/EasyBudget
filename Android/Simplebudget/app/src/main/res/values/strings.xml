@@ -19,7 +19,7 @@
     <string name="title_activity_more_apps">More Apps</string>
     <string name="title_budget_report">Budget report</string>
     <string name="search_expenses">Search expenses</string>
-    <string name="title_search_expenses">Search expenses by title or category</string>
+    <string name="title_search_expenses">Search by title, category, amount</string>
     <string name="title_upcoming">Upcoming expenses</string>
     <string name="title_expenses_breakdown">Expenses Breakdown</string>
     <string name="cancel">Cancel</string>
@@ -138,23 +138,6 @@
     <string name="recurring_interval_bi_monthly">Every 2 months</string>
     <string name="recurring_interval_six_monthly">Every 6 months</string>
     <string name="recurring_interval_yearly">Every year</string>
-
-    <string name="account_title_default_account">Default Account</string>
-    <string name="account_title_current_account">Current Account</string>
-    <string name="account_title_savings_account">Savings Account</string>
-    <string name="account_title_checking_account">Checking Account</string>
-    <string name="account_title_loans_account">Loans Account</string>
-    <string name="account_title_credit_cards_account">Credit Cards Account</string>
-
-    <string-array name="accounts_array">
-        <item>@string/account_title_default_account</item>
-        <item>@string/account_title_current_account</item>
-        <item>@string/account_title_savings_account</item>
-        <item>@string/account_title_checking_account</item>
-        <item>@string/account_title_loans_account</item>
-        <item>@string/account_title_credit_cards_account</item>
-    </string-array>
-
     <string name="setting_category_general">General</string>
     <string name="setting_category_app_title">App</string>
     <string name="setting_category_app_support_and_help">Feedback, Help and Support</string>
@@ -581,7 +564,7 @@
     <string name="edit_categories_show_view_message">By clicking this you can manage (Add and Remove) categories.\nYou can also access it under app settings.</string>
     <string name="skip">Skip</string>
     <string name="add">Add</string>
-    <string name="top_search">Top searches 🔥</string>
+    <string name="top_search">Top searches 🔥, Click me ℹ️</string>
     <string name="account_details_until_today">Account details until Today are</string>
     <string name="search_results_for_">Search results for \'%s\'</string>
     <string name="search_results_for_range">Search results from \'%s\' -  \'%s\'</string>
@@ -670,8 +653,15 @@
     <string name="this_month">This Month</string>
     <string name="available_balance">Available Balance</string>
     <string name="update">Update</string>
-    <string name="saving_account_delete_disclaimer">Sorry, Savings account can\'t be deleted!</string>
+    <string name="default_account_delete_disclaimer">Sorry, %s can\'t be deleted!</string>
     <string name="title_delete_account_and_its_transactions">Delete account and it\'s transactions</string>
     <string name="description_delete_account_and_its_transactions">Are you sure you want to delete %s?\n\nNote: You can restore it if you have a backup otherwise with newly auto-backup it would be overwrite and you can\'t restore it!</string>
     <string name="yes_delete_it">Yes, Delete it!</string>
+    <string name="noted">Noted!</string>
+    <string name="you_have_already_added_five_accounts">You have already added 5 accounts!</string>
+    <string name="default_account_cant_be_edited_and_deleted">(Can\'t edit/delete)</string>
+    <string name="account_already_exists">Account already exists!</string>
+    <string name="search_disclaimer">You can search up to last one year from current date until the end of the current month. For a more extensive search, utilize filter\n\n\'Pick a date range\'!</string>
+    <string name="about_search_box">About Search Box</string>
+    <string name="you_are_searching_in">You are searching in %s!</string>
 </resources>

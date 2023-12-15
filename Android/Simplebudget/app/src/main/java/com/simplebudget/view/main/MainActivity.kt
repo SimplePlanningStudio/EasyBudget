@@ -61,6 +61,8 @@ import com.simplebudget.helper.*
 import com.simplebudget.helper.analytics.FirebaseAnalyticsHelper
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.model.account.AccountType
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
 import com.simplebudget.prefs.*
@@ -254,21 +256,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                     INTENT_ACCOUNT_TYPE_UPDATED -> {
                         // Default Account Type Updated, Refresh Calendar and Expenses as well.
-                        binding.layoutSelectAccount.tvSelectedAccount.text =
-                            String.format("%s", appPreferences.activeAccountLabel())
+                        binding.layoutSelectAccount.tvSelectedAccount.text = String.format("%s", appPreferences.activeAccountLabel().appendAccount())
                         viewModel.refreshTodaysExpenses() // Refresh to re-setup
-                        val message =
-                            if (appPreferences.activeAccountLabel().uppercase().contains("ACCOUNT"))
-                                String.format(
-                                    "%s %s",
-                                    appPreferences.activeAccountLabel(),
-                                    "is selected!"
-                                ) else String.format(
-                                "%s %s",
-                                appPreferences.activeAccountLabel(),
-                                "Account is selected!"
-                            )
-                        toast(message)
+                        val message = String.format(
+                            "%s %s",
+                            appPreferences.activeAccountLabel().uppercase().appendAccount(),
+                            "is selected!"
+                        )
+                        object : CountDownTimer(500, 500) {
+                            override fun onTick(millisUntilFinished: Long) {
+                            }
+
+                            override fun onFinish() {
+                                toast(message, Toast.LENGTH_LONG)
+                            }
+                        }.start()
                     }
                 }
             }
@@ -436,7 +438,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val description = String.format(
                 "%s %s",
                 getString(R.string.adjust_balance_message),
-                "'${appPreferences.activeAccountLabel()}'"
+                "'${appPreferences.activeAccountLabel().appendAccount()}'"
             )
             val builder = AlertDialog.Builder(this)
             builder.setTitle(R.string.adjust_balance_title)
@@ -720,11 +722,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.ivCalendarCollapse.setOnClickListener { revealHideCalendar() }
 
             //Selected account
+
+            if (appPreferences.activeAccount().toInt() == 1 && appPreferences.activeAccountLabel() == "SAVINGS") {
+                appPreferences.setActiveAccount(1.toLong(), AccountType.DEFAULT_ACCOUNT.name)
+            }
             binding.layoutSelectAccount.tvSelectedAccount.text =
-                String.format("%s", appPreferences.activeAccountLabel())
+                String.format("%s", appPreferences.activeAccountLabel().appendAccount())
             binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
                 val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                    binding.layoutSelectAccount.tvSelectedAccount.text = it.name
+                    binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
                     updateAccountNotifyBroadcast()
                 }
                 accountsBottomSheetDialogFragment.show(

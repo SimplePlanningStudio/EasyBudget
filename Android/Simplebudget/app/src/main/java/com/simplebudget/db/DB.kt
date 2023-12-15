@@ -78,6 +78,11 @@ interface DB : Closeable {
     suspend fun persistAccountType(account: Account)
 
     /**
+     * Save account type
+     */
+    suspend fun accountAlreadyExists(name: String): Int
+
+    /**
      * Delete account
      */
     suspend fun deleteAccountType(account: Account)

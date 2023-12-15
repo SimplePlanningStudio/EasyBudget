@@ -574,14 +574,14 @@ fun AppPreferences.activeAccount(): Long = getLong(KEY_ACTIVE_ACCOUNT, 1)
 
 
 fun AppPreferences.activeAccountLabel(): String =
-    getString(KEY_ACTIVE_ACCOUNT_NAME) ?: AccountType.SAVINGS.name
+    getString(KEY_ACTIVE_ACCOUNT_NAME) ?: AccountType.DEFAULT_ACCOUNT.name
 
 
 /**
  * Account title must be saved from AccountType enum e.g
  * AccountType.DEFAULT_ACCOUNT.name
  */
-suspend fun AppPreferences.setActiveAccount(accountId: Long?, accountName: String?) {
+fun AppPreferences.setActiveAccount(accountId: Long?, accountName: String?) {
     putLong(KEY_ACTIVE_ACCOUNT, accountId ?: 1) // 1 is default account id from the DB
-    putString(KEY_ACTIVE_ACCOUNT_NAME, accountName ?: AccountType.SAVINGS.name)
+    putString(KEY_ACTIVE_ACCOUNT_NAME, accountName ?: AccountType.DEFAULT_ACCOUNT.name)
 }

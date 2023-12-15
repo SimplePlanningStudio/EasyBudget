@@ -18,13 +18,12 @@ package com.simplebudget.view.accounts
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.provider.SyncStateContract.Constants
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.ads.AdListener
@@ -35,13 +34,14 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityAccountDetailsBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.extensions.toAccounts
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.Account
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.accounts.adapter.AccountDataModels
 import com.simplebudget.view.accounts.adapter.AccountDetailsAdapter
-import com.simplebudget.view.premium.PremiumActivity
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
@@ -58,9 +58,11 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
     private var date: LocalDate = LocalDate.now()
 
     private val appPreferences: AppPreferences by inject()
-    private val viewModel: AccountsViewModel by viewModel()
+    private val accountsViewModel: AccountsViewModel by viewModel()
     private var adView: AdView? = null
-    lateinit var accountDetailsAdapter: AccountDetailsAdapter
+    private lateinit var accountDetailsAdapter: AccountDetailsAdapter
+    private var accounts: List<Account> = emptyList()
+    private var tvMenuAddAccount: TextView? = null
 
 
     companion object {
@@ -87,7 +89,14 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
 
         binding.progressBarAccountDetails.visibility = View.VISIBLE
 
-        viewModel.monthlyReportDataLiveData.observe(this) { result ->
+        lifecycleScope.launch {
+            accountsViewModel.allAccountsFlow.collect { accountEntities ->
+                accounts = accountEntities.toAccounts()
+                // val currentActiveAccount = accounts.singleOrNull { act -> (act.isActive == 1) }
+            }
+        }
+
+        accountsViewModel.monthlyReportDataLiveData.observe(this) { result ->
             binding.progressBarAccountDetails.visibility = View.GONE
 
             when (result) {
@@ -103,7 +112,7 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
                 }
             }
         }
-        viewModel.loadAccountDetailsWithBalance(date)
+        accountsViewModel.loadAccountDetailsWithBalance(date)
 
         /**
          * Banner ads
@@ -124,8 +133,16 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
     ) {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+        synAddAccountMenuVisibility()
     }
 
+    /**
+     * Whenever we are adding new account we have to call thi function so that we can sync the add account visibility.
+     */
+    private fun synAddAccountMenuVisibility() {
+        tvMenuAddAccount?.visibility =
+            if ((ACCOUNTS_LIMIT - accountDetailsAdapter.itemCount) <= 0) View.GONE else View.VISIBLE
+    }
 
     // ------------------------------------------>
 
@@ -141,7 +158,7 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         val menuItem = menu?.findItem(R.id.action_add_account)
         val rootView = menuItem?.actionView as LinearLayout?
-        val tvMenuAddAccount = rootView?.findViewById<TextView>(R.id.tvMenuAddAccount)
+        tvMenuAddAccount = rootView?.findViewById<TextView>(R.id.tvMenuAddAccount)
         tvMenuAddAccount?.let {
             it.setOnClickListener {
                 handleAddAndEditAccount()
@@ -157,26 +174,35 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
         AddEditAccountDialog.open(
             this@AccountDetailsActivity,
             account = existingAccount, // Always null in case of adding new account
-            updateAccount = { newAccountTriple ->
-                // Add you account to DB
-                if (newAccountTriple.second) {
-                    // Editing case
-                    viewModel.updateActiveAccount(
-                        Account(
-                            id = newAccountTriple.third?.id, name = newAccountTriple.first
+            addUpdateAccount = { newAccountTriple ->
+                val accountAlreadyExists = accounts.filter { act ->
+                    (act.name.uppercase().contains(newAccountTriple.first))
+                }
+                if (accountAlreadyExists.isEmpty()) {
+                    // Add you account to DB
+                    if (newAccountTriple.second) {
+                        // Editing case
+                        accountsViewModel.updateActiveAccount(
+                            Account(
+                                id = newAccountTriple.third?.id, name = newAccountTriple.first
+                            )
                         )
-                    )
+                    } else {
+                        // Adding new case
+                        accountsViewModel.addAccount(Account(name = newAccountTriple.first))
+                        // Update the account list by adding new item no need to reload it from
+                        // DB there won't be any new expenses for newly created accounts.
+                        //Account doesn't exists already so proceed with adding new!
+                        accountDetailsAdapter.addNewAccount(
+                            AccountDataModels.CustomTripleAccount.Data(
+                                0L, newAccountTriple.first, 0.0, 0.0, ArrayList()
+                            )
+                        )
+                        binding.monthlyReportFragmentRecyclerView.scrollTo(0, 0)
+                        synAddAccountMenuVisibility()
+                    }
                 } else {
-                    // Adding new case
-                    viewModel.addAccount(Account(name = newAccountTriple.first))
-                    // Update the account list by adding new item no need to reload it from
-                    // DB there won't be any new expenses for newly created accounts.
-                    accountDetailsAdapter.addNewAccount(
-                        AccountDataModels.CustomTripleAccount.Data(
-                            0L, newAccountTriple.first, 0.0, 0.0, ArrayList()
-                        )
-                    )
-                    binding.monthlyReportFragmentRecyclerView.scrollTo(0, 0)
+                    toast(getString(R.string.account_already_exists))
                 }
             },
             remainingAccounts = (ACCOUNTS_LIMIT - accountDetailsAdapter.itemCount),

@@ -49,8 +49,10 @@ import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentSearchBinding
 import com.simplebudget.helper.*
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.view.report.DataModels
 import com.simplebudget.view.report.PDFReportActivity
 import com.simplebudget.view.report.adapter.MainAdapter
@@ -264,7 +266,24 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                 }
             }
         }
+
+        /**
+         * Search help / disclaimer
+         */
+        binding?.tvSearchDisclaimer?.setOnClickListener {
+            DialogUtil.createDialog(
+                requireContext(),
+                message = getString(R.string.search_disclaimer),
+                title = getString(R.string.about_search_box),
+                isCancelable = false,
+                positiveBtn = getString(R.string.noted),
+                positiveClickListener = {},
+                negativeBtn = "",
+                negativeClickListener = {}
+            ).show()
+        }
     }
+
 
     /**
      * Chip reset and reload expenses of this monthh

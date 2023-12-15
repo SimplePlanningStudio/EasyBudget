@@ -64,6 +64,8 @@ object DateHelper {
 
     val lastThreeMonth: LocalDate = today.minusMonths(3)
 
+    val lastOneYear: LocalDate = today.minusYears(1)
+
     val endDayOfMonth: LocalDate = startDayOfMonth.plusMonths(1).minusDays(1)
 }
 

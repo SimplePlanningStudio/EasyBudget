@@ -28,7 +28,7 @@ object AddEditAccountDialog {
         context: Activity,
         account: Account? = null,
         remainingAccounts: Int,
-        updateAccount: (accountDetails: Triple<String, Boolean, Account?>) -> Unit,
+        addUpdateAccount: (accountDetails: Triple<String, Boolean, Account?>) -> Unit,
         isPremiumUser: Boolean
     ) {
         // Only premium users can add accounts
@@ -49,7 +49,7 @@ object AddEditAccountDialog {
 
         if (account == null && remainingAccounts <= 0) {
             // Not editing existing account but adding new
-            context.toast("You have already added 5 accounts!")
+            context.toast(context.getString(R.string.you_have_already_added_five_accounts))
             return
         }
         context.let { activity ->
@@ -78,7 +78,7 @@ object AddEditAccountDialog {
                     if (newAccountName.trim { it <= ' ' }.isEmpty()) {
                         context.toast(context.getString(R.string.account_cant_be_empty))
                     } else {
-                        updateAccount.invoke(
+                        addUpdateAccount.invoke(
                             Triple(
                                 newAccountName.trim().uppercase(),
                                 (account != null),

@@ -25,6 +25,7 @@ import com.simplebudget.db.impl.expenses.ExpenseEntity
 import com.simplebudget.helper.DateHelper
 import com.simplebudget.helper.extensions.*
 import com.simplebudget.model.account.Account
+import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.category.Category
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccount
@@ -108,7 +109,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
      * Disable multiple account settings and reset to default account
      */
     override suspend fun resetActiveAccount() {
-        roomDB.accountTypeDao().resetActiveAccount()
+        roomDB.accountTypeDao().resetActiveAccount(AccountType.DEFAULT_ACCOUNT.name)
     }
 
     /**
@@ -146,6 +147,10 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
      */
     override suspend fun persistAccountType(account: Account) {
         roomDB.accountTypeDao().insertAccountType(account.toAccountEntity())
+    }
+
+    override suspend fun accountAlreadyExists(name: String): Int {
+        return roomDB.accountTypeDao().accountAlreadyExists(name)
     }
 
     /**
@@ -206,12 +211,15 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun searchExpenses(search_query: String): List<Expense> {
-        // Search results for last 3 months to Today
+        val amount = search_query.toLongOrNull() ?: 0
+        // Search results for last 1 year to end of this month!
         return roomDB.expenseDao().searchExpenses(
             search_query = "%$search_query%",
-            startDate = DateHelper.lastThreeMonth,
-            endDate = DateHelper.today,
-            accountId = appPreferences.activeAccount()
+            startDate = DateHelper.lastOneYear,
+            endDate = DateHelper.endDayOfMonth,
+            accountId = appPreferences.activeAccount(),
+            amount = (amount * 100),
+            minusAmount = -(amount * 100)
         ).toExpenses(this)
     }
 

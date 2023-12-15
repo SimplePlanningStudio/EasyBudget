@@ -11,6 +11,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
 import com.simplebudget.model.account.Account
+import com.simplebudget.model.account.AccountType
+import com.simplebudget.model.account.Accounts
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.category.Category
 
 class AccountsAdapter(
@@ -44,11 +47,17 @@ class AccountsAdapter(
     inner class AccountViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val item: ConstraintLayout = view.findViewById(R.id.item)
         private val accountTitle: TextView = view.findViewById(R.id.accountTitle)
+        private val accountDisclaimer: TextView = view.findViewById(R.id.accountDisclaimer)
         private val ivTickSelected: ImageView = view.findViewById(R.id.ivTickSelected)
         fun bind(account: Account) {
             if (previousSelectedAccountType == null) previousSelectedAccountType =
                 accountList.first()
-            accountTitle.text = account.name
+            accountTitle.text = account.name.appendAccount()
+            accountDisclaimer.text =
+                if (account.name == AccountType.DEFAULT_ACCOUNT.name && account.id == Accounts.DEFAULT_ACCOUNT)
+                    context.getString(R.string.default_account_cant_be_edited_and_deleted)
+                else
+                    ""
             val isSelected = (accountList[layoutPosition].id == previousSelectedAccountType?.id)
             ivTickSelected.visibility = if (isSelected) View.VISIBLE else View.GONE
             item.setBackgroundColor(if (isSelected) context.resources.getColor(R.color.divider_grey_very_light) else 0)
