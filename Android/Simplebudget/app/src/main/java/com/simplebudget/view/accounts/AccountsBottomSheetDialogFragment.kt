@@ -1,5 +1,6 @@
 package com.simplebudget.view.accounts
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.LayoutInflater
@@ -15,6 +16,7 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseDialogFragment
 import com.simplebudget.databinding.AccountsBottomSheetDialogFragmentBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.extensions.isDefault
 import com.simplebudget.helper.extensions.toAccount
 import com.simplebudget.helper.extensions.toAccounts
 import com.simplebudget.iab.isUserPremium
@@ -22,12 +24,16 @@ import com.simplebudget.model.account.Account
 import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.setActiveAccount
 import com.simplebudget.view.accounts.adapter.AccountsAdapter
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account) -> Unit) :
+class AccountsBottomSheetDialogFragment(
+    private val onAccountSelected: (Account) -> Unit,
+    private val onAccountUpdated: (Account) -> Unit
+) :
     BaseDialogFragment<AccountsBottomSheetDialogFragmentBinding>() {
 
     private val accountsViewModel: AccountsViewModel by viewModel()
@@ -56,12 +62,20 @@ class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account)
         }
 
         accountsViewModel.deletedSuccessfully.observe(this) { success ->
-            success?.let { requireActivity().updateAccountNotifyBroadcast() }
+            success?.let {
+                if (this@AccountsBottomSheetDialogFragment.isDetached.not()) {
+                    requireActivity().updateAccountNotifyBroadcast()
+                }
+            }
         }
 
         lifecycleScope.launch {
             accountsViewModel.activeAccountFlow.collect { activeAccountTypeEntity ->
                 activeAccountTypeEntity?.let {
+                    appPreferences.setActiveAccount(
+                        accountId = activeAccountTypeEntity.id,
+                        accountName = activeAccountTypeEntity.name
+                    )
                     activeAccount = activeAccountTypeEntity.toAccount()
                     selectedAccount = activeAccountTypeEntity.toAccount()
                 }
@@ -70,11 +84,16 @@ class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account)
 
         lifecycleScope.launch {
             accountsViewModel.allAccountsFlow.collect { accountEntities ->
-                accounts = accountEntities.toAccounts()
-                val currentActiveAccount = accounts.singleOrNull { act -> (act.isActive == 1) }
-                binding?.addAccount?.visibility =
-                    if ((ACCOUNTS_LIMIT - accounts.size) > 0) View.VISIBLE else View.GONE
-                setUpAdapter(currentActiveAccount ?: accounts.first())
+                if (accountEntities.isNotEmpty()) {
+                    accounts = accountEntities.toAccounts()
+                    if (accounts.isNotEmpty()) {
+                        val currentActiveAccount: Account? =
+                            accounts.singleOrNull { act -> (act.isActive == 1) }
+                        binding?.addAccount?.visibility =
+                            if ((ACCOUNTS_LIMIT - accounts.size) > 0) View.VISIBLE else View.GONE
+                        setUpAdapter(currentActiveAccount ?: accounts.first())
+                    }
+                }
             }
         }
 
@@ -90,10 +109,11 @@ class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account)
      */
     private fun updateAndDismiss() {
         selectedAccount?.let {
-            if (selectedAccount != activeAccount) {
-                onAccountSelected(selectedAccount!!)
-                accountsViewModel.updateActiveAccount(selectedAccount!!)
-            }
+            appPreferences.setActiveAccount(
+                accountId = selectedAccount!!.id, accountName = selectedAccount!!.name
+            )
+            onAccountSelected(selectedAccount!!)
+            accountsViewModel.updateActiveAccount(selectedAccount!!)
         }
         dismiss()
     }
@@ -121,18 +141,20 @@ class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account)
      * Handle account click
      */
     private fun handleAccountItemClick(clickedAccount: Account, position: Int) {
-        if (clickedAccount.id == 1L && (clickedAccount.name.uppercase() == AccountType.DEFAULT_ACCOUNT.name || clickedAccount.name.uppercase() == "SAVINGS")) {
+        val options = if (clickedAccount.isDefault()) {
             // DEFAULT_ACCOUNT can't be edited / deleted so update and return back!
-            updateAndDismiss()
-            return
+            arrayOf(
+                "Select Account",
+                "Edit Account",
+            )
+        } else {
+            arrayOf(
+                "Select Account",
+                "Edit Account",
+                "Delete Account",
+            )
         }
-
-        val options = arrayOf(
-            "Select Account",
-            "Edit Account",
-            "Delete Account",
-        )
-        MaterialAlertDialogBuilder(requireActivity()).setTitle(
+        MaterialAlertDialogBuilder(requireContext()).setTitle(
             String.format(
                 "%s %s %s", "Manage", clickedAccount.name, "Account"
             )
@@ -141,13 +163,13 @@ class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account)
                 "Select Account" -> updateAndDismiss()
                 "Edit Account" -> handleAddAndEditAccount(existingAccount = clickedAccount)
                 "Delete Account" -> {
-                    if (clickedAccount.name.uppercase() == AccountType.DEFAULT_ACCOUNT.name && clickedAccount.id == 1L)
+                    if (clickedAccount.isDefault() && this@AccountsBottomSheetDialogFragment.isDetached.not()) {
                         requireActivity().toast(
-                            getString(
-                                R.string.default_account_delete_disclaimer,
-                                AccountType.DEFAULT_ACCOUNT.name
-                            )
-                        ) else removeConfirmation(clickedAccount, position)
+                            getString(R.string.default_account_delete_disclaimer)
+                        )
+                    } else {
+                        removeConfirmation(clickedAccount, position)
+                    }
                 }
                 else -> {}
 
@@ -162,33 +184,43 @@ class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account)
      * existingAccount: Null in case of new account
      */
     private fun handleAddAndEditAccount(existingAccount: Account? = null) {
-        AddEditAccountDialog.open(
-            requireActivity(),
-            account = existingAccount, // Always null in case of adding new account
-            addUpdateAccount = { newAccountTriple ->
-                val accountAlreadyExists = accounts.filter { act ->
-                    (act.name.uppercase().contains(newAccountTriple.first))
-                }
-                if (accountAlreadyExists.isEmpty()) {
-                    // Add you account to DB
-                    if (newAccountTriple.second) {
-                        // Editing case
-                        accountsViewModel.updateActiveAccount(
-                            Account(
-                                id = newAccountTriple.third?.id, name = newAccountTriple.first
-                            )
-                        )
-                    } else {
-                        // Adding new case
-                        accountsViewModel.addAccount(Account(name = newAccountTriple.first))
+        try {
+            if (this@AccountsBottomSheetDialogFragment.isDetached) return
+            AddEditAccountDialog.open(
+                requireActivity(),
+                account = existingAccount, // Always null in case of adding new account
+                addUpdateAccount = { newAccountTriple ->
+                    val accountAlreadyExists = accounts.filter { act ->
+                        (act.name.uppercase().contains(newAccountTriple.first))
                     }
-                } else {
-                    requireActivity().toast(getString(R.string.account_already_exists))
+                    if (accountAlreadyExists.isEmpty()) {
+                        // Add you account to DB
+                        if (newAccountTriple.second) {
+                            // Editing case
+                            val editedAccount =
+                                Account(
+                                    id = newAccountTriple.third?.id,
+                                    name = newAccountTriple.first
+                                )
+                            onAccountUpdated.invoke(editedAccount)
+                            accountsViewModel.updateActiveAccount(editedAccount)
+                        } else {
+                            // Adding new case
+                            accountsViewModel.addAccount(Account(name = newAccountTriple.first))
+                        }
+                    } else {
+                        requireActivity().toast(getString(R.string.account_already_exists))
+                    }
+                },
+                remainingAccounts = (ACCOUNTS_LIMIT - accounts.size),
+                isPremiumUser = appPreferences.isUserPremium(),
+                dismissAccountBottomSheet = {
+                    dismiss()
                 }
-            },
-            remainingAccounts = (ACCOUNTS_LIMIT - accounts.size),
-            isPremiumUser = appPreferences.isUserPremium()
-        )
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -197,33 +229,35 @@ class AccountsBottomSheetDialogFragment(private val onAccountSelected: (Account)
     private fun removeConfirmation(clickedAccount: Account, position: Int) {
         val builder = android.app.AlertDialog.Builder(requireActivity())
         builder.setCancelable(false)
-        builder.setTitle(getString(R.string.title_delete_account_and_its_transactions))
-            .setMessage(
-                getString(
-                    R.string.description_delete_account_and_its_transactions,
-                    clickedAccount.name.appendAccount()
-                )
+        builder.setTitle(getString(R.string.title_delete_account_and_its_transactions)).setMessage(
+            getString(
+                R.string.description_delete_account_and_its_transactions,
+                clickedAccount.name.appendAccount()
             )
-            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                dialog.cancel()
-            }.setPositiveButton(getString(R.string.yes_delete_it)) { dialog, _ ->
+        ).setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+            dialog.cancel()
+        }.setPositiveButton(getString(R.string.yes_delete_it)) { dialog, _ ->
+            if (this@AccountsBottomSheetDialogFragment.isDetached.not()) {
                 requireActivity().toast(
                     "${getString(R.string.deleted)} ${clickedAccount.name.appendAccount()}!",
                     Toast.LENGTH_SHORT
                 )
-                accountsAdapter.delete(position)
-                accountsViewModel.deleteAccount(clickedAccount, accounts.first())
-                accountsAdapter.notifyItemChanged(position)
-                dialog.cancel()
-                object : CountDownTimer(500, 500) {
-                    override fun onTick(millisUntilFinished: Long) {
-                    }
+            }
+            accountsAdapter.delete(position)
+            accountsViewModel.deleteAccount(clickedAccount, accounts.first())
+            accountsAdapter.notifyItemChanged(position)
+            dialog.cancel()
+            object : CountDownTimer(500, 500) {
+                override fun onTick(millisUntilFinished: Long) {
+                }
 
-                    override fun onFinish() {
+                override fun onFinish() {
+                    if (this@AccountsBottomSheetDialogFragment.isDetached.not()) {
                         requireActivity().updateAccountNotifyBroadcast()
                     }
-                }.start()
-            }
+                }
+            }.start()
+        }
         val alertDialog = builder.create()
         alertDialog.show()
         alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)

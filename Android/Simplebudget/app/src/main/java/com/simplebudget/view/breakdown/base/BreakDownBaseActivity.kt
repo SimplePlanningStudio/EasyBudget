@@ -24,6 +24,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.simplebudget.databinding.ActivityBreakdownExpensesBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.editAccountNotifyBroadcast
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
 import com.simplebudget.helper.updateAccountNotifyBroadcast
@@ -101,11 +102,21 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
         binding.layoutSelectAccount.tvSelectedAccount.text =
             String.format("%s", appPreferences.activeAccountLabel().appendAccount())
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
-            val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
-                updateAccountNotifyBroadcast()
-                viewModel.loadData()
-            }
+            val accountsBottomSheetDialogFragment =
+                AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
+                    binding.layoutSelectAccount.tvSelectedAccount.text =
+                        selectedAccount.name.appendAccount()
+                    updateAccountNotifyBroadcast()
+                    viewModel.loadData()
+                }, onAccountUpdated = { updatedAccount ->
+                    //Account id is same as active account id and now account name is edited we need to update label.
+                    if (appPreferences.activeAccount() == updatedAccount.id) {
+                        binding.layoutSelectAccount.tvSelectedAccount.text =
+                            updatedAccount.name.appendAccount()
+                        appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
+                        editAccountNotifyBroadcast()
+                    }
+                })
             accountsBottomSheetDialogFragment.show(
                 supportFragmentManager, accountsBottomSheetDialogFragment.tag
             )

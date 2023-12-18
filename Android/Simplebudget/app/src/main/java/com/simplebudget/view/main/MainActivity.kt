@@ -61,6 +61,7 @@ import com.simplebudget.helper.*
 import com.simplebudget.helper.analytics.FirebaseAnalyticsHelper
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.model.account.Account
 import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
@@ -220,6 +221,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         filter.addAction(INTENT_IAB_STATUS_CHANGED)
         filter.addAction(Intent.ACTION_VIEW)
         filter.addAction(INTENT_ACCOUNT_TYPE_UPDATED)
+        filter.addAction(INTENT_ACCOUNT_TYPE_EDITED)
 
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -256,12 +258,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                     INTENT_ACCOUNT_TYPE_UPDATED -> {
                         // Default Account Type Updated, Refresh Calendar and Expenses as well.
-                        binding.layoutSelectAccount.tvSelectedAccount.text = String.format("%s", appPreferences.activeAccountLabel().appendAccount())
+                        val accountLabel = appPreferences.activeAccountLabel().appendAccount()
+                        binding.layoutSelectAccount.tvSelectedAccount.text = accountLabel
                         viewModel.refreshTodaysExpenses() // Refresh to re-setup
                         val message = String.format(
-                            "%s %s",
-                            appPreferences.activeAccountLabel().uppercase().appendAccount(),
-                            "is selected!"
+                            "%s %s", accountLabel, "is selected!"
                         )
                         object : CountDownTimer(500, 500) {
                             override fun onTick(millisUntilFinished: Long) {
@@ -271,6 +272,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                                 toast(message, Toast.LENGTH_LONG)
                             }
                         }.start()
+                    }
+                    INTENT_ACCOUNT_TYPE_EDITED -> {
+                        // Account name edited so just changing label
+                        val accountLabel = appPreferences.activeAccountLabel().appendAccount()
+                        binding.layoutSelectAccount.tvSelectedAccount.text = accountLabel
                     }
                 }
             }
@@ -671,6 +677,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         checkToken()
     }
 
+
     /**
      * Check and launch download campaign.
      * If download campaign active, notification click should have package to redirect on play store.
@@ -721,18 +728,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
             binding.ivCalendarCollapse.setOnClickListener { revealHideCalendar() }
 
-            //Selected account
-
-            if (appPreferences.activeAccount().toInt() == 1 && appPreferences.activeAccountLabel() == "SAVINGS") {
-                appPreferences.setActiveAccount(1.toLong(), AccountType.DEFAULT_ACCOUNT.name)
-            }
             binding.layoutSelectAccount.tvSelectedAccount.text =
                 String.format("%s", appPreferences.activeAccountLabel().appendAccount())
             binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
-                val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                    binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
-                    updateAccountNotifyBroadcast()
-                }
+                val accountsBottomSheetDialogFragment =
+                    AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
+                        binding.layoutSelectAccount.tvSelectedAccount.text =
+                            selectedAccount.name.appendAccount()
+                        updateAccountNotifyBroadcast()
+                    }, onAccountUpdated = { updatedAccount ->
+                        if (appPreferences.activeAccount() == updatedAccount.id) {
+                            binding.layoutSelectAccount.tvSelectedAccount.text =
+                                updatedAccount.name.appendAccount()
+                            appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
+                            editAccountNotifyBroadcast()
+                        }
+                    })
                 accountsBottomSheetDialogFragment.show(
                     supportFragmentManager, accountsBottomSheetDialogFragment.tag
                 )
@@ -930,9 +941,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun openCalendarHintShowCase() {
         if (appPreferences.hasUserSawCalendarIconHint().not()) {
             binding.calendarHint.visibility = View.VISIBLE
-            binding.multiAccountsHintButton.setOnClickListener {
-                appPreferences.setUserSawCalendarIconHint()
+            binding.calendarHintButton.setOnClickListener {
                 binding.calendarHint.visibility = View.GONE
+                appPreferences.setUserSawCalendarIconHint()
                 openHideBalanceShowCase()
             }
         }
@@ -942,6 +953,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Show case Hint for balance
      */
     private fun openHideBalanceShowCase() {
+        binding.calendarHint.visibility = View.GONE
         if (appPreferences.hasUserSawHideBalanceHint().not()) {
             showCaseView(targetView = binding.contSwitchBalance,
                 title = getString(R.string.hide_balance_hint_title),
@@ -1519,6 +1531,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val WELCOME_SCREEN_ACTIVITY_CODE = 103
         const val SETTINGS_SCREEN_ACTIVITY_CODE = 104
         const val INTENT_ACCOUNT_TYPE_UPDATED = "intent.account.type.updated"
+        const val INTENT_ACCOUNT_TYPE_EDITED = "intent.account.type.EDITED"
         const val INTENT_EXPENSE_DELETED = "intent.expense.deleted"
         const val INTENT_EXPENSE_ADDED = "intent.expense.added"
         const val INTENT_RECURRING_EXPENSE_DELETED = "intent.expense.monthly.deleted"

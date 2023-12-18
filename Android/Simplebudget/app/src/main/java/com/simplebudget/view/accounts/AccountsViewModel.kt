@@ -186,11 +186,7 @@ class AccountsViewModel(
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 progressLiveData.postValue(true)
-                if (account.id == 1L && account.name == "SAVINGS") {
-                    appPreferences.setActiveAccount(account.id, AccountType.DEFAULT_ACCOUNT.name)
-                } else {
-                    appPreferences.setActiveAccount(account.id, account.name)
-                }
+                appPreferences.setActiveAccount(account.id, account.name)
                 db.persistAccountType(account)
                 db.setActiveAccount(account.id ?: Accounts.DEFAULT_ACCOUNT)
                 progressLiveData.postValue(false)
@@ -203,14 +199,14 @@ class AccountsViewModel(
      * This function mostly be called for account deletion case.
      * Set active account back to savings.
      */
-    fun deleteAccount(account: Account, savingsAccount: Account) {
+    fun deleteAccount(account: Account, defaultAccount: Account) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 progressLiveData.postValue(true)
                 // Delete all expenses of this account and delete this account as well.
                 db.deleteAllExpensesOfAnAccount(accountId = account.id!!)
                 db.deleteAccountType(account)
-                updateActiveAccount(savingsAccount)
+                updateActiveAccount(defaultAccount)
                 progressLiveData.postValue(false)
             }
         }

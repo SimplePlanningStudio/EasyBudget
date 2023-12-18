@@ -22,6 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.DateHelper
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccount
@@ -405,8 +406,8 @@ class SearchViewModel(
             )
             contents.append("<hr>")
 
-            val activeAccount = appPreferences.activeAccountLabel()
-            contents.append("<h2 style=\"color:blue;\">${"$activeAccount ACCOUNT"}</h2>")
+            val activeAccount = appPreferences.activeAccountLabel().appendAccount()
+            contents.append("<h2 style=\"color:blue;\">${activeAccount}</h2>")
 
             // Incomes Total
             val revTotalFormattedAmount =
@@ -476,7 +477,7 @@ class SearchViewModel(
             contents.append("</body>")
             contents.append("</html>")
 
-            generatePDFReport.value = SearchReport(contents.toString(), expenses.isEmpty())
+            generatePDFReport.value = SearchReport(contents.toString(), allExpensesOfThisMonth.isEmpty())
         }
     }
 

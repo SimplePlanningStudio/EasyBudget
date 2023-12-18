@@ -206,7 +206,10 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
                 }
             },
             remainingAccounts = (ACCOUNTS_LIMIT - accountDetailsAdapter.itemCount),
-            isPremiumUser = appPreferences.isUserPremium()
+            isPremiumUser = appPreferences.isUserPremium(),
+            dismissAccountBottomSheet = {
+                // No Action required here
+            }
         )
     }
 

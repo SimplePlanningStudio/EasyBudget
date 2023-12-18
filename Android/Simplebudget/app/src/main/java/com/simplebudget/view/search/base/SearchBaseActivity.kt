@@ -23,10 +23,13 @@ import androidx.core.app.ActivityCompat
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySearchExpensesBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.editAccountNotifyBroadcast
 import com.simplebudget.helper.updateAccountNotifyBroadcast
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
 import com.simplebudget.prefs.activeAccountLabel
+import com.simplebudget.prefs.setActiveAccount
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.report.base.MonthlyReportBaseActivity
 import com.simplebudget.view.search.SearchFragment
@@ -63,30 +66,46 @@ class SearchBaseActivity : BaseActivity<ActivitySearchExpensesBinding>() {
             appPreferences.activeAccountLabel().appendAccount()
         )
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
-            val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
-                updateAccountNotifyBroadcast()
-                binding.tvSearchingAccount.text =
-                    getString(R.string.you_are_searching_in, it.name.appendAccount())
-                binding.monthlyReportProgressBar.visibility = View.VISIBLE
-                // 2 Seconds delay and re-load will do the trick :)
-                object : CountDownTimer(2000, 2000) {
-
-                    override fun onTick(millisUntilFinished: Long) {
-                    }
-
-                    override fun onFinish() {
-                        binding.monthlyReportProgressBar.visibility = View.GONE
-                        finish()
-                        ActivityCompat.startActivity(
-                            this@SearchBaseActivity,
-                            Intent(this@SearchBaseActivity, SearchBaseActivity::class.java),
-                            null
+            val accountsBottomSheetDialogFragment =
+                AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
+                    binding.layoutSelectAccount.tvSelectedAccount.text =
+                        selectedAccount.name.appendAccount()
+                    binding.tvSearchingAccount.text =
+                        getString(
+                            R.string.you_are_searching_in,
+                            selectedAccount.name.appendAccount()
                         )
-                    }
-                }.start()
+                    binding.monthlyReportProgressBar.visibility = View.VISIBLE
+                    // 2 Seconds delay and re-load will do the trick :)
+                    object : CountDownTimer(2000, 2000) {
 
-            }
+                        override fun onTick(millisUntilFinished: Long) {
+                        }
+
+                        override fun onFinish() {
+                            binding.monthlyReportProgressBar.visibility = View.GONE
+                            finish()
+                            ActivityCompat.startActivity(
+                                this@SearchBaseActivity,
+                                Intent(this@SearchBaseActivity, SearchBaseActivity::class.java),
+                                null
+                            )
+                        }
+                    }.start()
+                }, onAccountUpdated = { updatedAccount ->
+                    //Account id is same as active account id and now account name is edited we need to update label.
+                    if (appPreferences.activeAccount() == updatedAccount.id) {
+                        binding.layoutSelectAccount.tvSelectedAccount.text =
+                            updatedAccount.name.appendAccount()
+                        appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
+                        binding.tvSearchingAccount.text =
+                            getString(
+                                R.string.you_are_searching_in,
+                                updatedAccount.name.appendAccount()
+                            )
+                        editAccountNotifyBroadcast()
+                    }
+                })
             accountsBottomSheetDialogFragment.show(
                 supportFragmentManager, accountsBottomSheetDialogFragment.tag
             )

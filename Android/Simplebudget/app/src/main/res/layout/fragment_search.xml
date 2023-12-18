@@ -88,24 +88,28 @@
                 android:gravity="center_vertical"
                 android:text="@string/top_search"
                 android:textColor="@color/colorBlack"
-                android:textSize="@dimen/_12ssp" />
+                android:textSize="@dimen/_11ssp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_marginHorizontal="@dimen/_8sdp"
+                android:layout_marginEnd="@dimen/_8sdp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <ImageView
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/exportReport"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/_2sdp"
-                    android:contentDescription="@string/export"
-                    android:src="@drawable/ic_export_report"
-                    android:visibility="gone" />
+                    android:checkable="false"
+                    android:checked="false"
+                    android:text="@string/export"
+                    android:textColor="@color/white"
+                    android:visibility="gone"
+                    app:chipBackgroundColor="@color/accent" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipReset"
@@ -117,9 +121,7 @@
                     android:text="@string/reset"
                     android:textColor="@color/white"
                     android:visibility="gone"
-                    app:chipBackgroundColor="@color/budget_red"
-                    app:chipIcon="@drawable/ic_clear"
-                    app:chipIconTint="@color/white" />
+                    app:chipBackgroundColor="@color/budget_red" />
             </LinearLayout>
 
         </RelativeLayout>

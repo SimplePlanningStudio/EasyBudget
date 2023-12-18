@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
 import com.simplebudget.databinding.RecyclerviewMonthlyReportExpenseCellBinding
 import com.simplebudget.helper.CurrencyHelper
+import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import com.simplebudget.prefs.AppPreferences
@@ -45,7 +46,7 @@ class SubItemAdapter(
             val obj = subItemModel[position]
             expenseTitle.text = obj.title
             categoryType.text =
-                String.format("%s / %s", obj.category, appPreferences.activeAccountLabel())
+                String.format("%s / %s", obj.category, appPreferences.activeAccountLabel().appendAccount())
             expenseAmount.text =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, -obj.amount)
             expenseAmount.setTextColor(

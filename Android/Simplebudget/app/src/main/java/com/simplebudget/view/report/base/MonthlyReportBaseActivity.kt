@@ -30,12 +30,15 @@ import androidx.viewpager.widget.ViewPager
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityMonthlyReportBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.editAccountNotifyBroadcast
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
 import com.simplebudget.helper.updateAccountNotifyBroadcast
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.activeAccount
 import com.simplebudget.prefs.activeAccountLabel
+import com.simplebudget.prefs.setActiveAccount
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.report.MonthlyReportFragment
@@ -109,34 +112,45 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
 
         //Selected account
         binding.layoutSelectAccount.tvSelectedAccount.text =
-            String.format("%s", appPreferences.activeAccountLabel().appendAccount())
+            appPreferences.activeAccountLabel().appendAccount()
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
-            val accountsBottomSheetDialogFragment = AccountsBottomSheetDialogFragment {
-                binding.layoutSelectAccount.tvSelectedAccount.text = it.name.appendAccount()
-                updateAccountNotifyBroadcast()
+            val accountsBottomSheetDialogFragment =
+                AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
+                    binding.layoutSelectAccount.tvSelectedAccount.text =
+                        selectedAccount.name.appendAccount()
+                    updateAccountNotifyBroadcast()
+                    binding.monthlyReportProgressBar.visibility = View.VISIBLE
+                    // 2 Seconds delay and re-load will do the trick :)
+                    object : CountDownTimer(2000, 2000) {
 
-                binding.monthlyReportProgressBar.visibility = View.VISIBLE
-                // 2 Seconds delay and re-load will do the trick :)
-                object : CountDownTimer(2000, 2000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                        }
 
-                    override fun onTick(millisUntilFinished: Long) {
+                        override fun onFinish() {
+                            binding.monthlyReportProgressBar.visibility = View.GONE
+                            finish()
+                            val startIntent = Intent(
+                                this@MonthlyReportBaseActivity,
+                                MonthlyReportBaseActivity::class.java
+                            )
+                            ActivityCompat.startActivity(
+                                this@MonthlyReportBaseActivity,
+                                startIntent,
+                                null
+                            )
+                        }
+                    }.start()
+                }, onAccountUpdated = { updatedAccount ->
+                    //Account id is same as active account id and now account name is edited we need to update label.
+                    if (appPreferences.activeAccount() == updatedAccount.id) {
+                        binding.layoutSelectAccount.tvSelectedAccount.text =
+                            updatedAccount.name.appendAccount()
+                        appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
+                        binding.layoutSelectAccount.tvSelectedAccount.text =
+                            updatedAccount.name.appendAccount()
+                        editAccountNotifyBroadcast()
                     }
-
-                    override fun onFinish() {
-                        binding.monthlyReportProgressBar.visibility = View.GONE
-                        finish()
-                        val startIntent = Intent(
-                            this@MonthlyReportBaseActivity,
-                            MonthlyReportBaseActivity::class.java
-                        )
-                        ActivityCompat.startActivity(
-                            this@MonthlyReportBaseActivity,
-                            startIntent,
-                            null
-                        )
-                    }
-                }.start()
-            }
+                })
             accountsBottomSheetDialogFragment.show(
                 supportFragmentManager, accountsBottomSheetDialogFragment.tag
             )

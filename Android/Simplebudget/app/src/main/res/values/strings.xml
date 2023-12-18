@@ -653,13 +653,13 @@
     <string name="this_month">This Month</string>
     <string name="available_balance">Available Balance</string>
     <string name="update">Update</string>
-    <string name="default_account_delete_disclaimer">Sorry, %s can\'t be deleted!</string>
+    <string name="default_account_delete_disclaimer">Sorry, Default account can\'t be deleted!</string>
     <string name="title_delete_account_and_its_transactions">Delete account and it\'s transactions</string>
     <string name="description_delete_account_and_its_transactions">Are you sure you want to delete %s?\n\nNote: You can restore it if you have a backup otherwise with newly auto-backup it would be overwrite and you can\'t restore it!</string>
     <string name="yes_delete_it">Yes, Delete it!</string>
     <string name="noted">Noted!</string>
     <string name="you_have_already_added_five_accounts">You have already added 5 accounts!</string>
-    <string name="default_account_cant_be_edited_and_deleted">(Can\'t edit/delete)</string>
+    <string name="default_account_cant_be_edited_and_deleted">(Default account can only be renamed!)</string>
     <string name="account_already_exists">Account already exists!</string>
     <string name="search_disclaimer">You can search up to last one year from current date until the end of the current month. For a more extensive search, utilize filter\n\n\'Pick a date range\'!</string>
     <string name="about_search_box">About Search Box</string>

@@ -8,8 +8,10 @@ import android.view.WindowManager
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat.startActivity
+import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.helper.DialogUtil
+import com.simplebudget.helper.extensions.isDefault
 import com.simplebudget.helper.toast
 import com.simplebudget.model.account.Account
 import com.simplebudget.view.premium.PremiumActivity
@@ -18,10 +20,13 @@ import com.simplebudget.view.premium.PremiumActivity
 /**
  *  updateAccount: (accountDetails: Triple<String, Boolean, Account?>) -> Unit
  *  Here:
- *
  *  String: 1st param is for new account name input by user
  *  Boolean: Return if it's editing and adding new new account
  *  Account: If editing it hold the the account to be edited otherwise it's null
+ *
+ *  dismissAccountBottomSheet:() - Unit
+ *  Only required when user is leaving it for premium flow
+ *
  */
 object AddEditAccountDialog {
     fun open(
@@ -29,10 +34,13 @@ object AddEditAccountDialog {
         account: Account? = null,
         remainingAccounts: Int,
         addUpdateAccount: (accountDetails: Triple<String, Boolean, Account?>) -> Unit,
-        isPremiumUser: Boolean
+        isPremiumUser: Boolean,
+        dismissAccountBottomSheet: () -> Unit
     ) {
-        // Only premium users can add accounts
-        if (isPremiumUser.not()) {
+        // Only premium users can add / edit accounts or Normal users can edit default account
+        val isEditing = (account != null)
+        val defaultAccount = if (isEditing) account!!.isDefault() else false
+        if (isPremiumUser.not() && defaultAccount.not()) {
             DialogUtil.createDialog(context,
                 title = context.getString(R.string.become_premium),
                 message = context.getString(R.string.to_add_more_accounts_you_need_to_upgrade_to_premium),
@@ -42,6 +50,7 @@ object AddEditAccountDialog {
                 positiveClickListener = {
                     val intent = Intent(context, PremiumActivity::class.java)
                     startActivity(context, intent, null)
+                    dismissAccountBottomSheet.invoke()
                 },
                 negativeClickListener = {}).show()
             return

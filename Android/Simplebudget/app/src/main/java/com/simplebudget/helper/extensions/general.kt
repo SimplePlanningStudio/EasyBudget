@@ -8,6 +8,7 @@ import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.Logger
 import com.simplebudget.model.account.Account
+import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
@@ -91,6 +92,11 @@ fun Expense.toExpenseEntity() = ExpenseEntity(
 fun RecurringExpense.toRecurringExpenseEntity() = RecurringExpenseEntity(
     id, title, amount.getDBValue(), recurringDate, modified, type.name, category, accountId
 )
+
+/**
+ * Check the selected account default or not.
+ */
+fun Account.isDefault() = (this.id == 1L)
 
 /**
  * Return the integer value of the double * 100 to store it as integer in DB. This is an ugly

@@ -166,12 +166,6 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="SwitchCompatStyle">
-        <item name="android:switchMinWidth">@dimen/_80sdp</item>
-        <item name="thumbTint">@color/white</item>
-        <item name="trackTint">@color/switch_color</item>
-    </style>
-
     <style name="Transparent" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
