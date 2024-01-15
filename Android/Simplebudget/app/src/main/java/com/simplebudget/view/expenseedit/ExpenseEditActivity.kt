@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -178,16 +178,6 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
         setResult(Activity.RESULT_CANCELED)
 
-        if (willAnimateActivityEnter()) {
-            animateActivityEnter(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    binding.saveExpenseFab.animateFABAppearance()
-                }
-            })
-        } else {
-            binding.saveExpenseFab.animateFABAppearance()
-        }
-
         binding.dateButton.removeButtonBorder()
 
         viewModel.editTypeLiveData.observe(this) { (isRevenue, isEdit) ->
@@ -228,6 +218,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
         //Show hint switch income / expense
         showCaseChangeExpenseIncomeSwitch()
+
 
 
         // Load accounts data
@@ -431,6 +422,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      *
      */
     override fun onDestroy() {
+        adView?.destroy()
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }

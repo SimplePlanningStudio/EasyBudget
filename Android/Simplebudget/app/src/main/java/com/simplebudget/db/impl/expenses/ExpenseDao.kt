@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -48,6 +48,9 @@ interface ExpenseDao {
 
     @Query("SELECT SUM(amount) FROM expense WHERE date <= :dayDate AND accountId = :accountId")
     suspend fun getBalanceForDay(dayDate: LocalDate, accountId: Long): Long?
+
+    @Query("SELECT SUM(amount) FROM expense WHERE date >= :monthStartDate AND date <= :dayDate AND accountId = :accountId AND category = :category")
+    suspend fun getBalanceForACategory(monthStartDate: LocalDate, dayDate: LocalDate, accountId: Long, category: String): Long?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun persistRecurringExpense(recurringExpenseEntity: RecurringExpenseEntity): Long

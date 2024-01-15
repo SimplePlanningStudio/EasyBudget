@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR / Waheed Nazir
+ *   Copyright 2024 Benoit LETONDOR / Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ val viewModelModule = module {
     /**
      * Monthly break down
      */
-    viewModel { BreakDownViewModel(get(), get()) }
+    viewModel { BreakDownViewModel(get()) }
     viewModel { BreakDownBaseViewModel(get()) }
 
     /**

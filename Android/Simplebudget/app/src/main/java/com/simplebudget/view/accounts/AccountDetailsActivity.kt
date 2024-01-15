@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -35,12 +35,14 @@ import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityAccountDetailsBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.toAccounts
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.Account
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.accounts.adapter.AccountDataModels
 import com.simplebudget.view.accounts.adapter.AccountDetailsAdapter
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -56,7 +58,7 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
      * The first date of the month at 00:00:00
      */
     private var date: LocalDate = LocalDate.now()
-
+    private val toastManager: ToastManager by inject()
     private val appPreferences: AppPreferences by inject()
     private val accountsViewModel: AccountsViewModel by viewModel()
     private var adView: AdView? = null
@@ -112,7 +114,7 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
                 }
             }
         }
-        accountsViewModel.loadAccountDetailsWithBalance(date)
+        accountsViewModel.loadAccountDetailsWithBalance()
 
         /**
          * Banner ads
@@ -202,14 +204,15 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
                         synAddAccountMenuVisibility()
                     }
                 } else {
-                    toast(getString(R.string.account_already_exists))
+                    toastManager.showShort(getString(R.string.account_already_exists))
                 }
             },
             remainingAccounts = (ACCOUNTS_LIMIT - accountDetailsAdapter.itemCount),
             isPremiumUser = appPreferences.isUserPremium(),
             dismissAccountBottomSheet = {
                 // No Action required here
-            }
+            },
+            toastManager = toastManager
         )
     }
 
@@ -269,5 +272,13 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
     override fun onResume() {
         adView?.resume()
         super.onResume()
+    }
+
+    /**
+     *
+     */
+    override fun onDestroy() {
+        adView?.destroy()
+        super.onDestroy()
     }
 }

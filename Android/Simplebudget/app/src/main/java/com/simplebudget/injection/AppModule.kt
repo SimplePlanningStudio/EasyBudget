@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -26,10 +26,11 @@ import com.simplebudget.db.impl.CacheDBStorage
 import com.simplebudget.db.impl.CachedDBImpl
 import com.simplebudget.db.impl.DBImpl
 import com.simplebudget.db.impl.RoomDB
+import com.simplebudget.helper.toast.ToastManager
+import com.simplebudget.helper.toast.ToastManagerImpl
 import com.simplebudget.iab.IabImpl
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.activeAccount
 import org.koin.dsl.module
 import java.time.LocalDate
 import java.util.concurrent.Executor
@@ -39,6 +40,8 @@ import java.util.concurrent.TimeUnit
 val appModule = module {
 
     single { AppPreferences(get()) }
+
+    single<ToastManager> { ToastManagerImpl(get()) }
 
     single<Iab> { IabImpl(get(), get()) }
 
@@ -56,9 +59,9 @@ val appModule = module {
 
     single<CloudStorage> {
         FirebaseStorage(com.google.firebase.storage.FirebaseStorage.getInstance().apply {
-            maxOperationRetryTimeMillis = TimeUnit.SECONDS.toMillis(20)
-            maxDownloadRetryTimeMillis = TimeUnit.SECONDS.toMillis(20)
-            maxUploadRetryTimeMillis = TimeUnit.SECONDS.toMillis(20)
+            maxOperationRetryTimeMillis = TimeUnit.SECONDS.toMillis(10)
+            maxDownloadRetryTimeMillis = TimeUnit.SECONDS.toMillis(10)
+            maxUploadRetryTimeMillis = TimeUnit.SECONDS.toMillis(10)
         })
     }
 

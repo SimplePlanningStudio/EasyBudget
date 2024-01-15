@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -33,8 +33,7 @@ import kotlin.collections.ArrayList
  */
 
 class BreakDownViewModel(
-    private val db: DB,
-    private val appPreferences: AppPreferences,
+    private val db: DB
 ) : ViewModel() {
 
     val monthlyReportDataLiveDataForAllTypesOfExpenses = MutableLiveData<MonthlyBreakDownData>()
@@ -65,15 +64,13 @@ class BreakDownViewModel(
             val expensesAmount: Double,
             val revenuesAmount: Double,
             val totalExpenses: Double,
-            val balance: Double,
-            var expenses: ArrayList<Expense>,
-            var revenues: ArrayList<Expense>
+            val balance: Double
         ) : MonthlyBreakDownData()
     }
 
     fun loadDataForMonth(month: LocalDate, type: String) {
         viewModelScope.launch {
-            val expensesForMonth = withContext(Dispatchers.Default) {
+            val expensesForMonth = withContext(Dispatchers.IO) {
                 db.getExpensesForMonth(month)
             }
 
@@ -81,17 +78,15 @@ class BreakDownViewModel(
                 monthlyReportDataLiveDataForAllTypesOfExpenses.value = MonthlyBreakDownData.Empty
                 return@launch
             }
+            withContext(Dispatchers.IO) {
+                expenses.clear()
+                revenues.clear()
+                allExpensesOfThisMonth.clear()
+                revenuesAmount = 0.0
+                expensesAmount = 0.0
+                hashMap.clear()
 
-            expenses.clear()
-            revenues.clear()
-            allExpensesOfThisMonth.clear()
-            revenuesAmount = 0.0
-            expensesAmount = 0.0
-
-            hashMap.clear()
-            withContext(Dispatchers.Default) {
                 for (expense in expensesForMonth) {
-
                     /* Todo: Only allows to add expenses till current date, I've disabled it,
                          so user can see breakdown of future expenses as well. */
                     // if (expense.date.isAfter(LocalDate.now())) break
@@ -120,6 +115,7 @@ class BreakDownViewModel(
                     hashMap[expense.category]?.totalDebit = tDebit
                     hashMap[expense.category]?.expenses?.add(expense)
                 }
+
                 hashMap.keys.forEach { key ->
                     val totalCredit = hashMap[key]?.totalCredit ?: 0.0
                     val totalDebit = hashMap[key]?.totalDebit ?: 0.0
@@ -141,8 +137,9 @@ class BreakDownViewModel(
                     }
                 }
                 balance = revenuesAmount - expensesAmount
-
                 totalExpenses = allExpensesOfThisMonth.sumOf { it.amountSpend }
+
+                allExpensesOfThisMonth.sortByDescending { it.amountSpend }
 
                 monthlyReportDataLiveDataForAllTypesOfExpenses.postValue(
                     MonthlyBreakDownData.Data(
@@ -150,20 +147,15 @@ class BreakDownViewModel(
                         expensesAmount,
                         revenuesAmount,
                         totalExpenses,
-                        balance,
-                        ArrayList(expenses),
-                        ArrayList(revenues)
+                        balance
                     )
                 )
             }
         }
     }
 
-    /**
-     *
-     */
     override fun onCleared() {
-        db.close()
+        hashMap.clear()
         super.onCleared()
     }
 }

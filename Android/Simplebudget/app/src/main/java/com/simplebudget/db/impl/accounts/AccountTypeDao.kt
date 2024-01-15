@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ interface AccountTypeDao {
     fun getActiveAccount(): Flow<AccountTypeEntity>
 
     @Query("SELECT * FROM account_type WHERE _account_type_id = :accountId")
-    suspend fun getAccount(accountId: Long): AccountTypeEntity
+    suspend fun getAccount(accountId: Long): AccountTypeEntity?
 
     @Query("SELECT COUNT(*) FROM account_type WHERE name = :name")
     suspend fun accountAlreadyExists(name: String): Int

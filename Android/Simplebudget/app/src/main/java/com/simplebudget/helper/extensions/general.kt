@@ -8,7 +8,6 @@ import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.Logger
 import com.simplebudget.model.account.Account
-import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense

@@ -206,6 +206,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
          * Action triggered to download
          */
         const val NOTIFICATION_ID_NEW_FEATURES = 124124124
+        /**
+         * Daily reminder notification ID
+         */
+        const val DAILY_REMINDER_NOTIFICATION_ID = 125125125
     }
 
     /**

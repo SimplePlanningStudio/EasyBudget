@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.simplebudget.helper
 
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
 
@@ -26,3 +27,19 @@ fun LocalDate.toStartOfDayDate(): Date =
 fun localDateFromTimestamp(timestamp: Long): LocalDate = Instant.ofEpochMilli(timestamp)
     .atZone(ZoneId.systemDefault())
     .toLocalDate()
+
+
+/**
+ * Time stamp millis to LocalDateTime
+ */
+fun localDateTimeFromTimeStamp(millis: Long): LocalDateTime = Instant.ofEpochMilli(millis)
+    .atZone(ZoneId.systemDefault())
+    .toLocalDateTime()
+
+/**
+ * LocalDateTime to time stamp millis
+ */
+fun localDateTimeToMillis(localDateTime: LocalDateTime): Long =
+    localDateTime.atZone(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()

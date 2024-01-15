@@ -1,12 +1,10 @@
 package com.simplebudget.view.accounts
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,9 +17,9 @@ import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.isDefault
 import com.simplebudget.helper.extensions.toAccount
 import com.simplebudget.helper.extensions.toAccounts
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.Account
-import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.setActiveAccount
@@ -33,10 +31,11 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class AccountsBottomSheetDialogFragment(
     private val onAccountSelected: (Account) -> Unit,
     private val onAccountUpdated: (Account) -> Unit
-) :
-    BaseDialogFragment<AccountsBottomSheetDialogFragmentBinding>() {
+) : BaseDialogFragment<AccountsBottomSheetDialogFragmentBinding>() {
 
     private val accountsViewModel: AccountsViewModel by viewModel()
+
+    private val toastManager: ToastManager by inject()
 
     private val appPreferences: AppPreferences by inject()
 
@@ -164,7 +163,7 @@ class AccountsBottomSheetDialogFragment(
                 "Edit Account" -> handleAddAndEditAccount(existingAccount = clickedAccount)
                 "Delete Account" -> {
                     if (clickedAccount.isDefault() && this@AccountsBottomSheetDialogFragment.isDetached.not()) {
-                        requireActivity().toast(
+                        toastManager.showShort(
                             getString(R.string.default_account_delete_disclaimer)
                         )
                     } else {
@@ -185,7 +184,7 @@ class AccountsBottomSheetDialogFragment(
      */
     private fun handleAddAndEditAccount(existingAccount: Account? = null) {
         try {
-            if (this@AccountsBottomSheetDialogFragment.isDetached) return
+            if (this@AccountsBottomSheetDialogFragment.isDetached && accounts.isEmpty()) return
             AddEditAccountDialog.open(
                 requireActivity(),
                 account = existingAccount, // Always null in case of adding new account
@@ -197,11 +196,9 @@ class AccountsBottomSheetDialogFragment(
                         // Add you account to DB
                         if (newAccountTriple.second) {
                             // Editing case
-                            val editedAccount =
-                                Account(
-                                    id = newAccountTriple.third?.id,
-                                    name = newAccountTriple.first
-                                )
+                            val editedAccount = Account(
+                                id = newAccountTriple.third?.id, name = newAccountTriple.first
+                            )
                             onAccountUpdated.invoke(editedAccount)
                             accountsViewModel.updateActiveAccount(editedAccount)
                         } else {
@@ -209,14 +206,14 @@ class AccountsBottomSheetDialogFragment(
                             accountsViewModel.addAccount(Account(name = newAccountTriple.first))
                         }
                     } else {
-                        requireActivity().toast(getString(R.string.account_already_exists))
+                        toastManager.showShort(getString(R.string.account_already_exists))
                     }
                 },
                 remainingAccounts = (ACCOUNTS_LIMIT - accounts.size),
                 isPremiumUser = appPreferences.isUserPremium(),
                 dismissAccountBottomSheet = {
                     dismiss()
-                }
+                }, toastManager = toastManager
             )
         } catch (e: Exception) {
             e.printStackTrace()
@@ -238,10 +235,11 @@ class AccountsBottomSheetDialogFragment(
             dialog.cancel()
         }.setPositiveButton(getString(R.string.yes_delete_it)) { dialog, _ ->
             if (this@AccountsBottomSheetDialogFragment.isDetached.not()) {
-                requireActivity().toast(
-                    "${getString(R.string.deleted)} ${clickedAccount.name.appendAccount()}!",
-                    Toast.LENGTH_SHORT
-                )
+                toastManager.showLong("${getString(R.string.deleted)} ${clickedAccount.name.appendAccount()}!")
+            }
+            if (accounts.isEmpty()) {
+                dialog.cancel()
+                return@setPositiveButton
             }
             accountsAdapter.delete(position)
             accountsViewModel.deleteAccount(clickedAccount, accounts.first())

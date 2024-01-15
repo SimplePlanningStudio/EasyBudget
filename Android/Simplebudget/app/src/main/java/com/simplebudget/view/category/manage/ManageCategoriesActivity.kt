@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityManageCategoriesBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.toCategories
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.category.ExpenseCategories
@@ -62,6 +63,7 @@ import java.util.*
 class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>(),
     ManageCategoriesAdapter.ManageCategoriesListener {
 
+    private val toastManager: ToastManager by inject()
     private val viewModelCategory: ManageCategoriesViewModel by viewModel()
     private var categories: ArrayList<Category> = ArrayList()
     private lateinit var manageCategoriesAdapter: ManageCategoriesAdapter
@@ -310,9 +312,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
         )
         MaterialAlertDialogBuilder(this).setTitle(
             String.format(
-                "%s %s",
-                "Manage",
-                selectedCategory.name
+                "%s %s", "Manage", selectedCategory.name
             )
         ).setItems(options) { dialog, which ->
             when (options[which]) {
@@ -345,8 +345,8 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                 )
             )
             manageCategoriesAdapter.notifyItemChanged(position)
-            toast(getString(R.string.category_updated_successfully))
-        })
+            toastManager.showShort(getString(R.string.category_updated_successfully))
+        }, toastManager)
     }
 
     /**
@@ -355,8 +355,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
     private fun removeConfirmation(selectedCategory: Category, position: Int) {
         val builder = android.app.AlertDialog.Builder(this)
         builder.setCancelable(false)
-        builder
-            .setTitle("Delete Category")
+        builder.setTitle("Delete Category")
             .setMessage("Are you sure you want to delete ${selectedCategory.name}?")
             .setNegativeButton("No") { dialog, _ ->
                 dialog.cancel()
@@ -364,7 +363,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                 manageCategoriesAdapter.delete(position)
                 viewModelCategory.deleteCategory(selectedCategory)
                 manageCategoriesAdapter.notifyItemChanged(position)
-                toast("${getString(R.string.deleted)} category ${selectedCategory.name}")
+                toastManager.showShort("${getString(R.string.deleted)} category ${selectedCategory.name}")
                 dialog.cancel()
             }
         val alertDialog = builder.create()

@@ -12,7 +12,7 @@ import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.helper.DialogUtil
 import com.simplebudget.helper.extensions.isDefault
-import com.simplebudget.helper.toast
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.model.account.Account
 import com.simplebudget.view.premium.PremiumActivity
 
@@ -35,12 +35,13 @@ object AddEditAccountDialog {
         remainingAccounts: Int,
         addUpdateAccount: (accountDetails: Triple<String, Boolean, Account?>) -> Unit,
         isPremiumUser: Boolean,
-        dismissAccountBottomSheet: () -> Unit
+        dismissAccountBottomSheet: () -> Unit,
+        toastManager: ToastManager
     ) {
         // Only premium users can add / edit accounts or Normal users can edit default account
         val isEditing = (account != null)
         val defaultAccount = if (isEditing) account!!.isDefault() else false
-        if (isPremiumUser.not() && defaultAccount.not()) {
+        if (isPremiumUser.not() && defaultAccount.not() && BuildConfig.DEBUG.not()) {
             DialogUtil.createDialog(context,
                 title = context.getString(R.string.become_premium),
                 message = context.getString(R.string.to_add_more_accounts_you_need_to_upgrade_to_premium),
@@ -58,7 +59,7 @@ object AddEditAccountDialog {
 
         if (account == null && remainingAccounts <= 0) {
             // Not editing existing account but adding new
-            context.toast(context.getString(R.string.you_have_already_added_five_accounts))
+            toastManager.showShort(context.getString(R.string.you_have_already_added_five_accounts))
             return
         }
         context.let { activity ->
@@ -85,7 +86,7 @@ object AddEditAccountDialog {
                 .setPositiveButton(if (account == null) R.string.save else R.string.update) { dialog, _ ->
                     val newAccountName = etAccount.text.toString()
                     if (newAccountName.trim { it <= ' ' }.isEmpty()) {
-                        context.toast(context.getString(R.string.account_cant_be_empty))
+                        toastManager.showShort(context.getString(R.string.account_cant_be_empty))
                     } else {
                         addUpdateAccount.invoke(
                             Triple(

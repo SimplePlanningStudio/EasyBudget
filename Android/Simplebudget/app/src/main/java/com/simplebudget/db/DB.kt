@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ interface DB : Closeable {
      */
     fun getActiveAccount(): Flow<AccountTypeEntity>
 
-    suspend fun getAccount(accountId: Long): AccountTypeEntity
+    suspend fun getAccount(accountId: Long): AccountTypeEntity?
 
     /**
      * Save list of available accounts
@@ -126,6 +126,12 @@ interface DB : Closeable {
     suspend fun getAllExpenses(): List<Expense>
 
     suspend fun getBalanceForDay(dayDate: LocalDate, accountId: Long): Double
+    suspend fun getBalanceForACategory(
+        startDate: LocalDate,
+        dayDate: LocalDate,
+        accountId: Long,
+        category: String
+    ): Double
 
     suspend fun persistRecurringExpense(recurringExpense: RecurringExpense): RecurringExpense
 

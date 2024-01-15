@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.simplebudget.db.impl.expenses.ExpenseDao
 import com.simplebudget.db.impl.expenses.ExpenseEntity
 import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.localDateFromTimestamp
-import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.model.recurringexpense.RecurringExpenseType
@@ -38,8 +37,7 @@ const val DB_NAME = "easybudget.db"
 @Database(
     exportSchema = false,
     version = 9,
-    entities = [
-        CategoryEntity::class,
+    entities = [CategoryEntity::class,
         ExpenseEntity::class,
         RecurringExpenseEntity::class,
         AccountTypeEntity::class
@@ -51,11 +49,9 @@ abstract class RoomDB : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
     abstract fun categoryDao(): CategoryDao
     abstract fun accountTypeDao(): AccountTypeDao
-
     companion object {
-        fun create(context: Context): RoomDB = Room
-            .databaseBuilder(context, RoomDB::class.java, DB_NAME)
-            .addMigrations(
+        fun create(context: Context): RoomDB =
+            Room.databaseBuilder(context, RoomDB::class.java, DB_NAME).addMigrations(
                 migrationFrom1To2,
                 migrationFrom2To3,
                 migrationToRoom,
@@ -64,8 +60,7 @@ abstract class RoomDB : RoomDatabase() {
                 migrateTimestamps6To7,
                 migrateTimestamps7To8,
                 migrateTimestamps8To9
-            )
-            .build()
+            ).build()
     }
 }
 

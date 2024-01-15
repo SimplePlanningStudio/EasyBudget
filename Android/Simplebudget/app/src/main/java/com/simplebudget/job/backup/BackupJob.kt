@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.job
+package com.simplebudget.job.backup
 
 import android.content.Context
 import androidx.work.CoroutineWorker
@@ -21,12 +21,13 @@ import androidx.work.WorkerParameters
 import com.simplebudget.auth.Auth
 import com.simplebudget.cloudstorage.CloudStorage
 import com.simplebudget.db.DB
-import com.simplebudget.helper.backupDB
 import com.simplebudget.prefs.AppPreferences
 import org.koin.java.KoinJavaComponent.get
 
-class BackupJob(private val context: Context,
-                workerParameters: WorkerParameters) : CoroutineWorker(context, workerParameters) {
+class BackupJob(
+    private val context: Context,
+    workerParameters: WorkerParameters
+) : CoroutineWorker(context, workerParameters) {
 
     private val db: DB = get(DB::class.java)
     private val cloudStorage: CloudStorage = get(CloudStorage::class.java)

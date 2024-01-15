@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     override fun getActiveAccount(): Flow<AccountTypeEntity> =
         roomDB.accountTypeDao().getActiveAccount()
 
-    override suspend fun getAccount(accountId: Long): AccountTypeEntity {
+    override suspend fun getAccount(accountId: Long): AccountTypeEntity? {
         return roomDB.accountTypeDao().getAccount(accountId)
     }
 
@@ -187,11 +187,9 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun getExpensesForDay(
-        dayDate: LocalDate,
-        accountId: Long
+        dayDate: LocalDate, accountId: Long
     ): List<Expense> {
-        return roomDB.expenseDao().getExpensesForDay(dayDate, accountId)
-            .toExpenses(this)
+        return roomDB.expenseDao().getExpensesForDay(dayDate, accountId).toExpenses(this)
     }
 
     override suspend fun getExpensesForMonth(
@@ -212,10 +210,10 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
 
     override suspend fun searchExpenses(search_query: String): List<Expense> {
         val amount = search_query.toLongOrNull() ?: 0
-        // Search results for last 1 year to end of this month!
+        // Search results for last 2 year2 to end of this month!
         return roomDB.expenseDao().searchExpenses(
             search_query = "%$search_query%",
-            startDate = DateHelper.lastOneYear,
+            startDate = DateHelper.lastTwoYear,
             endDate = DateHelper.endDayOfMonth,
             accountId = appPreferences.activeAccount(),
             amount = (amount * 100),
@@ -235,8 +233,15 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun getBalanceForDay(dayDate: LocalDate, accountId: Long): Double {
-        return roomDB.expenseDao().getBalanceForDay(dayDate, accountId)
-            .getRealValueFromDB()
+        return roomDB.expenseDao().getBalanceForDay(dayDate, accountId).getRealValueFromDB()
+    }
+
+    override suspend fun getBalanceForACategory(
+        startDate: LocalDate, dayDate: LocalDate, accountId: Long, category: String
+    ): Double {
+        return roomDB.expenseDao().getBalanceForACategory(
+            startDate, dayDate, accountId, category
+        ).getRealValueFromDB()
     }
 
     override suspend fun persistRecurringExpense(recurringExpense: RecurringExpense): RecurringExpense {
@@ -341,6 +346,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
             ?.toRecurringExpense()
     }
 
+
     override suspend fun getOldestExpense(): Expense? {
         return roomDB.expenseDao().getOldestExpense(appPreferences.activeAccount())?.toExpense(this)
     }
@@ -356,3 +362,4 @@ private suspend fun ExpenseEntity.toExpense(db: DB): Expense {
     }
     return toExpense(recurringExpense)
 }
+

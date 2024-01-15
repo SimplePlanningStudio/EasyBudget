@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -98,81 +98,12 @@ fun EditText.preventUnsupportedInputForDecimals() {
 }
 
 /**
- * Show the FAB, animating the appearance if activated (the FAB should be configured with scale & alpha to 0)
- */
-fun View.animateFABAppearance() {
-    ViewCompat.animate(this)
-        .scaleX(1.0f)
-        .scaleY(1.0f)
-        .alpha(1.0f)
-        .setInterpolator(AccelerateInterpolator())
-        .withLayer()
-        .start()
-}
-
-/**
  * Set the focus on the given text view
  */
 fun EditText.setFocus() {
     requestFocus()
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-}
-
-/**
- * Animate activity enter if compatible
- */
-fun Activity.animateActivityEnter(listener: Animator.AnimatorListener) {
-    if (!willAnimateActivityEnter()) {
-        return
-    }
-
-    val rootView = window.decorView.findViewById<View>(android.R.id.content)
-    rootView.alpha = 0.0f
-
-    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-
-    val viewTreeObserver = rootView.viewTreeObserver
-    if (viewTreeObserver.isAlive) {
-        viewTreeObserver.addOnGlobalLayoutListener(object :
-            ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                rootView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-
-                // get the center for the clipping circle
-                val cx = intent?.getIntExtra(MainActivity.CENTER_X_KEY, rootView.width / 2)
-                    ?: (rootView.width / 2)
-                val cy = intent?.getIntExtra(MainActivity.CENTER_Y_KEY, rootView.height / 2)
-                    ?: (rootView.height / 2)
-
-                // get the final radius for the clipping circle
-                val finalRadius = max(rootView.width, rootView.height)
-
-                // create the animator for this view (the start radius is zero)
-                val anim = ViewAnimationUtils.createCircularReveal(
-                    rootView,
-                    cx,
-                    cy,
-                    0f,
-                    finalRadius.toFloat()
-                )
-                anim.addListener(listener)
-                anim.addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationStart(animation: Animator) {
-                        rootView.alpha = 1.0f
-                    }
-                })
-                anim.start()
-            }
-        })
-    }
-}
-
-/**
- * Check if the activity contains the animation key
- */
-fun Activity.willAnimateActivityEnter(): Boolean {
-    return intent?.getBooleanExtra(MainActivity.ANIMATE_TRANSITION_KEY, false) ?: false
 }
 
 /**

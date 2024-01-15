@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -81,16 +81,16 @@ class AccountsViewModel(
     /**
      * This function will load all expenses for all available account.
      */
-    fun loadAccountDetailsWithBalance(month: LocalDate) {
-        expenses.clear()
-        revenues.clear()
-        allExpensesParentList.clear()
-        allExpensesOfThisMonth.clear()
-        revenuesAmount = 0.0
-        expensesAmount = 0.0
-
+    fun loadAccountDetailsWithBalance() {
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
+                expenses.clear()
+                revenues.clear()
+                allExpensesParentList.clear()
+                allExpensesOfThisMonth.clear()
+                revenuesAmount = 0.0
+                expensesAmount = 0.0
+
                 progressLiveData.postValue(true)
                 val accounts = db.getAllAccounts().toAccounts()
                 hashMapAvailableAccounts.clear()
@@ -103,11 +103,11 @@ class AccountsViewModel(
                 }
             }
 
-            val expensesForMonth = withContext(Dispatchers.Default) {
+            val expensesForMonth = withContext(Dispatchers.IO) {
                 db.getExpensesForMonthWithoutCheckingAccount()
             }
 
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
                 for (expense in expensesForMonth) {
                     var tCredit: Double =
                         hashMapAccountDetails[expense.accountId]?.totalCredit ?: 0.0
@@ -126,40 +126,42 @@ class AccountsViewModel(
                     hashMapAccountDetails[expense.accountId]?.totalDebit = tDebit
                     hashMapAccountDetails[expense.accountId]?.expenses?.add(expense)
                 }
+                hashMapAccountDetails.keys.forEach { key ->
+                    allExpensesOfThisMonth.add(
+                        AccountDataModels.ParentAccount(
+                            hashMapAccountDetails[key]?.accountId!!,
+                            hashMapAccountDetails[key]?.account!!,
+                            hashMapAccountDetails[key]?.totalCredit ?: 0.0,
+                            hashMapAccountDetails[key]?.totalDebit ?: 0.0
+                        )
+                    )
+                    allExpensesParentList.add(
+                        AccountDataModels.CustomTripleAccount.Data(
+                            hashMapAccountDetails[key]?.accountId!!,
+                            hashMapAccountDetails[key]?.account!!,
+                            hashMapAccountDetails[key]?.totalCredit ?: 0.0,
+                            hashMapAccountDetails[key]?.totalDebit ?: 0.0,
+                            hashMapAccountDetails[key]?.expenses ?: ArrayList()
+                        )
+                    )
+                    hashMapAccountDetails[key]?.expenses?.forEach { expense ->
+                        allExpensesOfThisMonth.add(AccountDataModels.ChildAccount(expense))
+                    }
+                }
+                balance = revenuesAmount - expensesAmount
+                progressLiveData.postValue(false)
+                monthlyReportDataLiveData.postValue(
+                    AccountDataModels.MonthlyAccountData.Data(
+                        expenses,
+                        revenues,
+                        allExpensesOfThisMonth,
+                        allExpensesParentList,
+                        expensesAmount,
+                        revenuesAmount
+                    )
+                )
             }
 
-            hashMapAccountDetails.keys.forEach { key ->
-                allExpensesOfThisMonth.add(
-                    AccountDataModels.ParentAccount(
-                        hashMapAccountDetails[key]?.accountId!!,
-                        hashMapAccountDetails[key]?.account!!,
-                        hashMapAccountDetails[key]?.totalCredit ?: 0.0,
-                        hashMapAccountDetails[key]?.totalDebit ?: 0.0
-                    )
-                )
-                allExpensesParentList.add(
-                    AccountDataModels.CustomTripleAccount.Data(
-                        hashMapAccountDetails[key]?.accountId!!,
-                        hashMapAccountDetails[key]?.account!!,
-                        hashMapAccountDetails[key]?.totalCredit ?: 0.0,
-                        hashMapAccountDetails[key]?.totalDebit ?: 0.0,
-                        hashMapAccountDetails[key]?.expenses ?: ArrayList()
-                    )
-                )
-                hashMapAccountDetails[key]?.expenses?.forEach { expense ->
-                    allExpensesOfThisMonth.add(AccountDataModels.ChildAccount(expense))
-                }
-            }
-            balance = revenuesAmount - expensesAmount
-            progressLiveData.postValue(false)
-            monthlyReportDataLiveData.value = AccountDataModels.MonthlyAccountData.Data(
-                expenses,
-                revenues,
-                allExpensesOfThisMonth,
-                allExpensesParentList,
-                expensesAmount,
-                revenuesAmount
-            )
         }
     }
 
@@ -184,7 +186,7 @@ class AccountsViewModel(
      */
     fun updateActiveAccount(account: Account) {
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
                 progressLiveData.postValue(true)
                 appPreferences.setActiveAccount(account.id, account.name)
                 db.persistAccountType(account)
@@ -201,7 +203,7 @@ class AccountsViewModel(
      */
     fun deleteAccount(account: Account, defaultAccount: Account) {
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
                 progressLiveData.postValue(true)
                 // Delete all expenses of this account and delete this account as well.
                 db.deleteAllExpensesOfAnAccount(accountId = account.id!!)
@@ -214,7 +216,7 @@ class AccountsViewModel(
 
     fun addAccount(account: Account) {
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
                 val count = db.accountAlreadyExists(account.name.uppercase())
                 if (count <= 0) {
                     db.persistAccountType(account)
@@ -228,15 +230,23 @@ class AccountsViewModel(
      */
     fun getAccountFromId(accountId: Long) {
         viewModelScope.launch {
-            progressLiveData.postValue(true)
-            val account = db.getAccount(accountId)
-            getAccountFromIdLiveData.postValue(account.toAccount())
-            progressLiveData.postValue(false)
+            withContext(Dispatchers.IO) {
+                progressLiveData.postValue(true)
+                val account: AccountTypeEntity? = db.getAccount(accountId)
+                getAccountFromIdLiveData.postValue(account?.toAccount())
+                progressLiveData.postValue(false)
+            }
         }
     }
 
     init {
         loadActiveAccount()
         loadAllAccounts()
+    }
+
+    override fun onCleared() {
+        hashMapAvailableAccounts.clear()
+        hashMapAccountDetails.clear()
+        super.onCleared()
     }
 }

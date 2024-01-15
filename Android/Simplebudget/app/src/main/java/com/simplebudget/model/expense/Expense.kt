@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ data class Expense(
     val date: LocalDate,
     val associatedRecurringExpense: RecurringExpense?,
     val category: String,
-    val accountId: Long
+    val accountId: Long,
+    val reminderId: Long = -1
 ) : Parcelable {
 
     constructor(
@@ -39,8 +40,9 @@ data class Expense(
         amount: Double,
         date: LocalDate,
         category: String,
-        accountId: Long
-    ) : this(null, title, amount, date, null, category, accountId)
+        accountId: Long,
+        reminderId: Long = -1
+    ) : this(null, title, amount, date, null, category, accountId, reminderId)
 
     constructor(
         id: Long,
@@ -48,8 +50,9 @@ data class Expense(
         amount: Double,
         date: LocalDate,
         category: String,
-        accountId: Long
-    ) : this(id, title, amount, date, null, category, accountId)
+        accountId: Long,
+        reminderId: Long = -1
+    ) : this(id, title, amount, date, null, category, accountId, reminderId)
 
     constructor(
         title: String,
@@ -57,7 +60,8 @@ data class Expense(
         date: LocalDate,
         associatedRecurringExpense: RecurringExpense,
         category: String,
-        accountId: Long
+        accountId: Long,
+        reminderId: Long = -1
     ) : this(
         null,
         title,
@@ -65,7 +69,8 @@ data class Expense(
         date,
         associatedRecurringExpense,
         category,
-        accountId
+        accountId,
+        reminderId
     )
 
     private constructor(parcel: Parcel) : this(
@@ -75,6 +80,7 @@ data class Expense(
         LocalDate.ofEpochDay(parcel.readLong()),
         parcel.readParcelable(RecurringExpense::class.java.classLoader),
         parcel.readString() ?: ExpenseCategoryType.MISCELLANEOUS.name,
+        parcel.readLong(),
         parcel.readLong()
     )
 
@@ -97,6 +103,7 @@ data class Expense(
         parcel.writeParcelable(associatedRecurringExpense, flags)
         parcel.writeString(category)
         parcel.writeLong(accountId)
+        parcel.writeLong(reminderId)
     }
 
     override fun describeContents(): Int = 0

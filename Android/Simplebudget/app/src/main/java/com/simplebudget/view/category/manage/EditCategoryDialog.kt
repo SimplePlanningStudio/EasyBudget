@@ -7,14 +7,15 @@ import android.view.WindowManager
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
-import com.simplebudget.helper.toast
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.model.category.Category
 
 object EditCategoryDialog {
     fun open(
         context: Activity?,
         category: Category,
-        updateCategory: (newCategoryName: String) -> Unit
+        updateCategory: (newCategoryName: String) -> Unit,
+        toastManager: ToastManager
     ) {
         context?.let { activity ->
             val dialogView =
@@ -29,7 +30,7 @@ object EditCategoryDialog {
                 .setPositiveButton(R.string.save) { dialog, _ ->
                     val newCategoryName = categoryEditText.text.toString()
                     if (newCategoryName.trim { it <= ' ' }.isEmpty()) {
-                        context.toast(context.getString(R.string.category_cant_be_empty))
+                        toastManager.showShort(context.getString(R.string.category_cant_be_empty))
                     } else {
                         updateCategory.invoke(newCategoryName.uppercase())
                     }

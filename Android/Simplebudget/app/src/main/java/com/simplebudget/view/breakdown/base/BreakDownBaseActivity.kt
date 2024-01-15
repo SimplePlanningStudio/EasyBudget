@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import com.simplebudget.helper.updateAccountNotifyBroadcast
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.*
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
-import com.simplebudget.view.breakdown.BreakDownFragment
+import com.simplebudget.view.breakdown.BreakDownBarChartFragment
 import com.simplebudget.view.main.MainActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -158,7 +158,7 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
         binding.monthlyReportViewPager.adapter = object :
             FragmentPagerAdapter(supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
             override fun getItem(position: Int): Fragment {
-                return BreakDownFragment.newInstance(dates[position])
+                return BreakDownBarChartFragment.newInstance(dates[position])
             }
 
             override fun getCount(): Int {

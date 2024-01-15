@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,11 +19,10 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
-
 import com.simplebudget.R
 import com.simplebudget.helper.CurrencyHelper
-import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
 
 /**
@@ -31,8 +30,7 @@ import com.simplebudget.prefs.AppPreferences
  */
 class BreakDownRecyclerViewAdapter(
     private val allExpensesOfThisMonth: List<BreakDownViewModel.CategoryWiseExpense>,
-    private val allExpenses: ArrayList<Expense>,
-    private val allRevenues: ArrayList<Expense>,
+    private val totalExpenses: Double,
     private val appPreferences: AppPreferences
 ) : RecyclerView.Adapter<BreakDownRecyclerViewAdapter.BreakDownViewHolder>() {
 
@@ -41,7 +39,7 @@ class BreakDownRecyclerViewAdapter(
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BreakDownViewHolder {
         val v = LayoutInflater.from(parent.context)
-            .inflate(R.layout.recyclerview_monthly_report_header_cell, parent, false)
+            .inflate(R.layout.recyclerview_monthly_breakdown_cell, parent, false)
         return BreakDownViewHolder(v)
     }
 
@@ -52,6 +50,13 @@ class BreakDownRecyclerViewAdapter(
             obj.category,
             CurrencyHelper.getFormattedCurrencyString(appPreferences, obj.amountSpend)
         )
+        val percent = ((obj.amountSpend / totalExpenses) * 100)
+        holder.percentage.text = String.format(
+            "%s%s",
+            CurrencyHelper.getFormattedAmountValue(percent),
+            "%"
+        )
+        holder.progress.setProgress(percent.toInt(), true)
     }
 
     override fun getItemCount() = allExpensesOfThisMonth.size
@@ -67,6 +72,8 @@ class BreakDownRecyclerViewAdapter(
     // --------------------------------------->
     class BreakDownViewHolder internal constructor(internal val view: View) :
         RecyclerView.ViewHolder(view) {
-        internal val headerTitle: TextView = view.findViewById(R.id.monthly_recycler_view_header_tv)
+        internal val headerTitle: TextView = view.findViewById(R.id.title)
+        internal val percentage: TextView = view.findViewById(R.id.percentage)
+        internal val progress: ProgressBar = view.findViewById(R.id.progress)
     }
 }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.simplebudget.helper
+package com.simplebudget.job.backup
 
 import android.content.Context
 import android.util.Log
@@ -25,7 +25,6 @@ import com.simplebudget.cloudstorage.CloudStorage
 import com.simplebudget.cloudstorage.FileMetaData
 import com.simplebudget.db.DB
 import com.simplebudget.db.impl.DB_NAME
-import com.simplebudget.job.BackupJob
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.saveLastBackupDate
 import com.simplebudget.prefs.setShouldResetInitDate

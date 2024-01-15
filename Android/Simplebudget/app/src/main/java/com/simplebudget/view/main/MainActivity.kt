@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -50,7 +50,6 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.inappmessaging.FirebaseInAppMessaging
 import com.google.firebase.messaging.FirebaseMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
@@ -58,11 +57,9 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
-import com.simplebudget.helper.analytics.FirebaseAnalyticsHelper
 import com.simplebudget.helper.extensions.showCaseView
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
-import com.simplebudget.model.account.Account
-import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
@@ -112,6 +109,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val viewModel: MainViewModel by viewModel()
     private val appPreferences: AppPreferences by inject()
+    private val toastManager: ToastManager by inject()
     private var adView: AdView? = null
     private var isUserPremium = false
     private var expenseOfSelectedDay: Double = 0.0
@@ -269,7 +267,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             }
 
                             override fun onFinish() {
-                                toast(message, Toast.LENGTH_LONG)
+                                toastManager.showLong(message)
                             }
                         }.start()
                     }
@@ -572,7 +570,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     ActivityCompat.startActivity(this, startIntent, null)
                 }
                 R.id.nav_action_setup_budgets -> {
-                    toast("Coming soon...")
+                    toastManager.showShort("Coming soon...")
                 }
                 R.id.nav_goto_settings -> {
                     goToSettings()
@@ -669,7 +667,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.ivPremiumIcon.setBackgroundResource(if (isUserPremium) R.drawable.ic_premium_icon_gold else R.drawable.ic_premium_icon_grey)
         binding.llBalances.setOnClickListener { revealHideCalendar() }
         binding.ivPremiumIcon.setOnClickListener {
-            if (isUserPremium) toast(getString(R.string.thank_you_you_are_premium_user))
+            if (isUserPremium) toastManager.showShort(getString(R.string.thank_you_you_are_premium_user))
             else becomePremium()
         }
 
@@ -799,6 +797,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      *
      */
     override fun onDestroy() {
+        adView?.destroy()
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }
@@ -991,7 +990,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     binding.drawerLayout.open()
                     binding.counter.visibility = View.VISIBLE
                     // 3 Seconds delay we'll close the drawer!
-                    toast("Side navigation for more options!")
+                    toastManager.showShort(getString(R.string.side_navigation_for_more_options))
                     object : CountDownTimer(3000, 1000) {
                         override fun onTick(millisUntilFinished: Long) {
                             binding.counter.text = String.format("%d", (millisUntilFinished / 1000))
@@ -1259,11 +1258,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 // Get the absolute location on window for Y value
                 val viewLocation = IntArray(2)
                 view!!.getLocationInWindow(viewLocation)
-
-                startIntent.putExtra(ANIMATE_TRANSITION_KEY, true)
-                startIntent.putExtra(CENTER_X_KEY, view.x.toInt() + view.width / 2)
-                startIntent.putExtra(CENTER_Y_KEY, viewLocation[1] + view.height / 2)
-
                 ActivityCompat.startActivityForResult(
                     this@MainActivity, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
                 )
@@ -1381,17 +1375,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.fabNewExpense.setOnClickListener {
             val startIntent = Intent(this@MainActivity, ExpenseEditActivity::class.java)
             startIntent.putExtra("date", calendarFragment.getSelectedDate().toEpochDay())
-
-            startIntent.putExtra(ANIMATE_TRANSITION_KEY, true)
-            startIntent.putExtra(
-                CENTER_X_KEY,
-                binding.fabNewExpense.x.toInt() + (binding.fabNewExpense.width.toFloat() / 1.2f).toInt()
-            )
-            startIntent.putExtra(
-                CENTER_Y_KEY,
-                binding.fabNewExpense.y.toInt() + (binding.fabNewExpense.height.toFloat() / 1.2f).toInt()
-            )
-
             ActivityCompat.startActivityForResult(
                 this@MainActivity, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
             )
@@ -1400,17 +1383,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.fabNewRecurringExpense.setOnClickListener {
             val startIntent = Intent(this@MainActivity, RecurringExpenseEditActivity::class.java)
             startIntent.putExtra("dateStart", calendarFragment.getSelectedDate().toEpochDay())
-
-            startIntent.putExtra(ANIMATE_TRANSITION_KEY, true)
-            startIntent.putExtra(
-                CENTER_X_KEY,
-                binding.fabNewRecurringExpense.x.toInt() + (binding.fabNewRecurringExpense.width.toFloat() / 1.2f).toInt()
-            )
-            startIntent.putExtra(
-                CENTER_Y_KEY,
-                binding.fabNewRecurringExpense.y.toInt() + (binding.fabNewRecurringExpense.height.toFloat() / 1.2f).toInt()
-            )
-
             ActivityCompat.startActivityForResult(
                 this@MainActivity, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
             )
@@ -1521,6 +1493,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onPause()
     }
 
+    /**
+     * Called when leaving the activity
+     */
+    override fun onResume() {
+        adView?.resume()
+        super.onResume()
+    }
+
     private fun becomePremium() {
         startActivity(Intent(this, PremiumActivity::class.java))
     }
@@ -1542,11 +1522,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val INTENT_REDIRECT_TO_SETTINGS_EXTRA = "intent.extra.redirecttosettings"
         const val INTENT_REDIRECT_TO_SETTINGS_FOR_BACKUP_EXTRA =
             "intent.extra.redirecttosettingsforbackup"
-
-        const val ANIMATE_TRANSITION_KEY = "animate"
-        const val CENTER_X_KEY = "centerX"
-        const val CENTER_Y_KEY = "centerY"
-
         private const val CALENDAR_SAVED_STATE = "calendar_saved_state"
     }
 }

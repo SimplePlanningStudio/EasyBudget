@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR , Waheed Nazir
+ *   Copyright 2024 Benoit LETONDOR , Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ class CachedDBImpl(
     override suspend fun getAllAccounts(): List<AccountTypeEntity> = wrappedDB.getAllAccounts()
 
     override fun getActiveAccount(): Flow<AccountTypeEntity> = wrappedDB.getActiveAccount()
-    override suspend fun getAccount(accountId: Long): AccountTypeEntity =
+    override suspend fun getAccount(accountId: Long): AccountTypeEntity? =
         wrappedDB.getAccount(accountId)
 
     override suspend fun persistAccountTypes(accounts: List<Account>) {
@@ -211,6 +211,27 @@ class CachedDBImpl(
             )
         }
         return wrappedDB.getBalanceForDay(dayDate, accountId)
+    }
+
+    override suspend fun getBalanceForACategory(
+        startDate: LocalDate,
+        dayDate: LocalDate,
+        accountId: Long,
+        category: String
+    ): Double {
+        val cached = synchronized(cacheStorage.balances) {
+            cacheStorage.balances[dayDate]
+        }
+        if (cached != null) {
+            return cached
+        } else {
+            executor.execute(
+                CacheBalanceForMonthRunnable(
+                    dayDate.startOfMonth(), this, cacheStorage, accountId
+                )
+            )
+        }
+        return wrappedDB.getBalanceForACategory(startDate, dayDate, accountId, category)
     }
 
     private suspend fun getBalanceForDayWithoutCache(

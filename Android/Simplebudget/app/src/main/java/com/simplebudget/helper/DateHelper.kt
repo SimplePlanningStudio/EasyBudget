@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.simplebudget.R
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.getInitDate
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
 import java.util.ArrayList
@@ -65,6 +66,8 @@ object DateHelper {
     val lastThreeMonth: LocalDate = today.minusMonths(3)
 
     val lastOneYear: LocalDate = today.minusYears(1)
+
+    val lastTwoYear: LocalDate = today.minusYears(2)
 
     val endDayOfMonth: LocalDate = startDayOfMonth.plusMonths(1).minusDays(1)
 }
@@ -112,8 +115,7 @@ fun LocalDate.computeCalendarMinDateFromInitDate(): LocalDate = minusYears(1)
  */
 fun LocalDate.getMonthTitle(context: Context): String {
     val format = DateTimeFormatter.ofPattern(
-        context.resources.getString(R.string.monthly_report_month_title_format),
-        Locale.getDefault()
+        context.resources.getString(R.string.monthly_report_month_title_format), Locale.getDefault()
     )
     return format.format(this)
 }
@@ -126,8 +128,7 @@ fun LocalDate.getMonthTitle(context: Context): String {
  */
 fun LocalDate.getFormattedDate(context: Context): String {
     val format = DateTimeFormatter.ofPattern(
-        context.resources.getString(R.string.budgets_date_format),
-        Locale.getDefault()
+        context.resources.getString(R.string.budgets_date_format), Locale.getDefault()
     )
     return format.format(this)
 }
@@ -140,30 +141,36 @@ fun LocalDate.getFormattedDate(context: Context): String {
  */
 fun LocalDate.getMonthTitleWithPastAndFuture(context: Context): String {
     val format = DateTimeFormatter.ofPattern(
-        context.resources.getString(R.string.monthly_report_month_title_format),
-        Locale.getDefault()
+        context.resources.getString(R.string.monthly_report_month_title_format), Locale.getDefault()
     )
     val dateTitle = format.format(this)
     val today = LocalDate.now()
-    return if (this.month == today.month && this.year == today.year)
-        dateTitle
-    else if (LocalDate.now().minusMonths(1).isBefore(this))
-        String.format("%s %s", dateTitle, "(Future)")
+    return if (this.month == today.month && this.year == today.year) dateTitle
+    else if (LocalDate.now().minusMonths(1).isBefore(this)) String.format(
+        "%s %s",
+        dateTitle,
+        "(Future)"
+    )
     else String.format("%s %s", dateTitle, "(Past)")
 }
 
+
+/**
+ * yyyy-MM-dd HH:mm:ss for "2022-01-18 15:30:45"
+ * dd/MM/yyyy HH:mm:ss for "18/01/2022 15:30:45"
+ * MMMM dd, yyyy hh:mm a for "January 18, 2022 03:30 PM"
+ */
+fun LocalDateTime.formatLocalDateTime(pattern: String = "MMMM dd, yyyy hh:mm a"): String =
+    this.format(DateTimeFormatter.ofPattern(pattern))
 
 /**
  * Single Material date picker
  * Your app or activity theme must be material in order to use this date picker
  */
 fun FragmentActivity.pickSingleDate(onDateSet: (LocalDate) -> Unit) {
-    val datePicker: MaterialDatePicker<Long> = MaterialDatePicker
-        .Builder
-        .datePicker()
-        .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
-        .setTitleText("Pick a date")
-        .build()
+    val datePicker: MaterialDatePicker<Long> =
+        MaterialDatePicker.Builder.datePicker().setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+            .setTitleText("Pick a date").build()
     datePicker.isCancelable = false
     datePicker.show(this.supportFragmentManager, "DATE_PICKER")
     datePicker.addOnPositiveButtonClickListener { long ->
@@ -175,17 +182,13 @@ fun FragmentActivity.pickSingleDate(onDateSet: (LocalDate) -> Unit) {
  * Your app or activity theme must be material in order to use this date picker
  */
 fun FragmentActivity.pickDateRange(onDateSet: (Pair<LocalDate, LocalDate>) -> Unit) {
-    val dateRange: MaterialDatePicker<Pair<Long, Long>> = MaterialDatePicker
-        .Builder
-        .dateRangePicker()
-        .setTitleText("Select date range")
-        .build()
+    val dateRange: MaterialDatePicker<Pair<Long, Long>> =
+        MaterialDatePicker.Builder.dateRangePicker().setTitleText("Select date range").build()
     dateRange.show(this.supportFragmentManager, "DATE_RANGE_PICKER")
     dateRange.addOnPositiveButtonClickListener { dates ->
         onDateSet.invoke(
             Pair(
-                localDateFromTimestamp(dates.first),
-                localDateFromTimestamp(dates.second)
+                localDateFromTimestamp(dates.first), localDateFromTimestamp(dates.second)
             )
         )
     }
