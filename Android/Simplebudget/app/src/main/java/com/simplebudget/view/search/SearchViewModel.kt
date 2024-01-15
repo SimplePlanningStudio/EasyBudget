@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -44,8 +44,7 @@ import kotlin.collections.ArrayList
  */
 
 class SearchViewModel(
-    private val db: DB,
-    private val appPreferences: AppPreferences
+    private val db: DB, private val appPreferences: AppPreferences
 ) : ViewModel() {
 
     private val allExpensesLiveData = MutableLiveData<List<Expense>>()
@@ -65,7 +64,7 @@ class SearchViewModel(
     var revenuesAmount = 0.0
     var expensesAmount = 0.0
     var balance = 0.0
-    val hashMap = hashMapOf<String, DataModels.CustomTriple.Data>()
+    private val hashMap = hashMapOf<String, DataModels.CustomTriple.Data>()
 
 
     init {
@@ -78,12 +77,11 @@ class SearchViewModel(
     fun searchExpenses(search_query: String) {
         loadingMutableLiveData.value = true
         viewModelScope.launch {
-            val results = withContext(Dispatchers.Default) {
+            val results = withContext(Dispatchers.IO) {
                 db.searchExpenses(search_query)
             }
             allExpensesLiveData.postValue(results)
             loadingMutableLiveData.postValue(false)
-
             loadDataForReports(results)
         }
     }
@@ -115,7 +113,7 @@ class SearchViewModel(
      */
     fun loadThisMonthExpenses() {
         viewModelScope.launch {
-            val results = withContext(Dispatchers.Default) {
+            val results = withContext(Dispatchers.IO) {
                 db.getExpensesForMonth(DateHelper.startDayOfMonth)
             }
             allExpensesLiveData.postValue(results)
@@ -144,7 +142,7 @@ class SearchViewModel(
     fun loadExpensesForADate(date: LocalDate) {
         loadingMutableLiveData.value = true
         viewModelScope.launch {
-            val results = withContext(Dispatchers.Default) {
+            val results = withContext(Dispatchers.IO) {
                 db.getExpensesForDay(date, appPreferences.activeAccount())
             }
             allExpensesLiveData.postValue(results)
@@ -159,7 +157,7 @@ class SearchViewModel(
     fun loadExpensesForGivenDates(startDate: LocalDate, endDate: LocalDate) {
         loadingMutableLiveData.value = true
         viewModelScope.launch {
-            val results = withContext(Dispatchers.Default) {
+            val results = withContext(Dispatchers.IO) {
                 db.getAllExpenses(startDate, endDate)
             }
             allExpensesLiveData.postValue(results)
@@ -179,21 +177,16 @@ class SearchViewModel(
         try {
             if (expenses.isEmpty() && revenues.isEmpty()) {
                 exportStatus.value = ExportStatus(
-                    false,
-                    "Please add expenses of this month to generate report.",
-                    "",
-                    file
+                    false, "Please add expenses of this month to generate report.", "", file
                 )
                 return
             }
             val format = DateTimeFormatter.ofPattern(
-                "dd MMM yyyy",
-                Locale.getDefault()
+                "dd MMM yyyy", Locale.getDefault()
             )
 
             val monthFormat = DateTimeFormatter.ofPattern(
-                "MMM yyyy",
-                Locale.getDefault()
+                "MMM yyyy", Locale.getDefault()
             )
 
             var fileWriter: FileWriter? = null
@@ -260,26 +253,24 @@ class SearchViewModel(
                 exportStatus.value =
                     ExportStatus(true, "Successfully exported file!", file.absolutePath, file)
             } catch (e: Exception) {
-                exportStatus.value =
-                    ExportStatus(
-                        false,
-                        "An error occurred while exporting CSV file ${e.localizedMessage}",
-                        "",
-                        file
-                    )
+                exportStatus.value = ExportStatus(
+                    false,
+                    "An error occurred while exporting CSV file ${e.localizedMessage}",
+                    "",
+                    file
+                )
                 e.printStackTrace()
             } finally {
                 try {
                     fileWriter?.flush()
                     fileWriter?.close()
                 } catch (e: IOException) {
-                    exportStatus.value =
-                        ExportStatus(
-                            false,
-                            "An error occurred while exporting CSV file ${e.localizedMessage}",
-                            "",
-                            file
-                        )
+                    exportStatus.value = ExportStatus(
+                        false,
+                        "An error occurred while exporting CSV file ${e.localizedMessage}",
+                        "",
+                        file
+                    )
                     e.printStackTrace()
                 }
             }
@@ -299,80 +290,89 @@ class SearchViewModel(
      * This method will load data into lists.
      * So we can use this for printing / downloading reports.
      */
-    private suspend fun loadDataForReports(expensesResults: List<Expense>) {
+    private fun loadDataForReports(expensesResults: List<Expense>) {
         if (expensesResults.isEmpty()) {
             monthlyReportDataLiveData.value = DataModels.MonthlyReportData.Empty
             return
         }
-        expenses.clear()
-        revenues.clear()
-        allExpensesParentList.clear()
-        allExpensesOfThisMonth.clear()
-        revenuesAmount = 0.0
-        expensesAmount = 0.0
+        viewModelScope.launch {
+            expenses.clear()
+            revenues.clear()
+            allExpensesParentList.clear()
+            allExpensesOfThisMonth.clear()
+            revenuesAmount = 0.0
+            expensesAmount = 0.0
+            hashMap.clear()
 
-        hashMap.clear()
-        withContext(Dispatchers.Default) {
-            for (expense in expensesResults) {
-                // Adding category into map with empty list
-                if (!hashMap.containsKey(expense.category))
-                    hashMap[expense.category] =
+            withContext(Dispatchers.IO) {
+                for (expense in expensesResults) {
+                    // Adding category into map with empty list
+                    if (!hashMap.containsKey(expense.category)) hashMap[expense.category] =
                         DataModels.CustomTriple.Data(
                             expense.category,
                             0.0,
                             0.0,
+                            0.0,
                             ArrayList<Expense>()
                         )
-                var tCredit: Double = hashMap[expense.category]?.totalCredit ?: 0.0
-                var tDebit: Double = hashMap[expense.category]?.totalDebit ?: 0.0
+                    var tCredit: Double = hashMap[expense.category]?.totalCredit ?: 0.0
+                    var tDebit: Double = hashMap[expense.category]?.totalDebit ?: 0.0
 
-                if (expense.isRevenue()) {
-                    revenues.add(expense)
-                    revenuesAmount -= expense.amount
-                    tCredit -= expense.amount
-                } else {
-                    expenses.add(expense)
-                    expensesAmount += expense.amount
-                    tDebit += expense.amount
+                    if (expense.isRevenue()) {
+                        revenues.add(expense)
+                        revenuesAmount -= expense.amount
+                        tCredit -= expense.amount
+                    } else {
+                        expenses.add(expense)
+                        expensesAmount += expense.amount
+                        tDebit += expense.amount
+                    }
+                    hashMap[expense.category]?.totalCredit = tCredit
+                    hashMap[expense.category]?.totalDebit = tDebit
+                    hashMap[expense.category]?.expenses?.add(expense)
                 }
-                hashMap[expense.category]?.totalCredit = tCredit
-                hashMap[expense.category]?.totalDebit = tDebit
-                hashMap[expense.category]?.expenses?.add(expense)
-            }
-        }
 
-        hashMap.keys.forEach { key ->
-            allExpensesOfThisMonth.add(
-                DataModels.Parent(
-                    hashMap[key]?.category!!,
-                    hashMap[key]?.totalCredit ?: 0.0,
-                    hashMap[key]?.totalDebit ?: 0.0
+                hashMap.keys.forEach { key ->
+                    val tCredit = hashMap[key]?.totalCredit ?: 0.0
+                    val tDebit = hashMap[key]?.totalDebit ?: 0.0
+                    allExpensesOfThisMonth.add(
+                        DataModels.Parent(
+                            hashMap[key]?.category!!,
+                            tCredit,
+                            tDebit
+                        )
+                    )
+                    val amountSpend =
+                        if (tCredit > tDebit) (tCredit - tDebit) else (tDebit - tCredit)
+                    allExpensesParentList.add(
+                        DataModels.CustomTriple.Data(
+                            hashMap[key]?.category!!,
+                            tCredit,
+                            tDebit,
+                            amountSpend,
+                            hashMap[key]?.expenses ?: ArrayList()
+                        )
+                    )
+                    hashMap[key]?.expenses?.forEach { expense ->
+                        allExpensesOfThisMonth.add(DataModels.Child(expense))
+                    }
+                }
+                balance = revenuesAmount - expensesAmount
+            }
+
+            allExpensesParentList.sortByDescending { it.amountSpend }
+
+            monthlyReportDataLiveData.postValue(
+                DataModels.MonthlyReportData.Data(
+                    expenses,
+                    revenues,
+                    allExpensesOfThisMonth,
+                    allExpensesParentList,
+                    expensesAmount,
+                    revenuesAmount
                 )
             )
-            allExpensesParentList.add(
-                DataModels.CustomTriple.Data(
-                    hashMap[key]?.category!!,
-                    hashMap[key]?.totalCredit ?: 0.0,
-                    hashMap[key]?.totalDebit ?: 0.0,
-                    hashMap[key]?.expenses ?: ArrayList()
-
-                )
-            )
-            hashMap[key]?.expenses?.forEach { expense ->
-                allExpensesOfThisMonth.add(DataModels.Child(expense))
-            }
         }
-        balance = revenuesAmount - expensesAmount
-
-        monthlyReportDataLiveData.value =
-            DataModels.MonthlyReportData.Data(
-                expenses,
-                revenues,
-                allExpensesOfThisMonth,
-                allExpensesParentList,
-                expensesAmount,
-                revenuesAmount
-            )
     }
 
     /**
@@ -383,13 +383,11 @@ class SearchViewModel(
             val contents: StringBuilder = StringBuilder()
 
             val format = DateTimeFormatter.ofPattern(
-                "dd MMM yyyy",
-                Locale.getDefault()
+                "dd MMM yyyy", Locale.getDefault()
             )
 
             val monthFormat = DateTimeFormatter.ofPattern(
-                "MMM yyyy",
-                Locale.getDefault()
+                "MMM yyyy", Locale.getDefault()
             )
 
             // Table start
@@ -399,8 +397,7 @@ class SearchViewModel(
             contents.append(
                 "<h1 style=\"color:black;\">${
                     (String.format(
-                        "Budget Report Of %s",
-                        monthFormat.format(month)
+                        "Budget Report Of %s", monthFormat.format(month)
                     ))
                 }</h1>"
             )
@@ -413,16 +410,14 @@ class SearchViewModel(
             val revTotalFormattedAmount =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, revenuesAmount)
             contents.append(
-                "<h2 style=\"color:green;\">${("$CSV_TITLE_INCOMES_TOTAL (${currency.symbol ?: currency.displayName}) = ")}" +
-                        "<b style=\"color:black;\">${revTotalFormattedAmount}</b></h2>"
+                "<h2 style=\"color:green;\">${("$CSV_TITLE_INCOMES_TOTAL (${currency.symbol ?: currency.displayName}) = ")}" + "<b style=\"color:black;\">${revTotalFormattedAmount}</b></h2>"
             )
 
             // Expense Total
             val expTotalFormattedAmount =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, expensesAmount)
             contents.append(
-                "<h2 style=\"color:red;\">${"$CSV_TITLE_EXPENSE_TOTAL (${currency.symbol ?: currency.displayName}) = "}" +
-                        "<b style=\"color:black;\">${expTotalFormattedAmount}</b></h2>"
+                "<h2 style=\"color:red;\">${"$CSV_TITLE_EXPENSE_TOTAL (${currency.symbol ?: currency.displayName}) = "}" + "<b style=\"color:black;\">${expTotalFormattedAmount}</b></h2>"
             )
 
             // Balance Total
@@ -430,23 +425,20 @@ class SearchViewModel(
             val balanceFormattedAmount =
                 CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
             contents.append(
-                "<h2 style=\"color:${balanceColor};\">${"$CSV_TITLE_BALANCE (${currency.symbol ?: currency.displayName}) = "}" +
-                        "<b style=\"color:black;\">${balanceFormattedAmount}</b></h2>"
+                "<h2 style=\"color:${balanceColor};\">${"$CSV_TITLE_BALANCE (${currency.symbol ?: currency.displayName}) = "}" + "<b style=\"color:black;\">${balanceFormattedAmount}</b></h2>"
             )
             // All expenses
             for (data in allExpensesOfThisMonth) {
                 if (data is DataModels.Parent) {
-                    val amountSpend =
-                        CurrencyHelper.getFormattedCurrencyString(
-                            appPreferences,
-                            (if (data.totalCredit > data.totalDebit) (data.totalCredit - data.totalDebit) else (data.totalDebit - data.totalCredit))
-                        )
+                    val amountSpend = CurrencyHelper.getFormattedCurrencyString(
+                        appPreferences,
+                        (if (data.totalCredit > data.totalDebit) (data.totalCredit - data.totalDebit) else (data.totalDebit - data.totalCredit))
+                    )
                     contents.append("<h2 style=\"color:white;background-color:mediumblue\">${data.category} ($amountSpend)</h2>")
                 } else {
                     if (data is DataModels.Child) {
                         val formattedAmount = CurrencyHelper.getFormattedCurrencyString(
-                            appPreferences,
-                            -(data.expense.amount)
+                            appPreferences, -(data.expense.amount)
                         )
                         val expenseColor = if (data.expense.isRevenue()) "green" else "red"
                         val futureExpense =
@@ -454,16 +446,13 @@ class SearchViewModel(
                             else if (data.expense.isPastExpense()) "/ (Past expense)" else ""
 
                         contents.append(
-                            "<p style=\"font-size:140%;color:black\"><b>${(data.expense.title)}</b></p>" +
-                                    "<p style=\"font-size:140%;color:grey\">${
-                                        (String.format(
-                                            "%s",
-                                            format.format(data.expense.date)
-                                        ))
-                                    } / ${(data.expense.category)}${futureExpense}</p>" +
-                                    "<p style=\"font-size:140%;color:$expenseColor\">${
-                                        formattedAmount
-                                    }</p>"
+                            "<p style=\"font-size:140%;color:black\"><b>${(data.expense.title)}</b></p>" + "<p style=\"font-size:140%;color:grey\">${
+                                (String.format(
+                                    "%s", format.format(data.expense.date)
+                                ))
+                            } / ${(data.expense.category)}${futureExpense}</p>" + "<p style=\"font-size:140%;color:$expenseColor\">${
+                                formattedAmount
+                            }</p>"
                         )
                         contents.append("<hr>")
                     }
@@ -477,15 +466,13 @@ class SearchViewModel(
             contents.append("</body>")
             contents.append("</html>")
 
-            generatePDFReport.value = SearchReport(contents.toString(), allExpensesOfThisMonth.isEmpty())
+            generatePDFReport.value =
+                SearchReport(contents.toString(), allExpensesOfThisMonth.isEmpty())
         }
     }
 
-    /**
-     *
-     */
     override fun onCleared() {
-        db.close()
+        hashMap.clear()
         super.onCleared()
     }
 }

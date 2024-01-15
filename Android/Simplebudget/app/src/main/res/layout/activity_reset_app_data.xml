@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -26,7 +26,8 @@
     <LinearLayout
         android:id="@+id/backup_settings_cloud_storage_not_activated_state"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/appbar"
         android:orientation="vertical"
         android:padding="@dimen/_16ssp"
         android:visibility="visible">
@@ -80,15 +81,25 @@
 
         <Button
             android:id="@+id/btnProceedWithReset"
-            style="@style/RedButton.Borderless"
+            style="@style/RedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="@dimen/_30sdp"
+            android:backgroundTint="@color/budget_red"
             android:text="@string/proceed_deleting" />
 
 
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="@dimen/_80sdp"
+        android:layout_height="@dimen/_80sdp"
+        android:layout_below="@+id/backup_settings_cloud_storage_not_activated_state"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:indeterminate="true"
+        android:visibility="gone" />
 
-</LinearLayout>
+</RelativeLayout>

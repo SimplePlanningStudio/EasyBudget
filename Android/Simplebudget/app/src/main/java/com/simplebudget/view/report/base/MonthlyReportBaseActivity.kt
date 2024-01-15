@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -158,31 +158,6 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
     }
 
 // ------------------------------------------>
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_reports, menu)
-        return true
-    }
-
-    /**
-     * Creating a custom menu option.
-     */
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        val menuItem = menu?.findItem(R.id.action_break_down)
-        val rootView = menuItem?.actionView as LinearLayout?
-        val tvMenuBreakdown = rootView?.findViewById<TextView>(R.id.tvMenuBreakdown)
-        tvMenuBreakdown?.let {
-            it.setOnClickListener {
-                ActivityCompat.startActivity(
-                    this, Intent(this, BreakDownBaseActivity::class.java),
-                    null
-                )
-            }
-        }
-        return true
-    }
-
     /**
      *
      */

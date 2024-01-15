@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -174,17 +174,6 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
 
         setUpButtons()
         setResult(Activity.RESULT_CANCELED)
-
-        if (willAnimateActivityEnter()) {
-            animateActivityEnter(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    binding.saveExpenseFab.animateFABAppearance()
-                }
-            })
-        } else {
-            binding.saveExpenseFab.animateFABAppearance()
-        }
-
         binding.dateButton.removeButtonBorder() // Remove border
 
         viewModel.editTypeLiveData.observe(this) { (isRevenue, isEditing) ->
@@ -518,6 +507,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
      *
      */
     override fun onDestroy() {
+        adView?.destroy()
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }

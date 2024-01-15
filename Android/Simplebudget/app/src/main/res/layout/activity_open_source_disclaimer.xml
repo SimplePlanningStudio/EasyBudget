@@ -140,14 +140,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_2sdp"
-                android:text="@string/_3_mpandroidchart"
-                android:textColor="@color/colorBlackLight"
-                android:textSize="@dimen/_12ssp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_2sdp"
                 android:text="@string/_4_showcaseview"
                 android:textColor="@color/colorBlackLight"
                 android:textSize="@dimen/_12ssp" />
@@ -164,7 +156,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_2sdp"
-                android:text="@string/_6_jxl_excel_sheet"
+                android:text="@string/jxl_excel_sheet"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/glide"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/ezpermission"
+                android:textColor="@color/colorBlackLight"
+                android:textSize="@dimen/_12ssp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:text="@string/koin"
                 android:textColor="@color/colorBlackLight"
                 android:textSize="@dimen/_12ssp" />
 

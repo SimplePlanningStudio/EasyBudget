@@ -16,4 +16,15 @@
         app:key="@string/setting_telegram_channel_key"
         app:summary="@string/setting_telegram_channel_summary"
         app:title="@string/setting_telegram_channel_title" />
+
+    <Preference
+        app:icon="@drawable/ic_wtsapp"
+        app:key="@string/setting_whatsapp_channel_key"
+        app:summary="@string/setting_whatsapp_channel_summary"
+        app:title="@string/setting_whatsapp_channel_title" />
+    <Preference
+        app:icon="@drawable/ic_youtube"
+        app:key="@string/setting_youtube_channel_key"
+        app:summary="@string/setting_youtube_channel_summary"
+        app:title="@string/setting_youtube_channel_title" />
 </PreferenceScreen>

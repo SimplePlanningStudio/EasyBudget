@@ -399,7 +399,15 @@
 
     <string name="setting_telegram_channel_key" translatable="false">telegram_channel</string>
     <string name="setting_telegram_channel_title" translatable="false">Telegram</string>
-    <string name="setting_telegram_channel_summary" translatable="false">Latest news and quick support of \'Simple Budget\'</string>
+    <string name="setting_telegram_channel_summary" translatable="false">Quick support of \'Simple Budget\'</string>
+
+    <string name="setting_whatsapp_channel_key" translatable="false">whatsapp_channel</string>
+    <string name="setting_whatsapp_channel_title" translatable="false">Whatsapp</string>
+    <string name="setting_whatsapp_channel_summary" translatable="false">Latest news about \'Simple Budget\'</string>
+
+    <string name="setting_youtube_channel_key" translatable="false">youtube_channel</string>
+    <string name="setting_youtube_channel_title" translatable="false">Youtube</string>
+    <string name="setting_youtube_channel_summary" translatable="false">Watch helpful videos about \'Simple Budget\'</string>
 
     <string name="setting_app_open_source_key" translatable="false">app_open_source</string>
     <string name="setting_app_open_source_title" translatable="false">Open source (Apache License, Version 2.0)</string>
@@ -530,10 +538,12 @@
     <string name="add_recurring_expense_hint_title">Recurring Expenses</string>
     <string name="add_recurring_expense_hint_message">You can add your recurring income/expense from here.</string>
     <string name="dotted_divider">--------------------------------------</string>
-    <string name="_6_jxl_excel_sheet">6. JXL (Excel Sheet)</string>
-    <string name="_5_lottie">5. Lottie</string>
-    <string name="_4_showcaseview">4. ShowCaseView</string>
-    <string name="_3_mpandroidchart">3. MPAndroidChart</string>
+    <string name="koin">8. Koin</string>
+    <string name="ezpermission">7. Ezpermission</string>
+    <string name="glide">6. Glide</string>
+    <string name="jxl_excel_sheet">5. JXL (Excel Sheet)</string>
+    <string name="_5_lottie">4. Lottie</string>
+    <string name="_4_showcaseview">3. ShowCaseView</string>
     <string name="_2_circleindicator">2. CircleIndicator</string>
     <string name="_1_caldroid">1. Caldroid</string>
     <string name="special_thanks_to_these_open_source_libraries">Special thanks to these Open source libraries:</string>
@@ -565,7 +575,7 @@
     <string name="skip">Skip</string>
     <string name="add">Add</string>
     <string name="top_search">Top searches 🔥, Click me ℹ️</string>
-    <string name="account_details_until_today">Account details until Today are</string>
+    <string name="account_details_until_today">This month\'s account details until Today:</string>
     <string name="search_results_for_">Search results for \'%s\'</string>
     <string name="search_results_for_range">Search results from \'%s\' -  \'%s\'</string>
     <string name="reset">Reset</string>
@@ -646,6 +656,8 @@
     <string name="premium_features_nav_menu_title">Become Premium</string>
     <string name="manage_categories_nav_menu_details">Add, edit and remove categories</string>
     <string name="set_up_budgets_title">Budgets</string>
+    <string name="set_up_reminders_title">Reminders</string>
+    <string name="set_up_reminders_description">Smart reminders at your fingertips.</string>
     <string name="set_up_budgets_description">Set budgets for each category</string>
     <string name="category_for_budget_goal">Category for budget goal:</string>
     <string name="label_add">Add</string>
@@ -661,7 +673,12 @@
     <string name="you_have_already_added_five_accounts">You have already added 5 accounts!</string>
     <string name="default_account_cant_be_edited_and_deleted">(Default account can only be renamed!)</string>
     <string name="account_already_exists">Account already exists!</string>
-    <string name="search_disclaimer">You can search up to last one year from current date until the end of the current month. For a more extensive search, utilize filter\n\n\'Pick a date range\'!</string>
+    <string name="search_disclaimer">You can search up to last Two Years from current date until the end of the current month. For a more extensive search, utilize filter\n\n\'Pick a date range\'!</string>
     <string name="about_search_box">About Search Box</string>
     <string name="you_are_searching_in">You are searching in %s!</string>
+    <string name="side_navigation_for_more_options">Side navigation for more options!</string>
+    <string name="please_add_expenses_for_this_month_to_generate_report">Please add expenses of this month to generate report.</string>
+    <string name="saving_budget">Saving budget…</string>
+    <string name="notification_add_expenses_title">Simple Budget (Add Expenses)</string>
+    <string name="notification_add_expenses_description">Reminder! Don\'t forget to add your Today\'s expenses. Thank you</string>
 </resources>

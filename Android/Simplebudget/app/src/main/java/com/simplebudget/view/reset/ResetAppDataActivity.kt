@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.simplebudget.view.reset
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
@@ -52,6 +53,13 @@ class ResetAppDataActivity : BaseActivity<ActivityResetAppDataBinding>() {
 
         binding.btnProceedWithReset.setOnClickListener {
             resetConfirmation()
+        }
+
+        viewModel.progress.observe(this) {
+            it?.let {
+                binding.progress.visibility= if(it) View.VISIBLE else View.GONE
+                binding.btnProceedWithReset.isClickable = it
+            }
         }
 
         viewModel.clearDataEventStream.observe(this) {

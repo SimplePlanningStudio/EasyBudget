@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -81,7 +81,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * showInterstitial
      */
     fun showInterstitial() {
-        // Show the ad if it's ready. Otherwise toast and restart the game.
         if (mInterstitialAd != null) {
             mInterstitialAd?.show(this)
         } else {

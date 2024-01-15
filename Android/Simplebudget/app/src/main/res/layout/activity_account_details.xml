@@ -40,7 +40,7 @@
         android:layout_marginStart="@dimen/_8sdp"
         android:text="@string/account_details_until_today"
         android:textColor="@color/colorBlack"
-        android:textSize="@dimen/_16ssp" />
+        android:textSize="@dimen/_14ssp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/monthly_report_fragment_recycler_view"

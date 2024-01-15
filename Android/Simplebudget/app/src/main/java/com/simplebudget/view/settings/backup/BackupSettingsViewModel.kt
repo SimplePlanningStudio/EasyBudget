@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.simplebudget.auth.CurrentUser
 import com.simplebudget.cloudstorage.CloudStorage
 import com.simplebudget.db.DB
 import com.simplebudget.helper.*
+import com.simplebudget.job.backup.*
 import com.simplebudget.prefs.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,7 +99,6 @@ class BackupSettingsViewModel(
     override fun onCleared() {
         auth.state.removeObserver(authStateObserver)
         getBackupJobInfosLiveData(appContext).removeObserver(backupJobObserver)
-
         super.onCleared()
     }
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.helper.extensions.toInt
 import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategories
@@ -29,17 +28,16 @@ import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
-import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.activeAccount
-import com.simplebudget.prefs.activeAccountLabel
-import com.simplebudget.prefs.setActiveAccount
+import com.simplebudget.prefs.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 class MainViewModel(
-    private val db: DB, private val iab: Iab, private val appPreferences: AppPreferences
+    private val db: DB,
+    private val iab: Iab,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
     private var selectedDate: LocalDate = LocalDate.now()
 
@@ -59,7 +57,6 @@ class MainViewModel(
     val currentBalanceEditedEventStream = SingleLiveEvent<BalanceAdjustedData>()
     val currentBalanceRestoringEventStream = SingleLiveEvent<Unit>()
     val currentBalanceRestoringErrorEventStream = SingleLiveEvent<Exception>()
-
 
     sealed class RecurringExpenseDeleteProgressState {
         class Starting(val expense: Expense) : RecurringExpenseDeleteProgressState()
@@ -465,12 +462,6 @@ class MainViewModel(
 
     fun onWelcomeScreenFinished() {
         refreshDataForDate(selectedDate)
-    }
-// ----------------------------------------->
-
-    override fun onCleared() {
-        db.close()
-        super.onCleared()
     }
 }
 

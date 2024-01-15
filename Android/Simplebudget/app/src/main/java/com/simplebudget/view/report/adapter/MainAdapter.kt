@@ -36,12 +36,10 @@ class MainAdapter(
     override fun onBindViewHolder(holder: CollectionsViewHolder, position: Int) {
         holder.binding.apply {
             val obj = allExpensesParentList[position]
-            val amountSpend =
-                if (obj.totalCredit > obj.totalDebit) (obj.totalCredit - obj.totalDebit) else (obj.totalDebit - obj.totalCredit)
             monthlyRecyclerViewHeaderTv.text = String.format(
                 "%s (%s)",
                 obj.category,
-                CurrencyHelper.getFormattedCurrencyString(appPreferences, amountSpend)
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, obj.amountSpend)
             )
 
             val subItemAdapter = SubItemAdapter(obj.expenses, appPreferences)

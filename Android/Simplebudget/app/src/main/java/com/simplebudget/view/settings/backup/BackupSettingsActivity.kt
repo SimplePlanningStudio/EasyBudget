@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -64,7 +64,8 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
         viewModel.cloudBackupStateStream.observe(this) { cloudBackupState ->
             when (cloudBackupState) {
                 BackupCloudStorageState.NotAuthenticated -> {
-                    binding.backupSettingsCloudStorageNotAuthenticatedState.visibility = View.VISIBLE
+                    binding.backupSettingsCloudStorageNotAuthenticatedState.visibility =
+                        View.VISIBLE
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
                     binding.backupSettingsCloudStorageNotActivatedState.visibility = View.GONE
                 }
@@ -78,10 +79,12 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
                     binding.backupSettingsCloudStorageNotActivatedState.visibility = View.VISIBLE
 
-                    binding.backupSettingsCloudStorageEmail.text = cloudBackupState.currentUser.email
+                    binding.backupSettingsCloudStorageEmail.text =
+                        cloudBackupState.currentUser.email
                     binding.backupSettingsCloudStorageLogoutButton.visibility = View.VISIBLE
                     binding.backupSettingsCloudStorageBackupSwitch.visibility = View.VISIBLE
-                    binding.backupSettingsCloudStorageBackupSwitchDescription.visibility = View.VISIBLE
+                    binding.backupSettingsCloudStorageBackupSwitchDescription.visibility =
+                        View.VISIBLE
                     binding.backupSettingsCloudStorageBackupSwitchDescription.text = getString(
                         R.string.backup_settings_cloud_backup_status,
                         getString(R.string.backup_settings_cloud_backup_status_disabled)
@@ -420,5 +423,11 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
     override fun onResume() {
         adView?.resume()
         super.onResume()
+    }
+
+    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
+    override fun onDestroy() {
+        adView?.destroy()
+        super.onDestroy()
     }
 }

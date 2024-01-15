@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Benoit LETONDOR
+ *   Copyright 2024 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,14 +15,20 @@
  */
 package com.simplebudget.view.settings.help
 
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.simplebudget.R
 import com.simplebudget.helper.*
-import com.simplebudget.helper.extensions.getTelegramIntent
+import com.simplebudget.helper.extensions.*
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.view.settings.faq.FAQActivity
+import org.koin.android.ext.android.inject
 
 
 /**
@@ -32,6 +38,7 @@ import com.simplebudget.view.settings.faq.FAQActivity
  */
 class HelpFragment : PreferenceFragmentCompat() {
 
+    private val toastManager: ToastManager by inject()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.help_preferences, rootKey)
@@ -45,18 +52,35 @@ class HelpFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_telegram_channel_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                activity?.let {
-                    startActivity(Intent().getTelegramIntent(it))
-                }
+                Intent().openTelegramChannel(requireActivity(), toastManager)
                 false
             }
 
+        /**
+         * Whatsapp channel page
+         * https://whatsapp.com/channel/0029VaIvpNp8F2pFBZOKLX28
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_whatsapp_channel_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                Intent().openWhatsAppChannel(requireActivity(), toastManager)
+                false
+            }
+
+        /**
+         * Youtube channel page
+         * https://www.youtube.com/@simplebudget4045/featured
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_youtube_channel_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                Intent().openYoutubeChannel(requireActivity(), toastManager)
+                false
+            }
         /*
          * FAQ app
          */
         findPreference<Preference>(resources.getString(R.string.setting_category_faq_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                startActivity(Intent(context, FAQActivity::class.java))
+                startActivity(Intent(requireActivity(), FAQActivity::class.java))
                 false
             }
 
@@ -65,7 +89,7 @@ class HelpFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_category_feedback_app_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                context?.let { context -> Feedback.askForFeedback(context) }
+                Feedback.askForFeedback(requireActivity())
                 false
             }
 

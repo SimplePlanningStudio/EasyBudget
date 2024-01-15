@@ -13,6 +13,7 @@ class DataModels {
             var category: String,
             var totalCredit: Double,
             var totalDebit: Double,
+            var amountSpend: Double,
             var expenses: ArrayList<Expense>
         ) : SuperParent()
     }

@@ -13,11 +13,6 @@
         app:actionLayout="@layout/custom_nav_menu_item_setup_budgets" />
 
     <item
-        android:id="@+id/nav_action_categories"
-        android:title="@null"
-        app:actionLayout="@layout/custom_nav_menu_item_manage_categories" />
-
-    <item
         android:id="@+id/nav_action_breakdown"
         android:title="@null"
         app:actionLayout="@layout/custom_nav_menu_item_expenses_breakdown" />
@@ -26,6 +21,16 @@
         android:id="@+id/nav_action_balance"
         android:title="@null"
         app:actionLayout="@layout/custom_nav_menu_item_adjust_balance" />
+
+    <item
+        android:id="@+id/nav_action_categories"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_manage_categories" />
+
+    <!--<item
+        android:id="@+id/nav_action_reminders"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_reminders" />-->
 
     <item
         android:id="@+id/nav_action_language"

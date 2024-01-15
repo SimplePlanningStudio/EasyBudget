@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ class ResetAppDataViewModel(
      * Clear all app data stream
      */
     val clearDataEventStream = MutableLiveData<Boolean>()
+    val progress = MutableLiveData<Boolean?>()
 
 
     /**
@@ -39,21 +40,14 @@ class ResetAppDataViewModel(
      *
      */
     fun clearAppData() {
+        progress.value = true
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
                 db.clearAllTables()
                 appPreferences.clearAllPreferencesData()
+                clearDataEventStream.postValue(true)
+                progress.postValue(false)
             }
-            clearDataEventStream.value = true
         }
-    }
-
-
-    /**
-     * View model cleared close database
-     */
-    override fun onCleared() {
-        db.close()
-        super.onCleared()
     }
 }

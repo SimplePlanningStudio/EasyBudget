@@ -1,5 +1,5 @@
 /*
- *   Copyright 2023 Waheed Nazir
+ *   Copyright 2024 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentMonthlyReportBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccountLabel
@@ -69,6 +70,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: MonthlyReportViewModel by viewModel()
+    private val toastManager: ToastManager by inject()
     private var adView: AdView? = null
 
     private var mInterstitialAd: InterstitialAd? = null
@@ -181,7 +183,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
             //Get data list update it to UI, notify scroll down
             result?.let {
                 if (it.message.isNotEmpty())
-                    requireActivity().toast(it.message)
+                    toastManager.showShort(it.message)
 
                 if (!it.status) return@let
 
@@ -196,7 +198,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
         viewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { htmlReport ->
             htmlReport?.let {
                 if (htmlReport.html.isEmpty() || htmlReport.isEmpty) {
-                    requireActivity().toast("Please add expenses of this month to generate report.")
+                    toastManager.showShort(getString(R.string.please_add_expenses_for_this_month_to_generate_report))
                 } else {
                     startActivity(
                         Intent(requireActivity(), PDFReportActivity::class.java)
@@ -281,6 +283,11 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
         super.onResume()
     }
 
+    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
+    override fun onDestroy() {
+        adView?.destroy()
+        super.onDestroy()
+    }
 
     /**
      * show Interstitial
