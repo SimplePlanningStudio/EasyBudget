@@ -237,6 +237,19 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         monthlyBreakDown?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             val startIntent = Intent(requireActivity(), BreakDownBaseActivity::class.java)
             startIntent.putExtra(BreakDownBaseActivity.FROM_NOTIFICATION_EXTRA, false)
+            startIntent.putExtra(BreakDownBaseActivity.REQUEST_CODE_FOR_PIE_CHART, false)
+            ActivityCompat.startActivity(requireActivity(), startIntent, null)
+            true
+        }
+        /*
+         * Monthly Breakdown Pie Chart
+         */
+        val monthlyBreakDownPieChart =
+            findPreference<Preference>(getString(R.string.setting_monthly_breakdown_pie_chart_key))
+        monthlyBreakDownPieChart?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val startIntent = Intent(requireActivity(), BreakDownBaseActivity::class.java)
+            startIntent.putExtra(BreakDownBaseActivity.FROM_NOTIFICATION_EXTRA, false)
+            startIntent.putExtra(BreakDownBaseActivity.REQUEST_CODE_FOR_PIE_CHART, true)
             ActivityCompat.startActivity(requireActivity(), startIntent, null)
             true
         }

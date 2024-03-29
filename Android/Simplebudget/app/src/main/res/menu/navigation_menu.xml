@@ -16,6 +16,10 @@
         android:id="@+id/nav_action_breakdown"
         android:title="@null"
         app:actionLayout="@layout/custom_nav_menu_item_expenses_breakdown" />
+    <item
+        android:id="@+id/nav_action_pie_chart_breakdown"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_expenses_pie_chart_breakdown" />
 
     <item
         android:id="@+id/nav_action_balance"
@@ -53,5 +57,9 @@
         android:id="@+id/nav_action_rate"
         android:title="@null"
         app:actionLayout="@layout/custom_nav_menu_item_rate" />
+    <item
+        android:id="@+id/nav_what_people_say"
+        android:title="@null"
+        app:actionLayout="@layout/custom_nav_menu_item_what_people_say" />
 
 </menu>

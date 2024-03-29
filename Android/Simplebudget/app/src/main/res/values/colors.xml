@@ -95,4 +95,5 @@
     <color name="tac_num_pad_background_color">#F4F4F4</color>
     <color name="buttons_green">#04B1A1</color>
     <color name="accounts_background">#F5F6FE</color>
+    <color name="titleYellow">#ED9F39</color>
 </resources>

@@ -21,7 +21,8 @@
     <string name="search_expenses">Search expenses</string>
     <string name="title_search_expenses">Search by title, category, amount</string>
     <string name="title_upcoming">Upcoming expenses</string>
-    <string name="title_expenses_breakdown">Expenses Breakdown</string>
+    <string name="title_expenses_breakdown">Linear Breakdown</string>
+    <string name="title_expenses_pi_chart_breakdown">Pie Chart Breakdown</string>
     <string name="cancel">Cancel</string>
     <string name="undo">UNDO</string>
     <string name="ok">OK</string>
@@ -147,7 +148,7 @@
     <string name="setting_category_rate_button_message">Let me know what you think?</string>
     <string name="setting_category_faq_message">Frequently asked questioned</string>
     <string name="setting_category_bug_report_send_button_title">Report a bug</string>
-    <string name="bug_report_email" translatable="false">wavetechstudio@gmail.com</string>
+    <string name="bug_report_email" translatable="false">info@simplebudget.online</string>
     <string name="setting_category_bug_report_send_subject" translatable="false">SimpleBudget - Bug report</string>
     <string name="setting_category_bug_report_send_text">\n\n---\n*Please do not remove this part*\nSimpleBudget id: %s</string>
     <string name="setting_category_bug_report_send_error">Unable to find an app to send bug report email</string>
@@ -241,7 +242,7 @@
     <string name="rating_popup_positive_cta_positive">Sure</string>
     <string name="sure">Sure</string>
     <string name="rating_feedback_send_error">Unable to find an app to send feedback email.</string>
-    <string name="rating_feedback_email" translatable="false">wavetechstudio@gmail.com</string>
+    <string name="rating_feedback_email" translatable="false">info@simplebudget.online</string>
     <string name="rating_feedback_send_subject" translatable="false">SimpleBudget - Feedback</string>
     <string name="rating_feedback_send_text" />
     <string name="rating_popup_question_cta_dont_ask_again">Don\'t ask me again</string>
@@ -367,6 +368,10 @@
     <string name="setting_monthly_breakdown_key" translatable="false">monthly_breakdown</string>
     <string name="setting_monthly_breakdown_title" translatable="false">Expenses Breakdown</string>
     <string name="setting_monthly_breakdown_summary" translatable="false">View monthly breakdown of each category.</string>
+
+    <string name="setting_monthly_breakdown_pie_chart_key" translatable="false">monthly_breakdown_pie_chart</string>
+    <string name="setting_monthly_breakdown_pie_chart_title" translatable="false">Pie Chart Breakdown</string>
+    <string name="setting_monthly_breakdown_pie_chart_summary" translatable="false">View Pie chart breakdown of top expenses.</string>
 
     <string name="setting_future_expenses_key" translatable="false">future_expenses</string>
     <string name="setting_future_expenses_title" translatable="false">Future Expenses</string>
@@ -510,7 +515,7 @@
     <string name="save">Save</string>
     <string name="todayWithColon">Today:</string>
     <string name="today_expense">Today\'s\nExpense</string>
-    <string name="privacy_policy">http://greenprologix.com/policy_simple_budget.html</string>
+    <string name="privacy_policy">https://simplebudget.online/policysimplebudget/</string>
     <string name="enter_category">Enter category</string>
     <string name="content_description">Simple Budget Content Description</string>
     <string name="search_hint">Search Expenses</string>
@@ -681,4 +686,13 @@
     <string name="saving_budget">Saving budget…</string>
     <string name="notification_add_expenses_title">Simple Budget (Add Expenses)</string>
     <string name="notification_add_expenses_description">Reminder! Don\'t forget to add your Today\'s expenses. Thank you</string>
+    <string name="more_menu" translatable="false">More</string>
+    <string name="privacy_settings" translatable="false">Privacy Settings</string>
+    <string name="what_people_say">What people say?</string>
+    <string name="simple_budget_web_url">https://www.simplebudget.online</string>
+    <string name="simple_budget_reviews_url">https://www.simplebudget.online/reviews/</string>
+    <string name="share_your_review">Share Your Review</string>
+    <string name="explore_the_feedback_of_our_valued_users">Explore the feedback of our valued users.</string>
+    <string name="user_testimonials">User Testimonials</string>
+
 </resources>

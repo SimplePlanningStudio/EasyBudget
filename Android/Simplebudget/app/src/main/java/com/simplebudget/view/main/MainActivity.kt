@@ -47,6 +47,7 @@ import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -60,6 +61,7 @@ import com.simplebudget.helper.*
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
@@ -83,6 +85,7 @@ import com.simplebudget.view.settings.SettingsActivity.Companion.SHOW_BACKUP_INT
 import com.simplebudget.view.settings.aboutus.AboutUsActivity
 import com.simplebudget.view.settings.backup.BackupSettingsActivity
 import com.simplebudget.view.settings.help.HelpActivity
+import com.simplebudget.view.settings.webview.WebViewActivity
 import com.simplebudget.view.welcome.WelcomeActivity
 import com.simplebudget.view.welcome.getOnboardingStep
 import org.koin.android.ext.android.inject
@@ -90,6 +93,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 /**
@@ -110,10 +114,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel: MainViewModel by viewModel()
     private val appPreferences: AppPreferences by inject()
     private val toastManager: ToastManager by inject()
-    private var adView: AdView? = null
     private var isUserPremium = false
     private var expenseOfSelectedDay: Double = 0.0
 
+    private val isMobileAdsInitializeCalled = AtomicBoolean(false)
+    private val initialLayoutComplete = AtomicBoolean(false)
+    private var adView: AdView? = null
+    private var googleMobileAdsConsentManager: GoogleMobileAdsConsentManager? = null
 // ------------------------------------------>
 
     /**
@@ -227,11 +234,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     INTENT_EXPENSE_ADDED -> {
                         viewModel.onExpenseAdded()
                     }
+
                     INTENT_EXPENSE_DELETED -> {
                         val expense = intent.getParcelableExtra<Expense>("expense")!!
 
                         viewModel.onDeleteExpenseClicked(expense)
                     }
+
                     INTENT_RECURRING_EXPENSE_DELETED -> {
                         val expense = intent.getParcelableExtra<Expense>("expense")!!
                         val deleteType = RecurringExpenseDeleteType.fromValue(
@@ -242,18 +251,22 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                         viewModel.onDeleteRecurringExpenseClicked(expense, deleteType)
                     }
+
                     SelectCurrencyFragment.CURRENCY_SELECTED_INTENT -> {
                         viewModel.refreshTodaysExpenses()
                     }
+
                     INTENT_SHOW_WELCOME_SCREEN -> {
                         val startIntent = Intent(this@MainActivity, WelcomeActivity::class.java)
                         ActivityCompat.startActivityForResult(
                             this@MainActivity, startIntent, WELCOME_SCREEN_ACTIVITY_CODE, null
                         )
                     }
+
                     INTENT_IAB_STATUS_CHANGED -> {
                         viewModel.onIabStatusChanged()
                     }
+
                     INTENT_ACCOUNT_TYPE_UPDATED -> {
                         // Default Account Type Updated, Refresh Calendar and Expenses as well.
                         val accountLabel = appPreferences.activeAccountLabel().appendAccount()
@@ -271,6 +284,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             }
                         }.start()
                     }
+
                     INTENT_ACCOUNT_TYPE_EDITED -> {
                         // Account name edited so just changing label
                         val accountLabel = appPreferences.activeAccountLabel().appendAccount()
@@ -344,6 +358,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                     expenseDeletionDialog = dialog
                 }
+
                 is MainViewModel.RecurringExpenseDeleteProgressState.ErrorCantDeleteBeforeFirstOccurrence -> {
                     expenseDeletionDialog?.dismiss()
                     expenseDeletionDialog = null
@@ -352,18 +367,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         .setMessage(R.string.recurring_expense_delete_first_error_message)
                         .setNegativeButton(R.string.ok, null).show()
                 }
+
                 is MainViewModel.RecurringExpenseDeleteProgressState.ErrorRecurringExpenseDeleteNotAssociated -> {
                     showGenericRecurringDeleteErrorDialog()
 
                     expenseDeletionDialog?.dismiss()
                     expenseDeletionDialog = null
                 }
+
                 is MainViewModel.RecurringExpenseDeleteProgressState.ErrorIO -> {
                     showGenericRecurringDeleteErrorDialog()
 
                     expenseDeletionDialog?.dismiss()
                     expenseDeletionDialog = null
                 }
+
                 is MainViewModel.RecurringExpenseDeleteProgressState.Deleted -> {
                     val snackbar = Snackbar.make(
                         binding.coordinatorLayout,
@@ -407,6 +425,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                     expenseRestoreDialog = dialog
                 }
+
                 is MainViewModel.RecurringExpenseRestoreProgressState.ErrorIO -> {
                     AlertDialog.Builder(this@MainActivity).setTitle(R.string.oops)
                         .setMessage(resources.getString(R.string.error_occurred_try_again))
@@ -415,6 +434,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     expenseRestoreDialog?.dismiss()
                     expenseRestoreDialog = null
                 }
+
                 is MainViewModel.RecurringExpenseRestoreProgressState.Restored -> {
                     Snackbar.make(
                         binding.coordinatorLayout,
@@ -531,7 +551,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
                 binding.llAddAmountContainer.layoutParams = layoutParams
             } else {
-                loadAndDisplayBannerAds()
+                initConsentAndAdsSDK()
             }
         }
 
@@ -562,27 +582,42 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 R.id.nav_action_accounts -> {
                     AccountDetailsActivity.start(this)
                 }
+
                 R.id.nav_action_balance -> {
                     viewModel.onAdjustCurrentBalanceClicked()
                 }
+
                 R.id.nav_action_categories -> {
                     val startIntent = Intent(this, ManageCategoriesActivity::class.java)
                     ActivityCompat.startActivity(this, startIntent, null)
                 }
+
                 R.id.nav_action_setup_budgets -> {
                     toastManager.showShort("Coming soon...")
                 }
+
                 R.id.nav_goto_settings -> {
                     goToSettings()
                 }
+
                 R.id.nav_action_breakdown -> {
-                    openBreakDown()
+                    openBreakDown(pieChart = false)
                 }
+
+                R.id.nav_action_pie_chart_breakdown -> {
+                    openBreakDown(pieChart = true)
+                }
+
                 R.id.nav_action_share -> {
                     shareApp()
                 }
+
                 R.id.nav_action_rate -> {
                     RatingPopup(this, appPreferences).show(true)
+                }
+
+                R.id.nav_what_people_say -> {
+                    WebViewActivity.start(this, getString(R.string.simple_budget_reviews_url))
                 }
             }
             binding.drawerLayout.closeDrawer(GravityCompat.START)
@@ -917,6 +952,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 openHideBalanceShowCase()
             }
         }
+        val moreMenu = menu.findItem(R.id.action_more)
+        moreMenu?.isVisible = googleMobileAdsConsentManager?.isPrivacyOptionsRequired ?: false
         return true
     }
 
@@ -1037,8 +1074,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /**
      * Open Break Down
      */
-    private fun openBreakDown() {
+    private fun openBreakDown(pieChart: Boolean) {
         val startIntent = Intent(this, BreakDownBaseActivity::class.java)
+        startIntent.putExtra(BreakDownBaseActivity.REQUEST_CODE_FOR_PIE_CHART, pieChart)
         ActivityCompat.startActivity(this@MainActivity, startIntent, null)
     }
 
@@ -1049,30 +1087,66 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 goToSettings()
                 return true
             }
+
             R.id.action_monthly_report -> {
                 val startIntent = Intent(this, MonthlyReportBaseActivity::class.java)
                 ActivityCompat.startActivity(this@MainActivity, startIntent, null)
                 return true
             }
+
             R.id.action_search_expenses -> {
                 ActivityCompat.startActivity(
                     this@MainActivity, Intent(this, SearchBaseActivity::class.java), null
                 )
                 return true
             }
+
             R.id.action_help -> {
                 startActivity(Intent(this, HelpActivity::class.java))
                 return true
             }
+
             R.id.action_backup -> {
                 startActivity(Intent(this, BackupSettingsActivity::class.java))
                 return true
             }
+
             android.R.id.home -> {
                 if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     binding.drawerLayout.closeDrawer(GravityCompat.START)
                 } else {
                     binding.drawerLayout.openDrawer(GravityCompat.START)
+                }
+                return true
+            }
+
+            R.id.action_more -> {
+                val menuItemView = findViewById<View>(R.id.action_more)
+                menuItemView?.let {
+                    PopupMenu(this, menuItemView).apply {
+                        menuInflater.inflate(R.menu.privacy_popup_menu, menu)
+                        show()
+                        setOnMenuItemClickListener { popupMenuItem ->
+                            when (popupMenuItem.itemId) {
+                                R.id.privacy_settings -> {
+                                    // Handle changes to user consent.
+                                    googleMobileAdsConsentManager?.showPrivacyOptionsForm(this@MainActivity) { formError ->
+                                        if (formError != null) {
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                formError.message,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                    true
+                                }
+
+                                else -> false
+                            }
+                        }
+                        return super.onOptionsItemSelected(item)
+                    }
                 }
                 return true
             }
@@ -1420,9 +1494,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     AbsListView.OnScrollListener.SCROLL_STATE_FLING -> {
                         // Do something
                     }
+
                     AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL -> {
                         // Do something
                     }
+
                     else -> {
                         // Do something
                     }
@@ -1458,26 +1534,74 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }.show()
     }
 
+    private fun initConsentAndAdsSDK() {
+        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
+            googleMobileAdsConsentManager =
+                GoogleMobileAdsConsentManager.getInstance(applicationContext)
+            googleMobileAdsConsentManager?.gatherConsent(this) { error ->
+                if (error != null) {
+                    // Consent not obtained in current session.
+                    Log.d("MainActivity", "${error.errorCode}: ${error.message}")
+                }
+                if (googleMobileAdsConsentManager?.canRequestAds != false) {
+                    initializeMobileAdsSdk()
+                }
+
+                if (googleMobileAdsConsentManager?.isPrivacyOptionsRequired == true) {
+                    // Regenerate the options menu to include a privacy setting.
+                    invalidateOptionsMenu()
+                }
+            }
+            // This sample attempts to load ads using consent obtained in the previous session.
+            if (googleMobileAdsConsentManager?.canRequestAds != false) {
+                initializeMobileAdsSdk()
+            }
+            // Since we're loading the banner based on the adContainerView size, we need to wait until this
+            // view is laid out before we can get the width.
+            binding.adViewContainer.viewTreeObserver.addOnGlobalLayoutListener {
+                if (!initialLayoutComplete.getAndSet(true) && googleMobileAdsConsentManager?.canRequestAds != false) {
+                    loadAndDisplayBannerAds()
+                }
+            }
+        }
+    }
+
+    private fun initializeMobileAdsSdk() {
+        // Initialize the Mobile Ads SDK.
+        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
+            if (isMobileAdsInitializeCalled.getAndSet(true)) {
+                return
+            }
+            MobileAds.initialize(this) { }
+            loadAndDisplayBannerAds()
+        }
+    }
 
     /**
      *
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            // Since we're loading the banner based on the adContainerView size, we need to wait until this
+            // view is laid out before we can get the width.
             val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
-            adView = AdView(this)
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            adContainerView.addView(adView)
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
+            adContainerView.viewTreeObserver.addOnGlobalLayoutListener {
+                if (!initialLayoutComplete.getAndSet(true) && googleMobileAdsConsentManager?.canRequestAds != false) {
+                    adContainerView.visibility = View.VISIBLE
+                    val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
+                    adView = AdView(this)
+                    adView?.adUnitId = getString(R.string.banner_ad_unit_id)
+                    adContainerView.addView(adView)
+                    val actualAdRequest = AdRequest.Builder().build()
+                    adView?.setAdSize(adSize)
+                    adView?.loadAd(actualAdRequest)
+                    adView?.adListener = object : AdListener() {
+                        override fun onAdLoaded() {}
+                        override fun onAdOpened() {}
+                        override fun onAdClosed() {
+                            loadAndDisplayBannerAds()
+                        }
+                    }
                 }
             }
         } catch (e: java.lang.Exception) {

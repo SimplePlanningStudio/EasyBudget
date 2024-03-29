@@ -14,10 +14,12 @@
     <queries>
         <intent>
             <action android:name="android.intent.action.SENDTO" />
+
             <data android:scheme="*" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />
+
             <data android:scheme="tg" />
         </intent>
     </queries>
@@ -39,7 +41,6 @@
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
-
         <!-- Disable advertising ID and SSAID for GA & FCM -->
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
@@ -49,8 +50,7 @@
             android:value="false" />
         <meta-data
             android:name="google_analytics_ssaid_collection_enabled"
-            android:value="false" />
-        <!-- Backup -->
+            android:value="false" /> <!-- Backup -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -60,11 +60,10 @@
                 android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup"
                 tools:node="remove" />
-
         </provider>
 
         <activity
-            android:name="com.simplebudget.view.main.MainActivity"
+            android:name=".view.main.MainActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="true"
             android:label="@string/app_name_simplebudget_title"
@@ -86,98 +85,89 @@
                 <data android:scheme="simplebudget" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".view.premium.PremiumActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_premium"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".view.accounts.AccountDetailsActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/accounts"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".view.moreApps.MoreAppsActivity"
             android:exported="false"
             android:label="@string/title_activity_more_apps"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".view.premium.PremiumSuccessActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_premium"
             android:screenOrientation="portrait" />
-
         <activity
-            android:name="com.simplebudget.view.report.base.MonthlyReportBaseActivity"
+            android:name=".view.report.base.MonthlyReportBaseActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_budget_report"
             android:screenOrientation="portrait" />
-
         <activity
-            android:name="com.simplebudget.view.reset.ResetAppDataActivity"
+            android:name=".view.reset.ResetAppDataActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/reset_app_data"
             android:screenOrientation="portrait" />
-
         <activity
-            android:name="com.simplebudget.view.breakdown.base.BreakDownBaseActivity"
+            android:name=".view.breakdown.base.BreakDownBaseActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/breakdown"
             android:screenOrientation="portrait" />
-
         <activity
-            android:name="com.simplebudget.view.search.base.SearchBaseActivity"
+            android:name=".view.search.base.SearchBaseActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_search_expenses"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.MaterialComponents"
             android:windowSoftInputMode="adjustNothing" />
-
         <activity
-            android:name="com.simplebudget.view.report.PDFReportActivity"
+            android:name=".view.report.PDFReportActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_budget_report"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.simplebudget.view.expenseedit.ExpenseEditActivity"
+            android:name=".view.expenseedit.ExpenseEditActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_add_expense"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustNothing" />
         <activity
-            android:name="com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity"
+            android:name=".view.recurringexpenseadd.RecurringExpenseEditActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_recurring_expense_add"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustNothing" />
         <activity
-            android:name="com.simplebudget.view.settings.SettingsActivity"
+            android:name=".view.settings.SettingsActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.simplebudget.view.settings.help.HelpActivity"
+            android:name=".view.settings.help.HelpActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/setting_category_app_support_and_help"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.simplebudget.view.settings.aboutus.AboutUsActivity"
+            android:name=".view.settings.aboutus.AboutUsActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_about_us"
@@ -189,61 +179,56 @@
             android:label="@string/text_copyright"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.simplebudget.view.welcome.WelcomeActivity"
+            android:name=".view.welcome.WelcomeActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_welcome"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
-
         <activity
-            android:name="com.simplebudget.view.settings.backup.BackupSettingsActivity"
+            android:name=".view.settings.backup.BackupSettingsActivity"
             android:exported="false"
             android:label="@string/backup_settings_activity_title" />
-
         <activity
             android:name=".view.settings.releaseHistory.ReleaseHistoryTimelineActivity"
             android:exported="false"
             android:label="@string/release_history"
             android:screenOrientation="portrait" />
-
+        <activity
+            android:name=".view.settings.webview.WebViewActivity"
+            android:exported="false"
+            android:label="@string/user_testimonials"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".view.settings.faq.FAQActivity"
             android:exported="false"
             android:label="@string/faq"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".view.security.SecurityActivity"
             android:exported="false"
             android:theme="@style/Transparent" />
-
         <activity
             android:name=".view.category.choose.ChooseCategoryActivity"
             android:exported="false"
             android:label="@string/categories"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustNothing" />
-
         <activity
             android:name=".view.category.manage.ManageCategoriesActivity"
             android:exported="false"
             android:label="@string/manage_categories"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustNothing" />
-
-        <!-- Push -->
+            android:windowSoftInputMode="adjustNothing" /> <!-- Push -->
         <service
-            android:name="com.simplebudget.push.MyFirebaseMessagingService"
+            android:name=".push.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
-        </service>
-
-        <!-- Notif services -->
+        </service> <!-- Notif services -->
         <receiver
-            android:name="com.simplebudget.notif.AppUpdateBroadcastReceiver"
+            android:name=".notif.AppUpdateBroadcastReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -253,11 +238,9 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_push" />
-
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/accent" />
-
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/ads_sdk_id" />

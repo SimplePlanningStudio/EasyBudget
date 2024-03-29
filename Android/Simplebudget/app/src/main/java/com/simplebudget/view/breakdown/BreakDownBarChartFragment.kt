@@ -26,7 +26,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
 import java.util.ArrayList
 
-private const val ARG_DATE = "arg_date"
+const val ARG_DATE = "arg_date"
 
 class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>() {
     /**
@@ -76,19 +76,24 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
                     )
                     binding?.balancesContainer?.visibility = View.GONE
                 }
+
                 is BreakDownViewModel.MonthlyBreakDownData.Data -> {
                     lisOfExpenses.clear()
                     lisOfExpenses.addAll(result.allExpensesOfThisMonth)
                     binding?.balancesContainer?.visibility = View.VISIBLE
                     binding?.llRecyclerViewContents?.visibility = View.VISIBLE
-                    binding?.breakDownEmptyState?.visibility = if(lisOfExpenses.size==0)View.VISIBLE else View.GONE
-                    configureRecyclerView(
-                        binding?.monthlyReportFragmentRecyclerView!!, BreakDownRecyclerViewAdapter(
-                            result.allExpensesOfThisMonth,
-                            result.totalExpenses,
-                            appPreferences
+                    binding?.breakDownEmptyState?.visibility =
+                        if (lisOfExpenses.size == 0) View.VISIBLE else View.GONE
+                    if (result.allExpensesOfThisMonth.isNotEmpty()) {
+                        configureRecyclerView(
+                            binding?.monthlyReportFragmentRecyclerView!!,
+                            BreakDownRecyclerViewAdapter(
+                                result.allExpensesOfThisMonth,
+                                result.totalExpenses,
+                                appPreferences
+                            )
                         )
-                    )
+                    }
                     binding?.monthlyReportFragmentRevenuesTotalTv?.text =
                         CurrencyHelper.getFormattedCurrencyString(
                             appPreferences, result.revenuesAmount

@@ -14,8 +14,8 @@ android {
     defaultConfig {
         minSdkVersion 26
         targetSdkVersion 33
-        versionCode 54
-        versionName "3.3.0"
+        versionCode 56
+        versionName "3.3.1"
         vectorDrawables.useSupportLibrary = true
         flavorDimensions "default"
         multiDexEnabled true
@@ -149,13 +149,16 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.10.1'
 
+    implementation project(':MPChartLib')
+
     implementation('com.github.bumptech.glide:glide:4.15.1@aar') {
         transitive = true
     }
     // debugImplementation because LeakCanary should only run in debug builds.
-   // debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.12'
+    // debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.12'
     // Localisation By Akexorcist
     // implementation 'com.akexorcist:localization:1.2.11'
+    implementation("com.google.android.ump:user-messaging-platform:2.2.0")
 }
 
 apply plugin: 'com.google.gms.google-services'

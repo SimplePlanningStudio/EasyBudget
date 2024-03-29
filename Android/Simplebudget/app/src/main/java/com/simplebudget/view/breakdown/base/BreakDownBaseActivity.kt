@@ -32,6 +32,7 @@ import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.*
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.BreakDownBarChartFragment
+import com.simplebudget.view.breakdown.BreakDownPieChartFragment
 import com.simplebudget.view.main.MainActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -133,6 +134,7 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
                 onBackPressed()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -158,7 +160,15 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
         binding.monthlyReportViewPager.adapter = object :
             FragmentPagerAdapter(supportFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
             override fun getItem(position: Int): Fragment {
-                return BreakDownBarChartFragment.newInstance(dates[position])
+                return if (intent.hasExtra(REQUEST_CODE_FOR_PIE_CHART) && intent.getBooleanExtra(
+                        REQUEST_CODE_FOR_PIE_CHART,
+                        false
+                    )
+                ) {
+                    BreakDownPieChartFragment.newInstance(dates[position])
+                } else {
+                    BreakDownBarChartFragment.newInstance(dates[position])
+                }
             }
 
             override fun getCount(): Int {
@@ -198,5 +208,6 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
          * show not the current month but the last one)
          */
         const val FROM_NOTIFICATION_EXTRA = "fromNotif"
+        const val REQUEST_CODE_FOR_PIE_CHART = "PieChart"
     }
 }

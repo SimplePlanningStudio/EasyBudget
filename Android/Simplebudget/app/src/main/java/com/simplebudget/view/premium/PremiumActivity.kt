@@ -32,6 +32,7 @@ import com.simplebudget.helper.RedeemPromo
 import com.simplebudget.iab.InAppProductsAdapter
 import com.simplebudget.iab.PremiumFlowStatus
 import com.simplebudget.iab.SKU_SUBSCRIPTION
+import com.simplebudget.view.settings.webview.WebViewActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -57,6 +58,7 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
                 }
+
                 is PremiumPurchaseFlowResult.Error -> {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
@@ -67,6 +69,7 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                             dialog.dismiss()
                         }.show()
                 }
+
                 else -> {}
             }
         }
@@ -77,6 +80,7 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
                 }
+
                 PremiumFlowStatus.LOADING -> {
                     loadingProgressDialog = ProgressDialog.show(
                         this@PremiumActivity,
@@ -86,6 +90,7 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                         false
                     )
                 }
+
                 PremiumFlowStatus.DONE -> {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
@@ -97,6 +102,7 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     )
                     finish()
                 }
+
                 null -> {
                     PremiumSuccessActivity
                 }
@@ -140,6 +146,9 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                     viewModel.getSelectedProduct()?.productId ?: SKU_SUBSCRIPTION
                 )
             }
+        }
+        binding.whatPeopleSay.setOnClickListener {
+            WebViewActivity.start(this, getString(R.string.simple_budget_reviews_url))
         }
     }
 }

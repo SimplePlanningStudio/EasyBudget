@@ -11,12 +11,6 @@
       "message": "Generate random single and multiple passwords offline.",
       "imagelink": "ic_random_password.png",
       "store_link": "com.wavetechstudio.passwordgenerator"
-    },
-    {
-      "title": "Router Admin Page",
-      "message": "Configure router's settings instantly.",
-      "imagelink": "ic_router_app.png",
-      "store_link": "gplx.router.admin.page"
     }
   ]
 }

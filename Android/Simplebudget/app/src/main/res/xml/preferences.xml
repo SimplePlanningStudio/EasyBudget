@@ -41,10 +41,16 @@
             app:title="@string/setting_monthly_reports_title" />
 
         <Preference
-            app:icon="@drawable/ic_breakdown_black"
+            app:icon="@drawable/ic_linear_chart_black"
             app:key="@string/setting_monthly_breakdown_key"
             app:summary="@string/setting_monthly_breakdown_summary"
             app:title="@string/setting_monthly_breakdown_title" />
+
+        <Preference
+            app:icon="@drawable/ic_breakdown_black"
+            app:key="@string/setting_monthly_breakdown_pie_chart_key"
+            app:summary="@string/setting_monthly_breakdown_pie_chart_summary"
+            app:title="@string/setting_monthly_breakdown_pie_chart_title" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_data_backup_title">

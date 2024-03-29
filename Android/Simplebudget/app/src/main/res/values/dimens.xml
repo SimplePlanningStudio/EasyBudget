@@ -77,7 +77,7 @@
     <dimen name="actionbar_text_size">20sp</dimen>
     <dimen name="extra_big_text_size">22sp</dimen>
 
-    <dimen name="nav_item_height_size">@dimen/_54sdp</dimen>
+    <dimen name="nav_item_height_size">@dimen/_53sdp</dimen>
     <dimen name="nav_item_title_text_size">@dimen/_10ssp</dimen>
     <dimen name="nav_item_description_text_size">@dimen/_10ssp</dimen>
 

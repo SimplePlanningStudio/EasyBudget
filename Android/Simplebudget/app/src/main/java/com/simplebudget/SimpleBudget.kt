@@ -27,6 +27,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import com.simplebudget.view.main.MainActivity as MainActivity
 
 
@@ -53,10 +54,6 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
             androidLogger(Level.ERROR)
             androidContext(this@SimpleBudget)
             modules(listOf(appModule, viewModelModule))
-        }
-
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
-            initAdsSdk()
         }
         // Init actions
         init()
@@ -245,13 +242,6 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
          * Rating popup every day after 3 opens
          */
         showRatingPopupIfNeeded(activity)
-    }
-
-    /**
-     * Init Ads SDK
-     */
-    private fun initAdsSdk() {
-        MobileAds.initialize(this) { }
     }
 
     /** ActivityLifecycleCallback methods. */

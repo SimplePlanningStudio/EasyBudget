@@ -9,12 +9,16 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 3.3.1
+            releaseList.add(ReleaseHistory("Version", "3.3.1", "Pie chart added back with improvements."))
+            releaseList.add(ReleaseHistory("Version", "3.3.1", "Reviews section added."))
+            releaseList.add(ReleaseHistory("Version", "3.3.1", "Consent added to display ads."))
+
             // 3.3.0
             releaseList.add(ReleaseHistory("Version", "3.3.0", "Expenses breakdown design updated."))
             releaseList.add(ReleaseHistory("Version", "3.3.0", "Bug fixes on multiple accounts / reports."))
             releaseList.add(ReleaseHistory("Version", "3.3.0", "Added Youtube / WhatsApp channel inside help section."))
             releaseList.add(ReleaseHistory("Version", "3.3.0", "Enhanced app performance and boot time."))
-
 
             // 3.2.0
             releaseList.add(ReleaseHistory("Version", "3.2.0", "Allowed renaming of default account."))

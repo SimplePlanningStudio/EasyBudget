@@ -41,7 +41,7 @@
         android:layout_marginTop="@dimen/_20sdp"
         android:gravity="center_horizontal"
         android:text="@string/onboarding_screen_1_message2"
-        android:textColor="#ED9F39"
+        android:textColor="@color/titleYellow"
         android:textSize="@dimen/_20ssp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

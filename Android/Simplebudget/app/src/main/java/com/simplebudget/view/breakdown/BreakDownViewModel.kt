@@ -64,7 +64,7 @@ class BreakDownViewModel(
             val expensesAmount: Double,
             val revenuesAmount: Double,
             val totalExpenses: Double,
-            val balance: Double
+            val balance: Double,
         ) : MonthlyBreakDownData()
     }
 
@@ -147,7 +147,7 @@ class BreakDownViewModel(
                         expensesAmount,
                         revenuesAmount,
                         totalExpenses,
-                        balance
+                        balance,
                     )
                 )
             }
