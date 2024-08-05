@@ -29,7 +29,7 @@
                 android:contentDescription="@string/content_description"
                 android:src="@drawable/ic_close_security_dialog" />
 
-            <com.simplemobiletools.commons.views.MyTextView
+            <com.simplebudget.helper.views.MyTextView
                 android:id="@+id/pin_lock_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
                 android:textSize="@dimen/_24ssp"
                 tools:ignore="RelativeOverlap" />
 
-            <com.simplemobiletools.commons.views.MyTextView
+            <com.simplebudget.helper.views.MyTextView
                 android:id="@+id/error"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
                 android:textSize="@dimen/_12ssp"
                 tools:ignore="RelativeOverlap" />
 
-            <com.simplemobiletools.commons.views.MyTextView
+            <com.simplebudget.helper.views.MyTextView
                 android:id="@+id/pin_lock_current_pin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

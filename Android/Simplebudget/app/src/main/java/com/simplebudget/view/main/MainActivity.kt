@@ -54,6 +54,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.messaging.FirebaseMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
+import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityMainBinding
@@ -118,7 +119,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var expenseOfSelectedDay: Double = 0.0
 
     private val isMobileAdsInitializeCalled = AtomicBoolean(false)
-    private val initialLayoutComplete = AtomicBoolean(false)
     private var adView: AdView? = null
     private var googleMobileAdsConsentManager: GoogleMobileAdsConsentManager? = null
 // ------------------------------------------>
@@ -736,14 +736,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     @SuppressWarnings("unused")
     private fun checkToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                return@OnCompleteListener
-            }
-            // Get new FCM registration token
-            val token = task.result
-            Log.d("FCM TOKEN", token ?: "")
-        })
+        if (BuildConfig.DEBUG) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    return@OnCompleteListener
+                }
+                // Get new FCM registration token
+                val token = task.result
+                Log.d("FCM TOKEN", token ?: "")
+            })
+        }
     }
 
     /**
@@ -862,6 +864,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java", ReplaceWith("finish()"))
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -871,11 +874,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    @SuppressLint("MissingSuperCall")
-    override fun onNewIntent(intent: Intent?) {
-        if (intent == null) {
-            return
-        }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
         openSettingsIfNeeded(intent)
         openMonthlyReportIfNeeded(intent)
         openAddExpenseIfNeeded(intent)
@@ -931,8 +931,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 appPreferences.setUserSawSettingsHint()
                 binding.settingsHint.visibility = View.GONE
                 binding.multiAccountsHint.visibility = View.VISIBLE
+                showPrivacyMenuForAdmob(menu)// Show privacy menu for new user, 1st install
                 openMultipleAccountsShowCase()
             }
+        } else {
+            // Show privacy menu if user has already seen settings hint and newly exposed to privacy settings.
+            showPrivacyMenuForAdmob(menu)
         }
 
         // Multiple accounts hint in sequence
@@ -952,9 +956,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 openHideBalanceShowCase()
             }
         }
-        val moreMenu = menu.findItem(R.id.action_more)
-        moreMenu?.isVisible = googleMobileAdsConsentManager?.isPrivacyOptionsRequired ?: false
         return true
+    }
+
+    /**
+     * Needs to show this once all action bar hints are completed.
+     * Settings hint is the last hint of action bar.
+     */
+    private fun showPrivacyMenuForAdmob(menu: Menu) {
+        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
+            val moreMenu = menu.findItem(R.id.action_more)
+            val show = googleMobileAdsConsentManager?.isPrivacyOptionsRequired ?: false
+            moreMenu?.isVisible = show
+        }
     }
 
     /**
@@ -1036,10 +1050,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         override fun onFinish() {
                             binding.drawerLayout.closeDrawer(GravityCompat.START)
                             binding.counter.visibility = View.GONE
+                            val show =
+                                googleMobileAdsConsentManager?.isPrivacyOptionsRequired ?: false
+                            if (show) {
+                                // Privacy settings hint
+                                showPrivacyHint()
+                            }
                         }
                     }.start()
 
                 })
+        }
+    }
+
+    private fun showPrivacyHint() {
+        if (appPreferences.hasUserSawPrivacyHint().not()) {
+            binding.privacyHint.visibility = View.VISIBLE
+            binding.privacyHintButton.setOnClickListener {
+                appPreferences.setUserSawPrivacyHint()
+                binding.privacyHint.visibility = View.GONE
+            }
         }
     }
 
@@ -1215,12 +1245,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Open the settings activity if the given intent contains the [.INTENT_REDIRECT_TO_SETTINGS_EXTRA]
      * extra.
      */
-    private fun openSettingsIfNeeded(intent: Intent) {
-        if (intent.getBooleanExtra(INTENT_REDIRECT_TO_SETTINGS_EXTRA, false)) {
-            val startIntent = Intent(this, SettingsActivity::class.java)
-            ActivityCompat.startActivityForResult(
-                this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
-            )
+    private fun openSettingsIfNeeded(intent: Intent?) {
+        intent?.let {
+            if (intent.getBooleanExtra(INTENT_REDIRECT_TO_SETTINGS_EXTRA, false)) {
+                val startIntent = Intent(this, SettingsActivity::class.java)
+                ActivityCompat.startActivityForResult(
+                    this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
+                )
+            }
         }
     }
 
@@ -1228,14 +1260,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Open the settings activity to display backup options if the given intent contains the
      * [.INTENT_REDIRECT_TO_SETTINGS_FOR_BACKUP_EXTRA] extra.
      */
-    private fun openSettingsForBackupIfNeeded(intent: Intent) {
-        if (intent.getBooleanExtra(INTENT_REDIRECT_TO_SETTINGS_FOR_BACKUP_EXTRA, false)) {
-            val startIntent = Intent(this, SettingsActivity::class.java).apply {
-                putExtra(SHOW_BACKUP_INTENT_KEY, true)
+    private fun openSettingsForBackupIfNeeded(intent: Intent?) {
+        intent?.let {
+            if (intent.getBooleanExtra(INTENT_REDIRECT_TO_SETTINGS_FOR_BACKUP_EXTRA, false)) {
+                val startIntent = Intent(this, SettingsActivity::class.java).apply {
+                    putExtra(SHOW_BACKUP_INTENT_KEY, true)
+                }
+                ActivityCompat.startActivityForResult(
+                    this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
+                )
             }
-            ActivityCompat.startActivityForResult(
-                this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
-            )
         }
     }
 
@@ -1244,13 +1278,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      *
      * @param intent
      */
-    private fun openMonthlyReportIfNeeded(intent: Intent) {
+    private fun openMonthlyReportIfNeeded(intent: Intent?) {
         try {
-            val data = intent.data
-            if (data != null && "true" == data.getQueryParameter("monthly")) {
-                val startIntent = Intent(this, MonthlyReportBaseActivity::class.java)
-                startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, true)
-                ActivityCompat.startActivity(this@MainActivity, startIntent, null)
+            intent?.let {
+                val data = intent.data
+                if (data != null && "true" == data.getQueryParameter("monthly")) {
+                    val startIntent = Intent(this, MonthlyReportBaseActivity::class.java)
+                    startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, true)
+                    ActivityCompat.startActivity(this@MainActivity, startIntent, null)
+                }
             }
         } catch (e: Exception) {
             Logger.error("Error while opening report activity", e)
@@ -1264,14 +1300,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      *
      * @param intent
      */
-    private fun openAddExpenseIfNeeded(intent: Intent) {
-        if (intent.getBooleanExtra(INTENT_SHOW_ADD_EXPENSE, false)) {
-            val startIntent = Intent(this, ExpenseEditActivity::class.java)
-            startIntent.putExtra("date", LocalDate.now().toEpochDay())
+    private fun openAddExpenseIfNeeded(intent: Intent?) {
+        intent?.let {
+            if (intent.getBooleanExtra(INTENT_SHOW_ADD_EXPENSE, false)) {
+                val startIntent = Intent(this, ExpenseEditActivity::class.java)
+                startIntent.putExtra("date", LocalDate.now().toEpochDay())
 
-            ActivityCompat.startActivityForResult(
-                this, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
-            )
+                ActivityCompat.startActivityForResult(
+                    this, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
+                )
+            }
         }
     }
 
@@ -1281,14 +1319,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      *
      * @param intent
      */
-    private fun openAddRecurringExpenseIfNeeded(intent: Intent) {
-        if (intent.getBooleanExtra(INTENT_SHOW_ADD_RECURRING_EXPENSE, false)) {
-            val startIntent = Intent(this, RecurringExpenseEditActivity::class.java)
-            startIntent.putExtra("dateStart", LocalDate.now().toEpochDay())
+    private fun openAddRecurringExpenseIfNeeded(intent: Intent?) {
+        intent?.let {
+            if (intent.getBooleanExtra(INTENT_SHOW_ADD_RECURRING_EXPENSE, false)) {
+                val startIntent = Intent(this, RecurringExpenseEditActivity::class.java)
+                startIntent.putExtra("dateStart", LocalDate.now().toEpochDay())
 
-            ActivityCompat.startActivityForResult(
-                this, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
-            )
+                ActivityCompat.startActivityForResult(
+                    this, startIntent, ADD_EXPENSE_ACTIVITY_CODE, null
+                )
+            }
         }
     }
 
@@ -1556,12 +1596,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             if (googleMobileAdsConsentManager?.canRequestAds != false) {
                 initializeMobileAdsSdk()
             }
-            // Since we're loading the banner based on the adContainerView size, we need to wait until this
-            // view is laid out before we can get the width.
-            binding.adViewContainer.viewTreeObserver.addOnGlobalLayoutListener {
-                if (!initialLayoutComplete.getAndSet(true) && googleMobileAdsConsentManager?.canRequestAds != false) {
-                    loadAndDisplayBannerAds()
-                }
+            if (googleMobileAdsConsentManager?.canRequestAds != false) {
+                loadAndDisplayBannerAds()
             }
         }
     }
@@ -1570,10 +1606,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Initialize the Mobile Ads SDK.
         if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
             if (isMobileAdsInitializeCalled.getAndSet(true)) {
-                return
+                MobileAds.initialize(this) {
+                    loadAndDisplayBannerAds()
+                }
+            } else {
+                loadAndDisplayBannerAds()
             }
-            MobileAds.initialize(this) { }
-            loadAndDisplayBannerAds()
         }
     }
 
@@ -1582,25 +1620,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
-            // Since we're loading the banner based on the adContainerView size, we need to wait until this
-            // view is laid out before we can get the width.
             val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.viewTreeObserver.addOnGlobalLayoutListener {
-                if (!initialLayoutComplete.getAndSet(true) && googleMobileAdsConsentManager?.canRequestAds != false) {
-                    adContainerView.visibility = View.VISIBLE
-                    val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
-                    adView = AdView(this)
-                    adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-                    adContainerView.addView(adView)
-                    val actualAdRequest = AdRequest.Builder().build()
-                    adView?.setAdSize(adSize)
-                    adView?.loadAd(actualAdRequest)
-                    adView?.adListener = object : AdListener() {
-                        override fun onAdLoaded() {}
-                        override fun onAdOpened() {}
-                        override fun onAdClosed() {
-                            loadAndDisplayBannerAds()
-                        }
+            if (googleMobileAdsConsentManager?.canRequestAds != false) {
+                adContainerView.visibility = View.VISIBLE
+                val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
+                adView = AdView(this)
+                adView?.adUnitId = getString(R.string.banner_ad_unit_id)
+                adContainerView.addView(adView)
+                val actualAdRequest = AdRequest.Builder().build()
+                adView?.setAdSize(adSize)
+                adView?.loadAd(actualAdRequest)
+                adView?.adListener = object : AdListener() {
+                    override fun onAdLoaded() {}
+                    override fun onAdOpened() {}
+                    override fun onAdClosed() {
+                        loadAndDisplayBannerAds()
                     }
                 }
             }

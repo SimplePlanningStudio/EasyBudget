@@ -27,7 +27,7 @@
                 android:contentDescription="@string/content_description"
                 android:src="@drawable/ic_close_security_dialog" />
 
-            <com.simplemobiletools.commons.views.MyTextView
+            <com.simplebudget.helper.views.MyTextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -40,7 +40,7 @@
                 android:textSize="@dimen/_24ssp"
                 tools:ignore="RelativeOverlap" />
 
-            <com.simplemobiletools.commons.views.MyTextView
+            <com.simplebudget.helper.views.MyTextView
                 android:id="@+id/info"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

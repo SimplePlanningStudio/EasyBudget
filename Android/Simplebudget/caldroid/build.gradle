@@ -1,11 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
+    namespace = "com.caldroid"
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 33
+        minSdkVersion 26
+        targetSdkVersion 34
     }
 
     compileOptions {
@@ -15,7 +16,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.viewpager:viewpager:1.0.0'
     api 'com.darwinsys:hirondelle-date4j:1.5.1'
 }

@@ -3,10 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_sort_categories"
+        android:icon="@drawable/ic_sort_categories"
+        android:orderInCategory="1"
+        android:title="@string/sort_categories"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_done_editing"
+        android:icon="@drawable/ic_done_tick"
         android:orderInCategory="1"
         android:title="@string/done"
-        app:actionLayout="@layout/custom_menu_manage_categories"
         app:showAsAction="always" />
 
 </menu>

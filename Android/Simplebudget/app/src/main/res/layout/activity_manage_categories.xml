@@ -79,6 +79,16 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <View
+        android:id="@+id/anchor"
+        android:layout_width="30dp"
+        android:layout_height="2dp"
+        android:layout_marginTop="@dimen/_2sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        app:layout_constraintBottom_toTopOf="@+id/recyclerViewCategories"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search_card_view" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCategories"
         android:layout_width="match_parent"
@@ -95,10 +105,10 @@
         android:id="@+id/linearLayoutEmptyState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_minus20sdp"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone"
-        android:layout_marginTop="@dimen/_minus20sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

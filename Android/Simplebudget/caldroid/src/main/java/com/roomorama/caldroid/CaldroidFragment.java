@@ -1213,22 +1213,10 @@ public class CaldroidFragment extends DialogFragment {
                 .findViewById(R.id.calendar_right_arrow);
 
         // Navigate to previous month when user click
-        leftArrowButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                prevMonth();
-            }
-        });
+        leftArrowButton.setOnClickListener(v -> prevMonth());
 
         // Navigate to next month when user click
-        rightArrowButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                nextMonth();
-            }
-        });
+        rightArrowButton.setOnClickListener(v -> nextMonth());
 
         // Show navigation arrows depend on initial arguments
         setShowNavigationArrows(showNavigationArrows);

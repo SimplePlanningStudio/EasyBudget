@@ -121,6 +121,11 @@ private const val USER_SAW_HELP_HINT_PARAMETERS_KEY = "user_saw_help_hint"
 private const val USER_SAW_SETTINGS_HINT_PARAMETERS_KEY = "user_saw_settings_hint"
 
 /**
+ * Privacy Hint
+ */
+private const val USER_SAW_PRIVACY_HINT_PARAMETERS_KEY = "user_saw_privacy_hint"
+
+/**
  * Hide Balance
  */
 private const val USER_SAW_HIDE_BALANCE_HINT_PARAMETERS_KEY = "user_saw_hide_balance_hint"
@@ -185,6 +190,12 @@ private const val KEY_CHANGE_LANGUAGE = "change_language"
 private const val KEY_ACTIVE_ACCOUNT = "active_account"
 private const val KEY_ACTIVE_ACCOUNT_NAME = "active_account_name"
 
+
+/**
+ * Categories sorting
+ * Default should be Sort By Latest
+ */
+private const val CATEGORIES_SORTING_KEY = "categories_sorting"
 
 fun AppPreferences.getInitDate(): LocalDate? {
     val timestamp = getLong(INIT_DATE_PARAMETERS_KEY, 0L)
@@ -393,6 +404,17 @@ fun AppPreferences.setUserSawSettingsHint() {
 }
 
 /**
+ * Privacy hint
+ */
+fun AppPreferences.hasUserSawPrivacyHint(): Boolean {
+    return getBoolean(USER_SAW_PRIVACY_HINT_PARAMETERS_KEY, false)
+}
+
+fun AppPreferences.setUserSawPrivacyHint() {
+    putBoolean(USER_SAW_PRIVACY_HINT_PARAMETERS_KEY, true)
+}
+
+/**
  * Multiple Accounts hint
  */
 fun AppPreferences.hasUserSawMultiAccountsHint(): Boolean {
@@ -584,4 +606,18 @@ fun AppPreferences.activeAccountLabel(): String =
 fun AppPreferences.setActiveAccount(accountId: Long?, accountName: String?) {
     putLong(KEY_ACTIVE_ACCOUNT, accountId ?: 1) // 1 is default account id from the DB
     putString(KEY_ACTIVE_ACCOUNT_NAME, accountName ?: AccountType.DEFAULT_ACCOUNT.name)
+}
+
+/**
+ * Save sorting options and load next time as same.
+ */
+fun AppPreferences.setSortingType(sortingType: String) {
+    putString(CATEGORIES_SORTING_KEY, sortingType)
+}
+
+/**
+ * Get sorting options and default is 'By Latest'.
+ */
+fun AppPreferences.getSortingType(): SortOption {
+    return SortOption.valueOf(getString(CATEGORIES_SORTING_KEY) ?: SortOption.ByLatest.name)
 }

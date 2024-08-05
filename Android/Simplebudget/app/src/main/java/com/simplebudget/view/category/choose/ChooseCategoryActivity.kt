@@ -28,6 +28,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
@@ -42,6 +43,7 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySearchCategoryBinding
 import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.SortOption
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.extensions.toCategories
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
@@ -66,6 +68,7 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
     private val appPreferences: AppPreferences by inject()
     private var adView: AdView? = null
     private lateinit var receiver: BroadcastReceiver
+    private var selectedOption: SortOption = SortOption.Alphabetically
 
     companion object {
         const val REQUEST_CODE_CURRENT_EDIT_CATEGORY = "CURRENT_EDIT_CATEGORY"
@@ -90,6 +93,7 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        selectedOption = appPreferences.getSortingType()
 
         currentCategoryName = intent?.getStringExtra(REQUEST_CODE_CURRENT_EDIT_CATEGORY) ?: ""
 
@@ -207,12 +211,47 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
                 onBackPressed()
                 true
             }
+
             R.id.action_edit_categories -> {
                 launchManageCategories()
                 true
             }
+
+            R.id.action_sort_categories -> {
+                // Sorting categories
+                showPopupMenu()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showPopupMenu() {
+        val popupMenu = PopupMenu(this, binding.anchor)
+        popupMenu.menuInflater.inflate(R.menu.categories_sort_options_popup_menu, popupMenu.menu)
+
+        // Set listener for menu item clicks
+        popupMenu.setOnMenuItemClickListener { item: MenuItem ->
+            when (item.itemId) {
+                R.id.menu_alphabetically -> {
+                    selectedOption = SortOption.Alphabetically
+                    appPreferences.setSortingType(SortOption.Alphabetically.name)
+                    attachAdapter(categories)
+                    true
+                }
+
+                R.id.menu_by_latest -> {
+                    selectedOption = SortOption.ByLatest
+                    appPreferences.setSortingType(SortOption.ByLatest.name)
+                    attachAdapter(categories)
+                    true
+                }
+
+                else -> false
+            }
+        }
+        popupMenu.show()
     }
 
     /**
@@ -272,10 +311,11 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
      *
      */
     private fun attachAdapter(list: List<Category>) {
-        searchAdapter = ChooseCategoryAdapter(list) { selectedCategory ->
-            this.selectedCategory = selectedCategory
-            doneWithSelection()
-        }
+        val sortedCategories = list.sortedBy { it.name } // Sort Alphabetically
+        searchAdapter = ChooseCategoryAdapter(if (selectedOption == SortOption.Alphabetically) sortedCategories else list) { selectedCategory ->
+                this.selectedCategory = selectedCategory
+                doneWithSelection()
+            }
         binding.recyclerViewCategories.adapter = searchAdapter
         val dividerItemDecoration = DividerItemDecoration(
             binding.recyclerViewCategories.context, LinearLayout.VERTICAL

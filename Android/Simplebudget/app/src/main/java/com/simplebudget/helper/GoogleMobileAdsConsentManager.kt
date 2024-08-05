@@ -59,7 +59,7 @@ class GoogleMobileAdsConsentManager private constructor(context: Context) {
         onConsentGatheringCompleteListener: OnConsentGatheringCompleteListener
     ) {
         // For testing purposes, you can force a DebugGeography of EEA or NOT_EEA.
-        val params = if (BuildConfig.DEBUG) {
+        val params = if (BuildConfig.DEBUG && BuildConfig.FLAVOR == "prod") {
             val debugSettings =
                 ConsentDebugSettings.Builder(activity)
                     .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)

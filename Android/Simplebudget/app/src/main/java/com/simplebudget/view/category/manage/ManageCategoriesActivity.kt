@@ -31,6 +31,7 @@ import android.view.WindowManager
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -58,6 +59,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>(),
@@ -70,6 +72,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
     private var adView: AdView? = null
     private lateinit var receiver: BroadcastReceiver
     private val appPreferences: AppPreferences by inject()
+    private var selectedOption: SortOption = SortOption.Alphabetically
 
     /**
      *
@@ -87,6 +90,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        selectedOption = appPreferences.getSortingType()
 
         // Register receiver
         val filter = IntentFilter()
@@ -172,13 +176,49 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                 doneWithManaging()
                 true
             }
+
             R.id.action_done_editing -> {
                 doneWithManaging()
                 true
             }
+
+            R.id.action_sort_categories -> {
+                // Sorting categories
+                showPopupMenu()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    private fun showPopupMenu() {
+        val popupMenu = PopupMenu(this, binding.anchor)
+        popupMenu.menuInflater.inflate(R.menu.categories_sort_options_popup_menu, popupMenu.menu)
+
+        // Set listener for menu item clicks
+        popupMenu.setOnMenuItemClickListener { item: MenuItem ->
+            when (item.itemId) {
+                R.id.menu_alphabetically -> {
+                    selectedOption = SortOption.Alphabetically
+                    appPreferences.setSortingType(SortOption.Alphabetically.name)
+                    attachAdapter(categories)
+                    true
+                }
+
+                R.id.menu_by_latest -> {
+                    selectedOption = SortOption.ByLatest
+                    appPreferences.setSortingType(SortOption.ByLatest.name)
+                    attachAdapter(categories)
+                    true
+                }
+
+                else -> false
+            }
+        }
+        popupMenu.show()
+    }
+
 
     /**
      * Start activity for result
@@ -237,8 +277,13 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
      *
      */
     private fun attachAdapter(list: ArrayList<Category>) {
+        val sortedCategories = list.sortedBy { it.name } // Sort Alphabetically
         manageCategoriesAdapter =
-            ManageCategoriesAdapter(list, this, appPreferences.getUserCurrency().symbol)
+            ManageCategoriesAdapter(
+                if (selectedOption == SortOption.Alphabetically) ArrayList(
+                    sortedCategories
+                ) else list, this, appPreferences.getUserCurrency().symbol
+            )
         binding.recyclerViewCategories.adapter = manageCategoriesAdapter
         val dividerItemDecoration = DividerItemDecoration(
             binding.recyclerViewCategories.context, LinearLayout.VERTICAL

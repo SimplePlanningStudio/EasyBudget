@@ -1,41 +1,70 @@
+/*
+ *   Copyright 2024 Waheed Nazir
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 package com.simplebudget
 
-import android.app.*
+import android.app.Activity
+import android.app.Application
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
-import com.google.android.gms.ads.*
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.simplebudget.db.DB
-import com.simplebudget.helper.*
+import com.simplebudget.helper.ENABLE_ANALYTICS
+import com.simplebudget.helper.Logger
 import com.simplebudget.helper.analytics.FirebaseAnalyticsHelper
-import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.helper.getUserCurrency
+import com.simplebudget.helper.setUserCurrency
+import com.simplebudget.helper.toStartOfDayDate
 import com.simplebudget.injection.appModule
 import com.simplebudget.injection.viewModelModule
-import com.simplebudget.prefs.*
+import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.getCurrentAppVersion
+import com.simplebudget.prefs.getInitDate
+import com.simplebudget.prefs.getLastOpenTimestamp
+import com.simplebudget.prefs.getLocalId
+import com.simplebudget.prefs.getNumberOfDailyOpen
+import com.simplebudget.prefs.getNumberOfOpen
+import com.simplebudget.prefs.getRatingPopupLastAutoShowTimestamp
+import com.simplebudget.prefs.getShouldResetInitDate
+import com.simplebudget.prefs.setCurrentAppVersion
+import com.simplebudget.prefs.setInitDate
+import com.simplebudget.prefs.setLastOpenTimestamp
+import com.simplebudget.prefs.setLocalId
+import com.simplebudget.prefs.setNumberOfDailyOpen
+import com.simplebudget.prefs.setNumberOfOpen
+import com.simplebudget.prefs.setRatingPopupLastAutoShowTimestamp
+import com.simplebudget.prefs.setShouldResetInitDate
 import com.simplebudget.view.RatingPopup
+import com.simplebudget.view.main.MainActivity
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
-import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
-import com.simplebudget.view.main.MainActivity as MainActivity
+import java.util.Calendar
+import java.util.Date
+import java.util.UUID
 
 
-/**
- * EasyBudget application. Implements GA tracking, Batch set-up, Crashlytics set-up && iab.
- *
- * @author Benoit LETONDOR
- */
 class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbacks,
     LifecycleObserver, Configuration.Provider {
 
@@ -268,15 +297,10 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 
     override fun onActivityDestroyed(activity: Activity) {}
-
-    /**
-     * Provides configurations
-     */
-    override fun getWorkManagerConfiguration(): Configuration {
-        return if (BuildConfig.DEBUG) {
+    override val workManagerConfiguration: Configuration
+        get() = if (BuildConfig.DEBUG) {
             Configuration.Builder().setMinimumLoggingLevel(Log.DEBUG).build()
         } else {
             Configuration.Builder().setMinimumLoggingLevel(Log.ERROR).build()
         }
-    }
 }

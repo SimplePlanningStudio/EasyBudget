@@ -15,8 +15,6 @@
  */
 package com.simplebudget.helper
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.app.Activity
 import android.content.Context
 import android.os.Build
@@ -25,7 +23,6 @@ import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.*
-import android.view.animation.AccelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
@@ -33,11 +30,8 @@ import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import com.google.android.material.textfield.TextInputEditText
-import com.simplebudget.view.main.MainActivity
-import kotlin.math.max
 
 /**
  * This helper prevents the user to add unsupported values into an EditText for decimal numbers

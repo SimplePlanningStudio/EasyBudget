@@ -37,11 +37,11 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 
 ### For any query related to SimpleBudget
  
- You can  [(Contact Us)](mailto:wavetechstudio@gmail.com)
+ You can  [(Contact Us)](mailto:info@simplebudget.online)
 
 ### Copyright
 
-    Copyright (C) 2024 Waheed Nazir. The name "SimpleBudget", the app idea and assets (images, names, wordings etc...) are all under copyright.
+    Copyright (C) 2024 SPS. The name "SimpleBudget", the app idea and assets (images, names, wordings etc...) are all under copyright.
     Sources are availables under the Apache 2 licence (See LICENSE for details) and contributions will be warmely welcomed! Feel free to contribute :)
     
     

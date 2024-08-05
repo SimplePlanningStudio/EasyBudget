@@ -609,6 +609,50 @@
 
         </LinearLayout>
 
+
+        <!-- Privacy Hint-->
+        <LinearLayout
+            android:id="@+id/privacy_hint"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="@dimen/margin_end_settings_hint"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/triangle_drawable" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/monthly_report_hint_background"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/privacy_hint"
+                    android:textColor="@android:color/black"
+                    android:textSize="15sp" />
+
+                <Button
+                    android:id="@+id/privacy_hint_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="@string/ok"
+                    android:theme="@style/BlueButton" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
         <FrameLayout
             android:id="@+id/framelayoutOpaque"
             android:layout_width="match_parent"

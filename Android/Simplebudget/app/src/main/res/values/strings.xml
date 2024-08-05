@@ -286,6 +286,7 @@
     <string name="search_dialog_hint">You can quickly search expenses from here!</string>
     <string name="help_dialog_hint">You can access FAQ, Feedback, Contact us from here!</string>
     <string name="settings_hint">You can access app settings from here!</string>
+    <string name="privacy_hint">You can access privacy settings from here!</string>
 
     <string name="backup_settings_activity_title">Data Backup</string>
     <string name="backup_settings_cloud_backup">SimpleBudget cloud backup</string>
@@ -694,5 +695,9 @@
     <string name="share_your_review">Share Your Review</string>
     <string name="explore_the_feedback_of_our_valued_users">Explore the feedback of our valued users.</string>
     <string name="user_testimonials">User Testimonials</string>
+    <string name="tick">✔</string>
+    <string name="sort_alphabetically">Sort Alphabetically</string>
+    <string name="sort_by_latest">Sort By Latest</string>
+    <string name="sort_categories">Sort Categories</string>
 
 </resources>
