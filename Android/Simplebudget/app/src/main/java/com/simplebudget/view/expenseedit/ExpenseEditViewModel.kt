@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.time.LocalDate
 class ExpenseEditViewModel(
     private val db: DB,
     private val appPreferences: AppPreferences,
-    private val iab: Iab
+    private val iab: Iab,
 ) : ViewModel() {
     /**
      * Expense that is being edited (will be null if it's a new one)
@@ -62,7 +62,8 @@ class ExpenseEditViewModel(
                 expense.title,
                 expense.amount,
                 expense.category,
-                expense.accountId
+                expense.accountId,
+                expense.categoryId
             ) else null
     }
 
@@ -74,7 +75,8 @@ class ExpenseEditViewModel(
         value: Double,
         description: String,
         expenseCategoryType: String,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long,
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -91,7 +93,8 @@ class ExpenseEditViewModel(
             isRevenue,
             date,
             expenseCategoryType,
-            accountId
+            accountId,
+            categoryId
         )
     }
 
@@ -99,7 +102,8 @@ class ExpenseEditViewModel(
         value: Double,
         description: String,
         expenseCategoryType: String,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long,
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -110,7 +114,8 @@ class ExpenseEditViewModel(
             isRevenue,
             date,
             expenseCategoryType,
-            accountId
+            accountId,
+            categoryId
         )
     }
 
@@ -124,7 +129,8 @@ class ExpenseEditViewModel(
         isRevenue: Boolean,
         date: LocalDate,
         expenseCategoryType: String,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long
     ) {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
@@ -132,13 +138,16 @@ class ExpenseEditViewModel(
                     title = description,
                     amount = if (isRevenue) -value else value,
                     date = date,
-                    category = expenseCategoryType
+                    category = expenseCategoryType,
+                    accountId = accountId,
+                    categoryId = categoryId
                 ) ?: Expense(
                     description,
                     if (isRevenue) -value else value,
                     date,
                     expenseCategoryType,
-                    accountId
+                    accountId,
+                    categoryId
                 )
                 db.persistExpense(expense)
             }
@@ -163,5 +172,6 @@ data class ExistingExpenseData(
     val title: String,
     val amount: Double,
     val categoryType: String,
-    val accountId: Long
+    val accountId: Long,
+    val categoryId: Long?,
 )

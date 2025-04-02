@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.Menu
@@ -35,6 +36,8 @@ import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.DividerItemDecoration
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -43,13 +46,19 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySearchCategoryBinding
 import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.AppInstallHelper
+import com.simplebudget.helper.DateHelper
+import com.simplebudget.helper.Logger
 import com.simplebudget.helper.SortOption
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.extensions.toCategories
+import com.simplebudget.helper.getFormattedDate
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.category.Category
-import com.simplebudget.model.category.ExpenseCategories
-import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.*
 import com.simplebudget.view.category.manage.ManageCategoriesActivity
 import kotlinx.coroutines.launch
@@ -62,20 +71,25 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
 
     private lateinit var miscellaneousCategory: Category
     private var selectedCategory: Category? = null
-    private var currentCategoryName = ""
     private val viewModelCategory: ChooseCategoryViewModel by viewModel()
     private var categories: ArrayList<Category> = ArrayList()
+    private val selectedCategories = mutableSetOf<Category>()
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private var adView: AdView? = null
     private lateinit var receiver: BroadcastReceiver
     private var selectedOption: SortOption = SortOption.Alphabetically
+    private var isMultiSelect: Boolean = false
+    private val toastManager: ToastManager by inject()
+
 
     companion object {
         const val REQUEST_CODE_CURRENT_EDIT_CATEGORY = "CURRENT_EDIT_CATEGORY"
         const val REQUEST_CODE_SELECTED_CATEGORY = "SELECTED_CATEGORY"
+        const val REQUEST_CODE_MULTI_SELECT = "IS_MULTI_SELECT"
     }
 
-    private lateinit var searchAdapter: ChooseCategoryAdapter
+    private lateinit var chooseCategoryAdapter: ChooseCategoryAdapter
 
     /**
      *
@@ -90,12 +104,21 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_CHOOSE_CATEGORY_SCREEN)
+
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         selectedOption = appPreferences.getSortingType()
 
-        currentCategoryName = intent?.getStringExtra(REQUEST_CODE_CURRENT_EDIT_CATEGORY) ?: ""
+        isMultiSelect = intent.getBooleanExtra(REQUEST_CODE_MULTI_SELECT, false)
+
+        binding.doneWithSelection.visibility = if (isMultiSelect) View.VISIBLE else View.GONE
+        binding.searchCardView.visibility = if (isMultiSelect) View.GONE else View.VISIBLE
+        title =
+            if (isMultiSelect) getString(R.string.select_categories) else getString(R.string.select_category)
 
         // Register receiver
         val filter = IntentFilter()
@@ -113,13 +136,11 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
 
         viewModelCategory.premiumStatusLiveData.observe(this) { isPremium ->
             if (isPremium) {
-                val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-                adContainerView.visibility = View.INVISIBLE
+                binding.adViewContainer.visibility = View.INVISIBLE
             } else {
                 loadAndDisplayBannerAds()
             }
         }
-
 
         binding.searchEditText.doOnTextChanged { text, _, _, _ ->
             val query = text.toString().uppercase()
@@ -133,7 +154,7 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
             binding.linearLayoutEmptyState.visibility = View.GONE
             binding.recyclerViewCategories.visibility = View.VISIBLE
             attachAdapter(categories)
-            searchAdapter.notifyDataSetChanged()
+            chooseCategoryAdapter.notifyDataSetChanged()
             toggleImageView("")
         }
         binding.btnAdd.setOnClickListener {
@@ -143,12 +164,62 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
             binding.linearLayoutEmptyState.visibility = View.GONE
             binding.recyclerViewCategories.visibility = View.VISIBLE
             toggleImageView("")
-            searchAdapter.notifyDataSetChanged()
+            chooseCategoryAdapter.notifyDataSetChanged()
             viewModelCategory.saveCategory(Category(id = null, name = newCategory))
+            //Log event
+            analyticsManager.logEvent(
+                Events.KEY_CATEGORY_ADDED,
+                mapOf(
+                    Events.KEY_VALUE to ChooseCategoryActivity::class.java.simpleName
+                )
+            )
         }
 
         handleVoiceSearch()
         loadCategories()
+
+        // In case of multi selection we need to get trigger once done with selection
+        binding.doneWithSelection.setOnClickListener {
+            if (chooseCategoryAdapter.getSelectedCategories().isNotEmpty()) {
+                selectedCategories.clear()
+                selectedCategories.addAll(chooseCategoryAdapter.getSelectedCategories())
+                doneWithSelection()
+            } else {
+                toastManager.showShort(getString(R.string.please_select_categories))
+            }
+        }
+
+        //Show banner
+        showAppBanner()
+    }
+
+
+    /**
+     * Show app promotion banner
+     */
+    private fun showAppBanner() {
+        // Show app banner promotion
+        if (appPreferences.isUserPremium().not() && shouldShowBanner()) {
+            val banner = appPreferences.getBanner()
+            binding.bannerLayout.bannerCard.visibility = banner?.let { View.VISIBLE } ?: View.GONE
+            banner?.let {
+                if (AppInstallHelper.isInstalled(banner.packageName ?: "", this).not()) {
+                    binding.bannerLayout.bannerTitle.text = banner.title
+                    binding.bannerLayout.bannerDescription.text = banner.description
+                    Glide.with(this)
+                        .load(banner.imageUrl)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .into(binding.bannerLayout.bannerImage)
+                    binding.bannerLayout.bannerCard.setOnClickListener {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(banner.redirectUrl))
+                        startActivity(intent)
+                    }
+                    updateBannerCount()
+                }
+            }
+        } else {
+            binding.bannerLayout.bannerCard.visibility = View.GONE
+        }
     }
 
     // ------------------------------------------>
@@ -170,7 +241,8 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
             if (appPreferences.hasUserCompleteManageCategoriesFromSelectCategoryShowCaseView()
                     .not()
             ) {
-                showCaseView(targetView = it,
+                showCaseView(
+                    targetView = it,
                     title = getString(R.string.edit_categories),
                     message = getString(R.string.edit_categories_show_view_message),
                     handleGuideListener = {
@@ -238,6 +310,14 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
                     selectedOption = SortOption.Alphabetically
                     appPreferences.setSortingType(SortOption.Alphabetically.name)
                     attachAdapter(categories)
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_CATEGORY_SORTED,
+                        mapOf(
+                            Events.KEY_VALUE to SortOption.Alphabetically.name,
+                            Events.KEY_VALUE to ChooseCategoryActivity::class.java.simpleName
+                        )
+                    )
                     true
                 }
 
@@ -245,6 +325,14 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
                     selectedOption = SortOption.ByLatest
                     appPreferences.setSortingType(SortOption.ByLatest.name)
                     attachAdapter(categories)
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_CATEGORY_SORTED,
+                        mapOf(
+                            Events.KEY_VALUE to SortOption.ByLatest.name,
+                            Events.KEY_VALUE to ChooseCategoryActivity::class.java.simpleName
+                        )
+                    )
                     true
                 }
 
@@ -278,6 +366,11 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
                 )
             }
             voiceSearchIntentLauncher.launch(intent)
+            //Log event
+            analyticsManager.logEvent(
+                Events.KEY_CATEGORY_VOICE_SEARCHED,
+                mapOf(Events.KEY_VALUE to ChooseCategoryActivity::class.java.simpleName)
+            )
         }
     }
 
@@ -312,11 +405,22 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
      */
     private fun attachAdapter(list: List<Category>) {
         val sortedCategories = list.sortedBy { it.name } // Sort Alphabetically
-        searchAdapter = ChooseCategoryAdapter(if (selectedOption == SortOption.Alphabetically) sortedCategories else list) { selectedCategory ->
+        chooseCategoryAdapter = ChooseCategoryAdapter(
+            if (selectedOption == SortOption.Alphabetically) sortedCategories else list,
+            onCategorySelected = { selectedCategory ->
                 this.selectedCategory = selectedCategory
                 doneWithSelection()
-            }
-        binding.recyclerViewCategories.adapter = searchAdapter
+            },
+            onCategoryChosen = { chosenCategory ->
+                if (selectedCategories.contains(chosenCategory)) {
+                    selectedCategories.remove(chosenCategory)
+                } else {
+                    selectedCategories.add(chosenCategory)
+                }
+            },
+            isMultiSelect
+        )
+        binding.recyclerViewCategories.adapter = chooseCategoryAdapter
         val dividerItemDecoration = DividerItemDecoration(
             binding.recyclerViewCategories.context, LinearLayout.VERTICAL
         )
@@ -344,20 +448,42 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
     }
 
     /**
-     *
+     * Handle category / categories selection and move the screen back!
      */
     private fun doneWithSelection() {
-        setResult(
-            Activity.RESULT_OK, Intent().putExtra(
-                REQUEST_CODE_SELECTED_CATEGORY, selectedCategory ?: miscellaneousCategory
-            )
-        )
+        val data = Intent().apply {
+            if (isMultiSelect) {
+                putParcelableArrayListExtra(
+                    REQUEST_CODE_SELECTED_CATEGORY,
+                    ArrayList(selectedCategories.toList())
+                )
+                //Log event
+                analyticsManager.logEvent(
+                    Events.KEY_CATEGORY_SELECTED,
+                    mapOf(
+                        Events.KEY_VALUE to "multi_selection",
+                    )
+                )
+            } else {
+                putExtra(REQUEST_CODE_SELECTED_CATEGORY, selectedCategory ?: miscellaneousCategory)
+                //Log event
+                analyticsManager.logEvent(
+                    Events.KEY_CATEGORY_SELECTED,
+                    mapOf(
+                        Events.KEY_VALUE to "single_selection",
+                    )
+                )
+            }
+        }
+        setResult(Activity.RESULT_OK, data)
         finish()
     }
+
 
     /**
      *
      */
+    @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         doneWithSelection()
@@ -395,12 +521,11 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
-            val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.VISIBLE
+            binding.adViewContainer.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
             adView = AdView(this)
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            adContainerView.addView(adView)
+            binding.adViewContainer.addView(adView)
             val actualAdRequest = AdRequest.Builder().build()
             adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
@@ -411,9 +536,14 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
+    }
+
+    override fun onResume() {
+        adView?.resume()
+        super.onResume()
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.simplebudget.view.security
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
@@ -27,16 +28,22 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.TextView
+import com.google.firebase.analytics.FirebaseAnalytics.Event
 import com.simplebudget.R
 import com.simplebudget.databinding.DialogSecurityBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.interfaces.HashListener
+import org.koin.android.ext.android.inject
 
 
 class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
 
     private lateinit var requiredHash: String
     private var showTabIndex: Int = 0
+    private val analyticsManager: AnalyticsManager by inject()
+
 
     companion object {
         const val REQUEST_CODE_SECURITY_TYPE = "VERIFICATION_TYPE"
@@ -73,6 +80,10 @@ class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
         binding.pinLockHolder.initTab(requiredHash, this)
 
         binding.ivClose.setOnClickListener { onCancelFail() }
+
+        //Screen event
+        analyticsManager.logEvent(Events.KEY_PASSWORD_PROTECTION_SCREEN)
+
     }
 
     /**
@@ -94,6 +105,7 @@ class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
                 setResult(Activity.RESULT_CANCELED, Intent())
                 finish()
             }
+
             SET_PIN -> {
                 setResult(
                     Activity.RESULT_CANCELED,
@@ -113,6 +125,7 @@ class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
                 setResult(Activity.RESULT_OK, Intent())
                 finish()
             }
+
             SET_PIN -> {
                 setResult(Activity.RESULT_OK, Intent().putExtra("HASH", binding.pinLockHolder.hash))
                 finish()
@@ -140,6 +153,7 @@ class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
     /**
      *
      */
+    @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         onCancelFail()

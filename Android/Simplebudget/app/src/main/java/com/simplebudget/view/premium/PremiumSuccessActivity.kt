@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.simplebudget.view.premium
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import com.simplebudget.R
@@ -70,6 +71,7 @@ class PremiumSuccessActivity : BaseActivity<ActivitySuccessPremiumBinding>() {
     /**
      *
      */
+    @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (isBackEnabled) {

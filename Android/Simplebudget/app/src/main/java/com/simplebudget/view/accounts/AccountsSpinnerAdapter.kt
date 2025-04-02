@@ -10,7 +10,10 @@ import com.simplebudget.R
 import com.simplebudget.model.account.Account
 
 class AccountsSpinnerAdapter(
-    context: Context, resource: Int, val objects: List<Account>
+    context: Context,
+    resource: Int,
+    private val objects: List<Account>,
+    private val forBudgets: Boolean = false
 ) :
     ArrayAdapter<Account>(context, resource, objects) {
 
@@ -32,10 +35,17 @@ class AccountsSpinnerAdapter(
         if (row == null) {
             val inflater =
                 context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            row = inflater.inflate(R.layout.spinner_item, parent, false)
 
-            viewHolder = ViewHolder()
-            viewHolder.textView = row.findViewById(R.id.textItem)
+            if (forBudgets) {
+                row = inflater.inflate(R.layout.spinner_item_budgets, parent, false)
+                viewHolder = ViewHolder()
+                viewHolder.textView = row.findViewById(R.id.textItem)
+            } else {
+                row = inflater.inflate(R.layout.spinner_item, parent, false)
+                viewHolder = ViewHolder()
+                viewHolder.textView = row.findViewById(R.id.textItem)
+            }
+
             row.tag = viewHolder
         } else {
             viewHolder = row.tag as ViewHolder

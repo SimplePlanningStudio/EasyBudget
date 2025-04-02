@@ -17,3 +17,13 @@
 #}
 
 -keep class * extends androidx.fragment.app.Fragment {}
+-dontwarn android.media.LoudnessCodecController$OnLoudnessCodecUpdateListener
+-dontwarn android.media.LoudnessCodecController
+
+# Retrofit and Gson ProGuard rules
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.simplebudget.** { *; }
+-keep class retrofit2.** { *; }
+-keep class okhttp3.** { *; }
+-keep class com.google.gson.** { *; }

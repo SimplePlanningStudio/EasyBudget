@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -48,6 +49,8 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentSearchBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.model.account.appendAccount
@@ -55,6 +58,7 @@ import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.view.report.DataModels
+import com.simplebudget.view.report.MonthlyReportFragment
 import com.simplebudget.view.report.PDFReportActivity
 import com.simplebudget.view.report.adapter.MainAdapter
 import org.koin.android.ext.android.inject
@@ -63,6 +67,8 @@ import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import androidx.core.graphics.toColorInt
+import androidx.core.net.toUri
 
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
@@ -71,6 +77,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private val appPreferences: AppPreferences by inject()
     private val viewModel: SearchViewModel by viewModel()
     private val toastManager: ToastManager by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private var adView: AdView? = null
     private val dayFormatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.getDefault())
 
@@ -78,17 +85,15 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private var mAdIsLoading = false
 
     private val storagePermissions = arrayOf(
-        WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE
+        WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
     )
 // ---------------------------------->
 
     override fun onCreateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): FragmentSearchBinding =
-        FragmentSearchBinding.inflate(inflater, container, false)
+        savedInstanceState: Bundle?,
+    ): FragmentSearchBinding = FragmentSearchBinding.inflate(inflater, container, false)
 
     /**
      *
@@ -96,6 +101,13 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         date = LocalDate.now() // Or we can get from args if we plan to handle it with notification
+
+        //Log event
+        analyticsManager.logEvent(
+            Events.KEY_SEARCH_FILTER, mapOf(
+                Events.KEY_VALUE to SearchUtil.THIS_MONTH
+            )
+        )
 
         viewModel.allExpenses.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
@@ -110,9 +122,11 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                 binding?.recyclerViewSearch?.visibility = View.VISIBLE
                 binding?.monthlyReportFragmentEmptyState?.visibility = View.GONE
                 binding?.totalSearchRecords?.text = if (result.size > 1) {
-                    String.format("%s %d %s", "About", result.size, "records...")
+                    String.format(
+                        Locale.getDefault(), "%s %d %s", "About", result.size, "records..."
+                    )
                 } else {
-                    String.format("%s %d %s", "Only", result.size, "record")
+                    String.format(Locale.getDefault(), "%s %d %s", "Only", result.size, "record")
                 }
                 //If we want to display normal listings like old version.
                 /*binding?.recyclerViewSearch?.layoutManager =
@@ -134,18 +148,28 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                     binding?.revenueDetails?.visibility = View.GONE
                     binding?.recyclerViewSearch?.visibility = View.GONE
                 }
+
                 is DataModels.MonthlyReportData.Data -> {
                     if (result.allExpensesOfThisMonth.isNotEmpty()) {
                         binding?.revenueDetails?.visibility = View.VISIBLE
                         binding?.recyclerViewSearch?.visibility = View.VISIBLE
                         setRevenueDetails(result.revenuesAmount, result.expensesAmount)
                         configureRecyclerView(
-                            binding?.recyclerViewSearch!!,
-                            MainAdapter(
+                            binding?.recyclerViewSearch!!, MainAdapter(
                                 result.allExpensesParentList,
-                                appPreferences
-                            )
-                            /*MonthlyReportRecyclerViewAdapter(
+                                appPreferences,
+                                onBannerClick = { banner ->
+                                    /* val bundle = Bundle().apply {
+                                         putString("banner_name", banner.app_name)
+                                         putString("app_package", banner.package_name)
+                                     }
+                                     logAnalyticEvent("banner_clicked", bundle)*/
+                                    if (banner.redirectUrl != null) {
+                                        val intent =
+                                            Intent(Intent.ACTION_VIEW, banner.redirectUrl!!.toUri())
+                                        startActivity(intent)
+                                    }
+                                })/*MonthlyReportRecyclerViewAdapter(
                                 result.expenses,
                                 result.revenues,
                                 result.allExpensesOfThisMonth,
@@ -245,8 +269,10 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                     toastManager.showShort(getString(R.string.please_add_expenses_for_this_month_to_generate_report))
                 } else {
                     startActivity(
-                        Intent(requireActivity(), PDFReportActivity::class.java)
-                            .putExtra(PDFReportActivity.INTENT_CODE_PDF_CONTENTS, htmlReport.html)
+                        Intent(requireActivity(), PDFReportActivity::class.java).putExtra(
+                            PDFReportActivity.INTENT_CODE_PDF_CONTENTS,
+                            htmlReport.html
+                        )
                     )
                 }
             }
@@ -258,8 +284,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         viewModel.observeExportStatus.observe(viewLifecycleOwner) { result ->
             //Get data list update it to UI, notify scroll down
             result?.let {
-                if (it.message.isNotEmpty())
-                    toastManager.showShort(it.message)
+                if (it.message.isNotEmpty()) toastManager.showShort(it.message)
                 if (!it.status) return@let
 
                 it.file?.let { file ->
@@ -280,8 +305,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                 positiveBtn = getString(R.string.noted),
                 positiveClickListener = {},
                 negativeBtn = "",
-                negativeClickListener = {}
-            ).show()
+                negativeClickListener = {}).show()
         }
     }
 
@@ -301,7 +325,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private fun configureRecyclerView(
         recyclerView: RecyclerView,
         /*adapter: MonthlyReportRecyclerViewAdapter*/
-        adapter: MainAdapter
+        adapter: MainAdapter,
     ) {
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
@@ -319,8 +343,8 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
             val spannableString = SpannableString(sentence)
             // Define the start and end indices for each word
             val colorfulWords = mapOf(
-                "Revenues: " to Color.parseColor("#4CAF50"), // Green
-                "Expenses: " to Color.parseColor("#F44336"), // Red
+                "Revenues: " to "#4CAF50".toColorInt(), // Green
+                "Expenses: " to "#F44336".toColorInt(), // Red
             )
             // Apply ForegroundColorSpan to each word
             for ((word, color) in colorfulWords) {
@@ -438,8 +462,10 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             true
         } else {
-            (EzPermission.isGranted(requireContext(), storagePermissions[0])
-                    && EzPermission.isGranted(requireContext(), storagePermissions[1]))
+            (EzPermission.isGranted(
+                requireContext(),
+                storagePermissions[0]
+            ) && EzPermission.isGranted(requireContext(), storagePermissions[1]))
         }
     }
 
@@ -447,20 +473,19 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      *
      */
     private fun askStoragePermission() {
-        EzPermission
-            .with(requireContext())
+        EzPermission.with(requireContext())
             .permissions(storagePermissions[0], storagePermissions[1])
             .request { granted, denied, permanentlyDenied ->
-                if (granted.contains(storagePermissions[0]) &&
-                    granted.contains(storagePermissions[1])
-                ) { // Storage permissions already Granted
+                if (granted.contains(storagePermissions[0]) && granted.contains(storagePermissions[1])) { // Storage permissions already Granted
                     exportSelectionDialog()
-                } else if (denied.contains(storagePermissions[0]) ||
-                    denied.contains(storagePermissions[1])
+                } else if (denied.contains(storagePermissions[0]) || denied.contains(
+                        storagePermissions[1]
+                    )
                 ) { // Denied
                     showStorageDeniedDialog()
-                } else if (permanentlyDenied.contains(storagePermissions[0]) ||
-                    permanentlyDenied.contains(storagePermissions[1])
+                } else if (permanentlyDenied.contains(storagePermissions[0]) || permanentlyDenied.contains(
+                        storagePermissions[1]
+                    )
                 ) { // Storage Permanently denied
                     showStoragePermanentlyDeniedDialog()
                 }
@@ -508,27 +533,34 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      */
     private fun exportSelectionDialog() {
         val weeks = arrayOf(
-            "Download or print pdf",
-            "Share spreadsheet"
+            "Download or print pdf", "Share spreadsheet"
         )
         val monthFormat = DateTimeFormatter.ofPattern(
-            "MMM yyyy",
-            Locale.getDefault()
+            "MMM yyyy", Locale.getDefault()
         )
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(String.format("Budget report of %s", monthFormat.format(date)))
-            .setItems(weeks) { dialog, which ->
-                if (which == 0) {
-                    viewModel.generateHtml(appPreferences.getUserCurrency(), date)
-                } else {
-                    exportExcel()
-                }
-                dialog.dismiss()
+        MaterialAlertDialogBuilder(requireContext()).setTitle(
+            String.format(
+                "Budget report of %s",
+                monthFormat.format(date)
+            )
+        ).setItems(weeks) { dialog, which ->
+            if (which == 0) {
+                viewModel.generateHtml(appPreferences.getUserCurrency(), date)
+                //Log event
+                analyticsManager.logEvent(
+                    Events.KEY_PRINT_PDF_REPORT
+                )
+            } else {
+                exportExcel()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_PRINT_EXCEL_REPORT)
             }
-            .setPositiveButton("Not now") { dialog, p1 ->
-                dialog.dismiss()
-            }.setCancelable(false)
-            .show()
+            dialog.dismiss()
+        }.setPositiveButton("Not now") { dialog, p1 ->
+            dialog.dismiss()
+        }.setCancelable(false).show()
+        //Log event
+        analyticsManager.logEvent(Events.KEY_REPORT_EXPORT)
     }
 
     /**
@@ -539,8 +571,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         when {
             isStoragePermissionsGranted() -> {
                 val fileNameDateFormat = DateTimeFormatter.ofPattern(
-                    "MMMyyyy",
-                    Locale.getDefault()
+                    "MMMyyyy", Locale.getDefault()
                 )
                 val file: File = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val exportDir = getAppSpecificDocumentStorageDirAboveAndEqualToAPI29()
@@ -559,6 +590,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                 }
                 viewModel.exportCSV(appPreferences.getUserCurrency(), date, file)
             }
+
             else -> {
                 askStoragePermission()
             }
@@ -594,8 +626,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      */
     private fun shareCsvFile(file: File) {
         val fileUri = FileProvider.getUriForFile(
-            requireContext(),
-            BuildConfig.APPLICATION_ID + ".fileprovider", file
+            requireContext(), BuildConfig.APPLICATION_ID + ".fileprovider", file
         )
         intentShareCSV(requireActivity(), fileUri)
     }
@@ -613,6 +644,12 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
             it.isChecked = true
         }
         binding?.searchEditText?.text?.clear()
+        //Log event
+        analyticsManager.logEvent(
+            Events.KEY_SEARCH_FILTER, mapOf(
+                Events.KEY_VALUE to Events.KEY_SEARCH_RESET
+            )
+        )
     }
 
 
@@ -622,7 +659,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private fun addChipsForTopSearches(
         chipText: String,
         showClose: Boolean = false,
-        isChecked: Boolean = false
+        isChecked: Boolean = false,
     ) {
         val chip = Chip(requireContext())
         chip.text = chipText
@@ -644,34 +681,98 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
             binding?.searchResultsFor?.text =
                 String.format(getString(R.string.search_results_for_), clickChipText)
             when (clickChipText) {
-                SearchUtil.TODAY -> viewModel.loadTodayExpenses()
-                SearchUtil.YESTERDAY -> viewModel.loadYesterdayExpenses()
-                SearchUtil.TOMORROW -> viewModel.loadTomorrowExpenses()
-                SearchUtil.THIS_WEEK -> viewModel.loadThisWeekExpenses()
-                SearchUtil.LAST_WEEK -> viewModel.loadLastWeekExpenses()
-                SearchUtil.THIS_MONTH -> viewModel.loadThisMonthExpenses()
+                SearchUtil.TODAY -> {
+                    viewModel.loadTodayExpenses()
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.TODAY
+                        )
+                    )
+                }
+
+                SearchUtil.YESTERDAY -> {
+                    viewModel.loadYesterdayExpenses()
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.YESTERDAY
+                        )
+                    )
+                }
+
+                SearchUtil.TOMORROW -> {
+                    viewModel.loadTomorrowExpenses()
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.TOMORROW
+                        )
+                    )
+                }
+
+                SearchUtil.THIS_WEEK -> {
+                    viewModel.loadThisWeekExpenses()
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.THIS_WEEK
+                        )
+                    )
+                }
+
+                SearchUtil.LAST_WEEK -> {
+                    viewModel.loadLastWeekExpenses()
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.LAST_WEEK
+                        )
+                    )
+                }
+
+                SearchUtil.THIS_MONTH -> {
+                    viewModel.loadThisMonthExpenses()
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.THIS_MONTH
+                        )
+                    )
+                }
+
                 SearchUtil.PICK_A_DATE -> {
                     requireActivity().pickSingleDate(onDateSet = { date ->
                         viewModel.loadExpensesForADate(date)
                         binding?.searchResultsFor?.visibility = View.VISIBLE
-                        binding?.searchResultsFor?.text =
-                            String.format(
-                                getString(R.string.search_results_for_),
-                                dayFormatter.format(date)
-                            )
+                        binding?.searchResultsFor?.text = String.format(
+                            getString(R.string.search_results_for_), dayFormatter.format(date)
+                        )
                     })
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.PICK_A_DATE
+                        )
+                    )
                 }
+
                 SearchUtil.PICK_A_DATE_RANGE -> {
                     requireActivity().pickDateRange(onDateSet = { dates ->
                         viewModel.loadExpensesForGivenDates(dates.first, dates.second)
                         binding?.searchResultsFor?.visibility = View.VISIBLE
-                        binding?.searchResultsFor?.text =
-                            String.format(
-                                getString(R.string.search_results_for_range),
-                                dayFormatter.format(dates.first),
-                                dayFormatter.format(dates.second)
-                            )
+                        binding?.searchResultsFor?.text = String.format(
+                            getString(R.string.search_results_for_range),
+                            dayFormatter.format(dates.first),
+                            dayFormatter.format(dates.second)
+                        )
                     })
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_SEARCH_FILTER, mapOf(
+                            Events.KEY_VALUE to SearchUtil.PICK_A_DATE_RANGE
+                        )
+                    )
                 }
             }
         }
@@ -691,14 +792,12 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         try {
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
-                requireContext(),
-                requireActivity().windowManager.defaultDisplay
+                requireContext(), requireActivity().windowManager.defaultDisplay
             )!!
             adView = AdView(requireContext())
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             binding?.adViewContainer?.addView(adView)
-            val actualAdRequest = AdRequest.Builder()
-                .build()
+            val actualAdRequest = AdRequest.Builder().build()
             adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
@@ -708,8 +807,8 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 }

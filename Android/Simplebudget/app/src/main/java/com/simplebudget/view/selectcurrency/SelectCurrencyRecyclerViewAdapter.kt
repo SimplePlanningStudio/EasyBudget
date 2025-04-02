@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import kotlin.collections.ArrayList
 class SelectCurrencyRecyclerViewAdapter(
     mainCurrencies: List<Currency>,
     secondaryCurrencies: List<Currency>,
-    private val appPreferences: AppPreferences
+    private val appPreferences: AppPreferences,
 ) : RecyclerView.Adapter<SelectCurrencyRecyclerViewAdapter.ViewHolder>(), Filterable {
 
 
@@ -74,25 +74,27 @@ class SelectCurrencyRecyclerViewAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val currency = countryFilterList[position]
+        if (position >= 0 && position < countryFilterList.size) {
+            val currency = countryFilterList[position]
+            val userCurrency = appPreferences.getUserCurrency() == currency
 
-        val userCurrency = appPreferences.getUserCurrency() == currency
+            holder.selectedIndicator?.visibility =
+                if (userCurrency) View.VISIBLE else View.INVISIBLE
+            holder.currencyTitle?.text = CurrencyHelper.getCurrencyDisplayName(currency)
+            holder.v.setOnClickListener { v ->
+                // Set the currency
+                appPreferences.setUserCurrency(currency)
+                // Reload date to change the checkmark
+                notifyDataSetChanged()
 
-        holder.selectedIndicator?.visibility = if (userCurrency) View.VISIBLE else View.INVISIBLE
-        holder.currencyTitle?.text = CurrencyHelper.getCurrencyDisplayName(currency)
-        holder.v.setOnClickListener { v ->
-            // Set the currency
-            appPreferences.setUserCurrency(currency)
-            // Reload date to change the checkmark
-            notifyDataSetChanged()
+                // Broadcast the intent
+                val intent = Intent(SelectCurrencyFragment.CURRENCY_SELECTED_INTENT)
+                intent.putExtra(SelectCurrencyFragment.CURRENCY_ISO_EXTRA, currency.currencyCode)
 
-            // Broadcast the intent
-            val intent = Intent(SelectCurrencyFragment.CURRENCY_SELECTED_INTENT)
-            intent.putExtra(SelectCurrencyFragment.CURRENCY_ISO_EXTRA, currency.currencyCode)
+                LocalBroadcastManager.getInstance(v.context).sendBroadcast(intent)
 
-            LocalBroadcastManager.getInstance(v.context).sendBroadcast(intent)
-
-            Keyboard.hideSoftKeyboard(v.context, v)
+                Keyboard.hideSoftKeyboard(v.context, v)
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -51,6 +52,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.messaging.Constants
 import com.google.firebase.messaging.FirebaseMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
@@ -59,10 +61,16 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
+import com.simplebudget.helper.banner.AppBanner
+import com.simplebudget.helper.banner.BannerResponse
+import com.simplebudget.helper.banner.RetrofitClient
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpenseDeleteType
@@ -72,6 +80,7 @@ import com.simplebudget.view.RatingPopup
 import com.simplebudget.view.accounts.AccountDetailsActivity
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
+import com.simplebudget.view.budgets.base.BudgetBaseActivity
 import com.simplebudget.view.category.manage.ManageCategoriesActivity
 import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import com.simplebudget.view.main.calendar.CalendarFragment
@@ -91,11 +100,18 @@ import com.simplebudget.view.welcome.WelcomeActivity
 import com.simplebudget.view.welcome.getOnboardingStep
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Main activity containing Calendar and List of expenses
@@ -115,6 +131,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel: MainViewModel by viewModel()
     private val appPreferences: AppPreferences by inject()
     private val toastManager: ToastManager by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private var isUserPremium = false
     private var expenseOfSelectedDay: Double = 0.0
 
@@ -179,19 +196,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.toolbar.apply {
                 logo = ContextCompat.getDrawable(context, R.drawable.ic_logo_white)
                 setOnLongClickListener {
+                    analyticsManager.logEvent(Events.KEY_DASHBOARD_ABOUT_US_LOGO)
                     startActivity(Intent(this@MainActivity, AboutUsActivity::class.java))
                     true
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.error(
+                MainActivity::class.java.simpleName,
+                getString(R.string.error_displaying_app_logo_on_toolbar),
+                e
+            )
         }
         handleAppPasswordProtection()
         initCalendarFragment(savedInstanceState)
         initRecyclerView()
         calendarRevealAnimation()
 
-        /*
+        analyticsManager.logEvent(Events.KEY_DASHBOARD_SCREEN)/*
            Init firebase in app messaging click
         */
         //////////////////////////////////////////////////////////////////////
@@ -302,6 +324,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             openAddExpenseIfNeeded(intent)
             openAddRecurringExpenseIfNeeded(intent)
             openSettingsForBackupIfNeeded(intent)
+            openBudgetIntroIfNeeded(intent)
+            openBudgetsIfNeeded(intent)
         }
 
         viewModel.expenseDeletionSuccessEventStream.observe(
@@ -553,12 +577,57 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             } else {
                 initConsentAndAdsSDK()
             }
+            //Set ser property
+            analyticsManager.setUserProperty(
+                Events.KEY_ACCOUNT_TYPE,
+                if (isPremium) Events.KEY_PREMIUM else Events.KEY_NOT_PREMIUM
+            )
         }
 
         observeAndRefreshExpenses()
 
         // Handle drawer layout
         handleDrawerLayout()
+
+        //Handle app banner promotion
+        loadAppBannerContent()
+    }
+
+    /**
+     * Load app promotion banner and save it for later usage.
+     */
+    private fun loadAppBannerContent() {
+        try {
+            if (appPreferences.isUserPremium().not()) {
+                if (InternetUtils.isInternetAvailable(this) && shouldShowBanner()) {
+                    // Inside your Activity or Fragment
+                    lifecycleScope.launch {
+                        try {
+                            val bannerResponse =
+                                withContext(Dispatchers.IO) { RetrofitClient.instance.getBanner() }
+                            val apps = bannerResponse.apps
+                            val bannerApp = apps.firstOrNull {
+                                it.showBanner && AppInstallHelper.isInstalled(
+                                    it.packageName ?: "", this@MainActivity
+                                ).not()
+                            }
+                            appPreferences.saveBanner(bannerApp)
+
+                        } catch (e: Exception) {
+                            // Handle error, save null in case of failure
+                            appPreferences.saveBanner(null)
+                        }
+                    }
+                }
+            } else {
+                // Premium: No need banner as user is premium
+                appPreferences.saveBanner(null)
+            }
+        } catch (e: Exception) {
+            appPreferences.saveBanner(null)
+        } finally {
+            appPreferences.saveBanner(null)
+        }
     }
 
     /**
@@ -580,43 +649,53 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.navView.setNavigationItemSelectedListener { item: MenuItem ->
             when (item.itemId) {
                 R.id.nav_action_accounts -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_ACCOUNTS)
                     AccountDetailsActivity.start(this)
                 }
 
                 R.id.nav_action_balance -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_ADJUST_BALANCE)
                     viewModel.onAdjustCurrentBalanceClicked()
                 }
 
                 R.id.nav_action_categories -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_CATEGORIES)
                     val startIntent = Intent(this, ManageCategoriesActivity::class.java)
                     ActivityCompat.startActivity(this, startIntent, null)
                 }
 
                 R.id.nav_action_setup_budgets -> {
-                    toastManager.showShort("Coming soon...")
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_BUDGETS)
+                    openBudgetScreen()
                 }
 
                 R.id.nav_goto_settings -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_SETTINGS)
                     goToSettings()
                 }
 
                 R.id.nav_action_breakdown -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_LINEAR_BREAKDOWN)
                     openBreakDown(pieChart = false)
                 }
 
                 R.id.nav_action_pie_chart_breakdown -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_PI_CHART)
                     openBreakDown(pieChart = true)
                 }
 
                 R.id.nav_action_share -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_SHARE_APP)
                     shareApp()
                 }
 
                 R.id.nav_action_rate -> {
-                    RatingPopup(this, appPreferences).show(true)
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_RATE_APP)
+                    RatingPopup(this, appPreferences, analyticsManager).show(true)
                 }
 
                 R.id.nav_what_people_say -> {
+                    analyticsManager.logEvent(Events.KEY_SIDE_MENU_WHAT_PEOPLE_SAY)
                     WebViewActivity.start(this, getString(R.string.simple_budget_reviews_url))
                 }
             }
@@ -632,15 +711,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     binding.navView.getHeaderView(0).findViewById(R.id.header_text)
 
                 headerImage.setOnClickListener {
+                    analyticsManager.logEvent(Events.KEY_DASHBOARD_ABOUT_US_DRAWER)
                     startActivity(Intent(this@MainActivity, AboutUsActivity::class.java))
                 }
                 headerText.setOnClickListener {
+                    analyticsManager.logEvent(Events.KEY_DASHBOARD_ABOUT_US_DRAWER)
                     startActivity(Intent(this@MainActivity, AboutUsActivity::class.java))
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.error(
+                MainActivity::class.java.simpleName,
+                getString(R.string.error_getting_side_menu_header),
+                e
+            )
         }
+    }
+
+    /**
+     * Open budget screen
+     */
+    private fun openBudgetScreen(fromNotification: Boolean = false) {
+        val startIntent = Intent(this, BudgetBaseActivity::class.java)
+        startIntent.putExtra(BudgetBaseActivity.FROM_NOTIFICATION_EXTRA, fromNotification)
+        ActivityCompat.startActivity(this, startIntent, null)
     }
 
     private fun observeAndRefreshExpenses() {
@@ -704,6 +798,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.ivPremiumIcon.setOnClickListener {
             if (isUserPremium) toastManager.showShort(getString(R.string.thank_you_you_are_premium_user))
             else becomePremium()
+            analyticsManager.logEvent(Events.KEY_DASHBOARD_PREMIUM_BUTTON)
         }
 
         // Check firebase token
@@ -727,7 +822,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.error(
+                MainActivity::class.java.simpleName,
+                getString(R.string.error_checking_download_campaign_and_dismissing_notification),
+                e
+            )
         }
     }
 
@@ -761,7 +860,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             String.format("%s", formattedDate)*/
             binding.llBalances.setOnClickListener { revealHideCalendar() }
 
-            binding.ivCalendarCollapse.setOnClickListener { revealHideCalendar() }
+            binding.ivCalendarCollapse.setOnClickListener {
+                analyticsManager.logEvent(Events.KEY_DASHBOARD_CALENDAR_BUTTON)
+                revealHideCalendar()
+            }
 
             binding.layoutSelectAccount.tvSelectedAccount.text =
                 String.format("%s", appPreferences.activeAccountLabel().appendAccount())
@@ -771,6 +873,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         binding.layoutSelectAccount.tvSelectedAccount.text =
                             selectedAccount.name.appendAccount()
                         updateAccountNotifyBroadcast()
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
                     }, onAccountUpdated = { updatedAccount ->
                         if (appPreferences.activeAccount() == updatedAccount.id) {
                             binding.layoutSelectAccount.tvSelectedAccount.text =
@@ -778,6 +882,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
                             editAccountNotifyBroadcast()
                         }
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
                     })
                 accountsBottomSheetDialogFragment.show(
                     supportFragmentManager, accountsBottomSheetDialogFragment.tag
@@ -792,12 +898,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Reveal hide calendar
      */
     private fun revealHideCalendar() {
-        if (binding.calendarView.visibility == View.VISIBLE) {
+        if (binding.calendarView.isVisible) {
             binding.calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.debounce))
             binding.calendarView.visibility = View.GONE
+            analyticsManager.logEvent(Events.KEY_DASHBOARD_CALENDAR_CLOSED)
         } else {
             binding.calendarView.visibility = View.VISIBLE
             binding.calendarView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
+            analyticsManager.logEvent(Events.KEY_DASHBOARD_CALENDAR_OPEN)
         }
     }
 
@@ -881,6 +989,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         openAddExpenseIfNeeded(intent)
         openAddRecurringExpenseIfNeeded(intent)
         openSettingsForBackupIfNeeded(intent)
+        openBudgetIntroIfNeeded(intent)
+        openBudgetsIfNeeded(intent)
     }
 
 // ------------------------------------------>
@@ -1005,7 +1115,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun openHideBalanceShowCase() {
         binding.calendarHint.visibility = View.GONE
         if (appPreferences.hasUserSawHideBalanceHint().not()) {
-            showCaseView(targetView = binding.contSwitchBalance,
+            showCaseView(
+                targetView = binding.contSwitchBalance,
                 title = getString(R.string.hide_balance_hint_title),
                 message = getString(R.string.hide_balance_hint_message),
                 handleGuideListener = {
@@ -1019,7 +1130,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun showCaseAddSingleExpense() {
         if (appPreferences.hasUserSawAddSingleExpenseHint().not()) {
-            showCaseView(targetView = binding.tvDummyViewForSingleHint,
+            showCaseView(
+                targetView = binding.tvDummyViewForSingleHint,
                 title = getString(R.string.add_single_expense_hint_title),
                 message = getString(R.string.add_single_expense_hint_message),
                 handleGuideListener = {
@@ -1033,34 +1145,46 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun showCaseAddRecurringExpense() {
         if (appPreferences.hasUserSawAddRecurringExpenseHint().not()) {
-            showCaseView(targetView = binding.tvDummyViewForRecurringHint,
+            showCaseView(
+                targetView = binding.tvDummyViewForRecurringHint,
                 title = getString(R.string.add_recurring_expense_hint_title),
                 message = getString(R.string.add_recurring_expense_hint_message),
                 handleGuideListener = {
-                    binding.llDummyViewForHint.visibility = View.GONE
-                    binding.drawerLayout.open()
-                    binding.counter.visibility = View.VISIBLE
-                    // 3 Seconds delay we'll close the drawer!
-                    toastManager.showShort(getString(R.string.side_navigation_for_more_options))
-                    object : CountDownTimer(3000, 1000) {
-                        override fun onTick(millisUntilFinished: Long) {
-                            binding.counter.text = String.format("%d", (millisUntilFinished / 1000))
-                        }
-
-                        override fun onFinish() {
-                            binding.drawerLayout.closeDrawer(GravityCompat.START)
-                            binding.counter.visibility = View.GONE
-                            val show =
-                                googleMobileAdsConsentManager?.isPrivacyOptionsRequired ?: false
-                            if (show) {
-                                // Privacy settings hint
-                                showPrivacyHint()
-                            }
-                        }
-                    }.start()
+                    sideMenuHint()
 
                 })
         }
+    }
+
+    /**
+     * Side menu hint with counter
+     */
+    private fun sideMenuHint() {
+        binding.llDummyViewForHint.visibility = View.GONE
+        binding.drawerLayout.open()
+        binding.counter.visibility = View.VISIBLE
+        // 3 Seconds delay we'll close the drawer!
+        toastManager.showShort(getString(R.string.side_navigation_for_more_options))
+        object : CountDownTimer(3000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val countDown = (millisUntilFinished / 1000)
+                if (countDown != 0L) binding.counter.text = String.format(
+                    Locale.getDefault(), "%d", countDown
+                )
+            }
+
+            override fun onFinish() {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+                binding.counter.visibility = View.GONE
+                val show = googleMobileAdsConsentManager?.isPrivacyOptionsRequired ?: false
+                if (show) {
+                    // Privacy settings hint
+                    showPrivacyHint()
+                } else {
+                    showBudgetIntroDialog()
+                }
+            }
+        }.start()
     }
 
     private fun showPrivacyHint() {
@@ -1069,6 +1193,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.privacyHintButton.setOnClickListener {
                 appPreferences.setUserSawPrivacyHint()
                 binding.privacyHint.visibility = View.GONE
+                showBudgetIntroDialog()
             }
         }
     }
@@ -1086,19 +1211,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /**
      * Share App
      */
-    private fun shareApp() {
-        try {
-            val sendIntent = Intent()
-            sendIntent.action = Intent.ACTION_SEND
-            sendIntent.putExtra(
-                Intent.EXTRA_TEXT,
-                resources.getString(R.string.app_invite_message) + "\n" + "https://play.google.com/store/apps/details?id=gplx.simple.budgetapp"
-            )
-            sendIntent.type = "text/plain"
-            startActivity(sendIntent)
-        } catch (e: Exception) {
-            Logger.error("An error occurred during sharing app activity start", e)
-        }
+    private fun shareApp() = try {
+        val sendIntent = Intent()
+        sendIntent.action = Intent.ACTION_SEND
+        sendIntent.putExtra(
+            Intent.EXTRA_TEXT,
+            resources.getString(R.string.app_invite_message) + "\n" + "https://play.google.com/store/apps/details?id=gplx.simple.budgetapp"
+        )
+        sendIntent.type = "text/plain"
+        startActivity(sendIntent)
+    } catch (e: Exception) {
+        Logger.error(getString(R.string.an_error_occurred_during_sharing_app_activity_start), e)
     }
 
     /**
@@ -1114,17 +1237,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_settings -> {
+                analyticsManager.logEvent(Events.KEY_DASHBOARD_SETTINGS_BUTTON)
                 goToSettings()
                 return true
             }
 
             R.id.action_monthly_report -> {
+                analyticsManager.logEvent(Events.KEY_DASHBOARD_REPORT_BUTTON)
                 val startIntent = Intent(this, MonthlyReportBaseActivity::class.java)
                 ActivityCompat.startActivity(this@MainActivity, startIntent, null)
                 return true
             }
 
             R.id.action_search_expenses -> {
+                analyticsManager.logEvent(Events.KEY_DASHBOARD_SEARCH_BUTTON)
                 ActivityCompat.startActivity(
                     this@MainActivity, Intent(this, SearchBaseActivity::class.java), null
                 )
@@ -1132,11 +1258,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
 
             R.id.action_help -> {
+                analyticsManager.logEvent(Events.KEY_DASHBOARD_HELP_BUTTON)
                 startActivity(Intent(this, HelpActivity::class.java))
                 return true
             }
 
             R.id.action_backup -> {
+                analyticsManager.logEvent(Events.KEY_DASHBOARD_BACKUP_BUTTON)
                 startActivity(Intent(this, BackupSettingsActivity::class.java))
                 return true
             }
@@ -1179,8 +1307,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
                 return true
-            }
-            /*R.id.action_language -> {
+            }/*R.id.action_language -> {
                 Languages.showLanguagesDialog(
                     this,
                     appPreferences.getCurrentLanguage(),
@@ -1232,10 +1359,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
                 binding.expenseLineAmount.text =
                     CurrencyHelper.getFormattedCurrencyString(appPreferences, expenseOfSelectedDay)
+                analyticsManager.logEvent(
+                    Events.KEY_DASHBOARD_BALANCE_PRIVACY,
+                    mapOf(Events.KEY_VALUE to Events.KEY_DASHBOARD_BALANCE_PRIVACY_OFF)
+                )
             } else {
                 appPreferences.setDisplayBalance(false)
                 binding.budgetLineAmount.text = BALANCE_PLACE_HOLDER
                 binding.expenseLineAmount.text = BALANCE_PLACE_HOLDER
+                analyticsManager.logEvent(
+                    Events.KEY_DASHBOARD_BALANCE_PRIVACY,
+                    mapOf(Events.KEY_VALUE to Events.KEY_DASHBOARD_BALANCE_PRIVACY_ON)
+                )
             }
             expensesViewAdapter.notifyDataSetChanged()
         }
@@ -1252,6 +1387,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 ActivityCompat.startActivityForResult(
                     this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
                 )
+            } else {
+                val appLinkAction = intent.action
+                val appLinkData: Uri? = intent.data
+                if (Intent.ACTION_VIEW == appLinkAction) {
+                    Log.e("appLinkData", "" + appLinkData)
+                    appLinkData?.lastPathSegment?.also { path ->
+                        if (path == "settings") {
+                            val startIntent = Intent(this, SettingsActivity::class.java)
+                            ActivityCompat.startActivityForResult(
+                                this@MainActivity, startIntent, SETTINGS_SCREEN_ACTIVITY_CODE, null
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -1282,16 +1431,50 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         try {
             intent?.let {
                 val data = intent.data
-                if (data != null && "true" == data.getQueryParameter("monthly")) {
+                if (data != null && "true" == data.getQueryParameter(KEY_MONTHLY)) {
                     val startIntent = Intent(this, MonthlyReportBaseActivity::class.java)
                     startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, true)
                     ActivityCompat.startActivity(this@MainActivity, startIntent, null)
                 }
             }
         } catch (e: Exception) {
-            Logger.error("Error while opening report activity", e)
+            Logger.error(getString(R.string.error_while_opening_report_activity_from_intent), e)
         }
+    }
 
+    /**
+     * Open budget activity if the given intent contains the budget uri part.
+     *
+     * @param intent
+     */
+    private fun openBudgetsIfNeeded(intent: Intent?) {
+        try {
+            intent?.let {
+                val data = intent.data
+                if (data != null && "true" == data.getQueryParameter(KEY_BUDGET)) {
+                    openBudgetScreen(fromNotification = true)
+                }
+            }
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_opening_budget_from_the_notification), e)
+        }
+    }
+
+    /**
+     * Open the budget intro dialog if the given intent contains the budget_intro uri part.
+     * @param intent
+     */
+    private fun openBudgetIntroIfNeeded(intent: Intent?) {
+        try {
+            intent?.let {
+                val data = intent.data
+                if (data != null && "true" == data.getQueryParameter(KEY_BUDGET_INTRO)) {
+                    showBudgetIntroDialog()
+                }
+            }
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_opening_budgte_intro_from_notification), e)
+        }
     }
 
     /**
@@ -1515,7 +1698,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 super.onScrolled(recyclerView, dx, dy)
                 if (dy > 0) {
                     // Scrolling up
-                    if (binding.calendarView.visibility == View.VISIBLE) {
+                    if (binding.calendarView.isVisible) {
                         binding.calendarView.startAnimation(
                             AnimationUtils.loadAnimation(
                                 this@MainActivity, R.anim.debounce
@@ -1638,8 +1821,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 
@@ -1661,6 +1844,37 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun becomePremium() {
         startActivity(Intent(this, PremiumActivity::class.java))
+    }
+
+    /**
+     * Budget intro dialog
+     */
+    private fun showBudgetIntroDialog() {
+        if (appPreferences.isDoneDisplayingBudgetIntroDialog().not()) {
+            DialogUtil.createDialog(
+                this,
+                title = getString(R.string.budget_intro_title),
+                message = String.format(
+                    Locale.getDefault(),
+                    "%s%s%s",
+                    getString(R.string.budget_intro_message),
+                    "\n\n\n",
+                    getString(R.string.you_can_access_it_from_the_side_menu)
+                ),
+                positiveBtn = getString(R.string.try_now),
+                negativeBtn = getString(R.string.later),
+                isCancelable = false,
+                positiveClickListener = {
+                    // Perform action for trying the feature
+                    analyticsManager.logEvent(Events.KEY_BUDGETS_FROM_INTRO)
+                    openBudgetScreen()
+                },
+                negativeClickListener = {
+                }).show()
+
+            //Done displaying intro dialog
+            appPreferences.setDoneDisplayingBudgetIntroDialog()
+        }
     }
 
     companion object {

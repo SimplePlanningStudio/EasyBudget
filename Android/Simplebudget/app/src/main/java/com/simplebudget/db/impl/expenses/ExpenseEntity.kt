@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -42,7 +42,9 @@ class ExpenseEntity(
     @ColumnInfo(name = "category")
     val category: String,
     @ColumnInfo(name = "accountId")
-    val accountId: Long
+    val accountId: Long,
+    @ColumnInfo(name = "categoryId")
+    val categoryId: Long,
 ) {
 
     fun toExpense(associatedRecurringExpense: RecurringExpense?) = Expense(
@@ -52,6 +54,7 @@ class ExpenseEntity(
         date,
         associatedRecurringExpense,
         category,
-        accountId
+        accountId,
+        categoryId
     )
 }

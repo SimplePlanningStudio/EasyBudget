@@ -30,7 +30,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AccountsBottomSheetDialogFragment(
     private val onAccountSelected: (Account) -> Unit,
-    private val onAccountUpdated: (Account) -> Unit
+    private val onAccountUpdated: (Account) -> Unit,
 ) : BaseDialogFragment<AccountsBottomSheetDialogFragmentBinding>() {
 
     private val accountsViewModel: AccountsViewModel by viewModel()
@@ -48,7 +48,7 @@ class AccountsBottomSheetDialogFragment(
     private var accounts: List<Account> = emptyList()
 
     override fun onCreateBinding(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): AccountsBottomSheetDialogFragmentBinding =
         AccountsBottomSheetDialogFragmentBinding.inflate(inflater, container, false)
 
@@ -170,6 +170,7 @@ class AccountsBottomSheetDialogFragment(
                         removeConfirmation(clickedAccount, position)
                     }
                 }
+
                 else -> {}
 
             }
@@ -216,7 +217,7 @@ class AccountsBottomSheetDialogFragment(
                 }, toastManager = toastManager
             )
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.error("AddEditAccountDialog: Error handling add edit account", e)
         }
     }
 

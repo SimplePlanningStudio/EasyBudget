@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  */
 package com.simplebudget.prefs
 
+import android.content.Context
+import com.google.gson.Gson
 import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.helper.*
+import com.simplebudget.helper.banner.AppBanner
 import com.simplebudget.model.account.AccountType
 import java.time.LocalDate
 import java.util.*
@@ -196,6 +199,31 @@ private const val KEY_ACTIVE_ACCOUNT_NAME = "active_account_name"
  * Default should be Sort By Latest
  */
 private const val CATEGORIES_SORTING_KEY = "categories_sorting"
+
+/**
+ * Save App Promotion Banner
+ */
+private const val APP_BANNER_KEY = "app_banner_promotion"
+
+/**
+ * Number of counts of banner display
+ */
+private const val APP_BANNER_SHOW_COUNT = "app_banner_show_count_per_day"
+
+/**
+ * Date on which banner has displayed
+ */
+private const val APP_BANNER_SHOW_DATE = "app_banner_show_date"
+
+/**
+ * Date on which app is installed and it is first time
+ */
+private const val APP_INSTALLATION_DATE = "app_installation_date"
+
+/**
+ * Done displaying budget intro dialog
+ */
+private const val KEY_INTRO_BUDGET_DIALOG = "intro_budget_dialog"
 
 fun AppPreferences.getInitDate(): LocalDate? {
     val timestamp = getLong(INIT_DATE_PARAMETERS_KEY, 0L)
@@ -620,4 +648,86 @@ fun AppPreferences.setSortingType(sortingType: String) {
  */
 fun AppPreferences.getSortingType(): SortOption {
     return SortOption.valueOf(getString(CATEGORIES_SORTING_KEY) ?: SortOption.ByLatest.name)
+}
+
+/**
+ * Save app promotion banner
+ */
+fun AppPreferences.saveBanner(appBanner: AppBanner?) {
+    appBanner?.let {
+        val bannerResponse = Gson().toJson(appBanner)
+        putString(APP_BANNER_KEY, bannerResponse)
+    }
+    if (appBanner == null) putString(APP_BANNER_KEY, "")
+
+}
+
+/**
+ * Get app promotion banner
+ */
+fun AppPreferences.getBanner(): AppBanner? {
+    val bannerResponse = getString(APP_BANNER_KEY)
+    bannerResponse?.let {
+        if (bannerResponse.isEmpty()) return null
+        return Gson().fromJson(bannerResponse, AppBanner::class.java)
+    }
+    return null
+}
+
+
+/**
+ * @return banner displayed count of the day
+ */
+fun AppPreferences.getShowBannerCount(): Int {
+    return getInt(APP_BANNER_SHOW_COUNT, 0)
+}
+
+/**
+ * Save counter which holds how many time banner has displayed.
+ */
+fun AppPreferences.saveShowBannerCount(count: Int) {
+    putInt(APP_BANNER_SHOW_COUNT, count)
+}
+
+
+/**
+ * @return date of show banner.
+ */
+fun AppPreferences.getShowBannerDate(): String {
+    return getString(APP_BANNER_SHOW_DATE) ?: ""
+}
+
+/**
+ * Save date which holds date to show banner.
+ */
+fun AppPreferences.saveShowBannerDate(date: String) {
+    putString(APP_BANNER_SHOW_DATE, date)
+}
+
+/**
+ * Date on which app is installed and it is first time
+ */
+fun AppPreferences.getAppInstallationDate(): String {
+    return getString(APP_INSTALLATION_DATE) ?: ""
+}
+
+/**
+ * Date on which app is installed and it is first time
+ */
+fun AppPreferences.saveAppInstallationDate(date: String) {
+    putString(APP_INSTALLATION_DATE, date)
+}
+
+/**
+ *
+ */
+fun AppPreferences.isDoneDisplayingBudgetIntroDialog(): Boolean {
+    return getBoolean(KEY_INTRO_BUDGET_DIALOG, false)
+}
+
+/**
+ *
+ */
+fun AppPreferences.setDoneDisplayingBudgetIntroDialog() {
+    putBoolean(KEY_INTRO_BUDGET_DIALOG, true)
 }

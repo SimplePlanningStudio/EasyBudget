@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,18 +15,23 @@
  */
 package com.simplebudget.view.moreApps
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityMoreAppsBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
+import org.koin.android.ext.android.inject
+import androidx.core.net.toUri
 
 class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
     MoreAppsFragment.OnListFragmentInteractionListener {
 
+    private val analyticsManager: AnalyticsManager by inject()
 
     override fun createBinding(): ActivityMoreAppsBinding {
         return ActivityMoreAppsBinding.inflate(layoutInflater)
@@ -37,6 +42,9 @@ class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_MORE_APPS_SCREEN)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
@@ -68,22 +76,30 @@ class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
      */
     override fun onListFragmentInteraction(item: AppModel.AppItem) {
         try {
+            item.title?.let {
+                analyticsManager.logEvent(
+                    Events.KEY_MORE_APPS, mapOf(
+                        Events.KEY_MORE_APPS_APP_CLICKED to it
+                    )
+                )
+            }
             startActivity(
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse(MoreApps.PLAY_STORE_BASE_LINK + item.storeLink)
+                    (MoreApps.PLAY_STORE_BASE_LINK + item.storeLink).toUri()
                 )
             )
-        } catch (anfe: ActivityNotFoundException) {
+        } catch (_: ActivityNotFoundException) {
             startActivity(
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse(MoreApps.PLAY_STORE_BASE_LINK + item.storeLink)
+                    (MoreApps.PLAY_STORE_BASE_LINK + item.storeLink).toUri()
                 )
             )
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java", ReplaceWith("finish()"))
     override fun onBackPressed() {
         finish()

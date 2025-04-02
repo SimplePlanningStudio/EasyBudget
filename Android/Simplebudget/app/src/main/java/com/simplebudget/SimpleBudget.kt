@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -24,12 +24,10 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.simplebudget.db.DB
-import com.simplebudget.helper.ENABLE_ANALYTICS
 import com.simplebudget.helper.Logger
-import com.simplebudget.helper.analytics.FirebaseAnalyticsHelper
+import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.getUserCurrency
 import com.simplebudget.helper.setUserCurrency
 import com.simplebudget.helper.toStartOfDayDate
@@ -69,12 +67,14 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
     LifecycleObserver, Configuration.Provider {
 
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private val db: DB by inject()
     private var activityCounter = 0
     // ------------------------------------------>
 
     override fun onCreate() {
         super.onCreate()
+
         registerActivityLifecycleCallbacks(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
@@ -89,13 +89,13 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
 
         // Crashlytics
         if (BuildConfig.CRASHLYTICS_ACTIVATED) {
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
+            FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = true
 
             appPreferences.getLocalId()?.let {
                 FirebaseCrashlytics.getInstance().setUserId(it)
             }
         } else {
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)
+            FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = false
         }
 
         // Check if an update occurred and perform action if needed
@@ -115,6 +115,7 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
 
         // Setup theme
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
     }
 
     /**
@@ -123,13 +124,6 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
      * DO NOT USE LOGGER HERE
      */
     private fun init() {
-        /**
-         * Initialize FirebaseAnalyticsHelper
-         */
-        if (ENABLE_ANALYTICS) {
-            FirebaseAnalyticsHelper.initialize(FirebaseAnalytics.getInstance(this))
-        }
-
         /*
          * Save first launch date if needed
          */
@@ -163,14 +157,18 @@ class SimpleBudget : MultiDexApplication(), Application.ActivityLifecycleCallbac
             val dailyOpens = appPreferences.getNumberOfDailyOpen()
             if (dailyOpens > 2) {
                 if (!hasRatingPopupBeenShownToday()) {
-                    val shown = RatingPopup(activity, appPreferences).show(false)
+                    val shown = RatingPopup(activity, appPreferences, analyticsManager).show(false)
                     if (shown) {
                         appPreferences.setRatingPopupLastAutoShowTimestamp(Date().time)
                     }
                 }
             }
         } catch (e: Exception) {
-            Logger.error("Error while showing rating popup", e)
+            Logger.error(
+                SimpleBudget::class.java.simpleName,
+                getString(R.string.error_while_showing_rating_popup),
+                e
+            )
         }
 
     }

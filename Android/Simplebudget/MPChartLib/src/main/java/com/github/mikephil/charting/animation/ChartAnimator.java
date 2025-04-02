@@ -2,7 +2,7 @@ package com.github.mikephil.charting.animation;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
-import androidx.annotation.RequiresApi;
+
 
 import com.github.mikephil.charting.animation.Easing.EasingFunction;
 
@@ -27,12 +27,12 @@ public class ChartAnimator {
 
     public ChartAnimator() { }
 
-    @RequiresApi(11)
+    
     public ChartAnimator(AnimatorUpdateListener listener) {
         mListener = listener;
     }
 
-    @RequiresApi(11)
+    
     private ObjectAnimator xAnimator(int duration, EasingFunction easing) {
 
         ObjectAnimator animatorX = ObjectAnimator.ofFloat(this, "phaseX", 0f, 1f);
@@ -42,7 +42,7 @@ public class ChartAnimator {
         return animatorX;
     }
 
-    @RequiresApi(11)
+    
     private ObjectAnimator yAnimator(int duration, EasingFunction easing) {
 
         ObjectAnimator animatorY = ObjectAnimator.ofFloat(this, "phaseY", 0f, 1f);
@@ -57,7 +57,7 @@ public class ChartAnimator {
      *
      * @param durationMillis animation duration
      */
-    @RequiresApi(11)
+    
     public void animateX(int durationMillis) {
         animateX(durationMillis, Easing.Linear);
     }
@@ -68,7 +68,7 @@ public class ChartAnimator {
      * @param durationMillis animation duration
      * @param easing EasingFunction
      */
-    @RequiresApi(11)
+    
     public void animateX(int durationMillis, EasingFunction easing) {
 
         ObjectAnimator animatorX = xAnimator(durationMillis, easing);
@@ -82,7 +82,7 @@ public class ChartAnimator {
      * @param durationMillisX animation duration along the X axis
      * @param durationMillisY animation duration along the Y axis
      */
-    @RequiresApi(11)
+    
     public void animateXY(int durationMillisX, int durationMillisY) {
         animateXY(durationMillisX, durationMillisY, Easing.Linear, Easing.Linear);
     }
@@ -94,7 +94,7 @@ public class ChartAnimator {
      * @param durationMillisY animation duration along the Y axis
      * @param easing EasingFunction for both axes
      */
-    @RequiresApi(11)
+    
     public void animateXY(int durationMillisX, int durationMillisY, EasingFunction easing) {
 
         ObjectAnimator xAnimator = xAnimator(durationMillisX, easing);
@@ -118,7 +118,7 @@ public class ChartAnimator {
      * @param easingX EasingFunction for the X axis
      * @param easingY EasingFunction for the Y axis
      */
-    @RequiresApi(11)
+    
     public void animateXY(int durationMillisX, int durationMillisY, EasingFunction easingX,
                           EasingFunction easingY) {
 
@@ -140,7 +140,7 @@ public class ChartAnimator {
      *
      * @param durationMillis animation duration
      */
-    @RequiresApi(11)
+    
     public void animateY(int durationMillis) {
         animateY(durationMillis, Easing.Linear);
     }
@@ -151,7 +151,7 @@ public class ChartAnimator {
      * @param durationMillis animation duration
      * @param easing EasingFunction
      */
-    @RequiresApi(11)
+    
     public void animateY(int durationMillis, EasingFunction easing) {
 
         ObjectAnimator animatorY = yAnimator(durationMillis, easing);

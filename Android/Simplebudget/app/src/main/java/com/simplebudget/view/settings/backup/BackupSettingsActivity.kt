@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivityBackupSettingsBinding
 import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.Logger
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
 import org.koin.android.ext.android.inject
@@ -39,6 +42,7 @@ import kotlin.system.exitProcess
 class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
 
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private val viewModel: BackupSettingsViewModel by viewModel()
     private var adView: AdView? = null
 
@@ -51,6 +55,9 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_BACKUP_SCREEN)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -69,11 +76,13 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
                     binding.backupSettingsCloudStorageNotActivatedState.visibility = View.GONE
                 }
+
                 BackupCloudStorageState.Authenticating -> {
                     binding.backupSettingsCloudStorageNotAuthenticatedState.visibility = View.GONE
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.VISIBLE
                     binding.backupSettingsCloudStorageNotActivatedState.visibility = View.GONE
                 }
+
                 is BackupCloudStorageState.NotActivated -> {
                     binding.backupSettingsCloudStorageNotAuthenticatedState.visibility = View.GONE
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
@@ -101,6 +110,7 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                     binding.backupSettingsCloudDeleteCta.visibility = View.GONE
                     binding.backupSettingsCloudBackupLoadingProgress.visibility = View.GONE
                 }
+
                 is BackupCloudStorageState.Activated -> {
                     binding.backupSettingsCloudStorageNotAuthenticatedState.visibility = View.GONE
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
@@ -150,6 +160,7 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
 
                     binding.backupSettingsCloudBackupLoadingProgress.visibility = View.GONE
                 }
+
                 is BackupCloudStorageState.BackupInProgress -> {
                     binding.backupSettingsCloudStorageNotAuthenticatedState.visibility = View.GONE
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
@@ -171,6 +182,7 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                     binding.backupSettingsCloudDeleteCta.visibility = View.GONE
                     binding.backupSettingsCloudBackupLoadingProgress.visibility = View.VISIBLE
                 }
+
                 is BackupCloudStorageState.RestorationInProgress -> {
                     binding.backupSettingsCloudStorageNotAuthenticatedState.visibility = View.GONE
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
@@ -192,6 +204,7 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                     binding.backupSettingsCloudDeleteCta.visibility = View.GONE
                     binding.backupSettingsCloudBackupLoadingProgress.visibility = View.VISIBLE
                 }
+
                 is BackupCloudStorageState.DeletionInProgress -> {
                     binding.backupSettingsCloudStorageNotAuthenticatedState.visibility = View.GONE
                     binding.backupSettingsCloudStorageAuthenticatingState.visibility = View.GONE
@@ -221,6 +234,8 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                 .setTitle(R.string.backup_now_error_title)
                 .setMessage(R.string.backup_now_error_message)
                 .setPositiveButton(android.R.string.ok, null)
+            //Log event
+            analyticsManager.logEvent(Events.KEY_BACKUP_ERROR)
         }
 
         viewModel.previousBackupAvailableEvent.observe(this) { lastBackupDate ->
@@ -234,9 +249,13 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                 )
                 .setPositiveButton(R.string.backup_already_exist_positive_cta) { _, _ ->
                     viewModel.onRestorePreviousBackupButtonPressed()
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_BACKUP_RESTORED)
+
                 }
                 .setNegativeButton(R.string.backup_already_exist_negative_cta) { _, _ ->
                     viewModel.onIgnorePreviousBackupButtonPressed()
+                    analyticsManager.logEvent(Events.KEY_BACKUP_RESTORE_DATA_IGNORE)
                 }
                 .show()
         }
@@ -246,6 +265,9 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                 .setTitle(R.string.backup_restore_error_title)
                 .setMessage(R.string.backup_restore_error_message)
                 .setPositiveButton(android.R.string.ok, null)
+            //Log event
+            analyticsManager.logEvent(Events.KEY_BACKUP_RESTORE_DATA_ERROR)
+
         }
 
         viewModel.appRestartEvent.observe(this) {
@@ -266,6 +288,8 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                 )
                 .setPositiveButton(R.string.backup_restore_confirmation_positive_cta) { _, _ ->
                     viewModel.onRestoreBackupConfirmationConfirmed()
+                    // Log event
+                    analyticsManager.logEvent(Events.KEY_BACKUP_RESTORED)
                 }
                 .setNegativeButton(R.string.backup_restore_confirmation_negative_cta) { _, _ ->
                     viewModel.onRestoreBackupConfirmationCancelled()
@@ -292,6 +316,8 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                 .setMessage(R.string.backup_wipe_data_confirmation_message)
                 .setPositiveButton(R.string.backup_wipe_data_confirmation_positive_cta) { _, _ ->
                     viewModel.onDeleteBackupConfirmationConfirmed()
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_BACKUP_DELETED)
                 }
                 .setNegativeButton(R.string.backup_wipe_data_confirmation_negative_cta) { _, _ ->
                     viewModel.onDeleteBackupConfirmationCancelled()
@@ -305,6 +331,7 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                 .setMessage(R.string.backup_wipe_data_error_message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show()
+            analyticsManager.logEvent(Events.KEY_BACKUP_DELETE_ERROR)
         }
 
         binding.backupSettingsCloudStorageAuthenticateButton.setOnClickListener {
@@ -318,8 +345,12 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
         binding.backupSettingsCloudStorageBackupSwitch.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.onBackupActivated()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_BACKUP_ENABLED)
             } else {
                 viewModel.onBackupDeactivated()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_BACKUP_DISABLED)
             }
         }
 
@@ -404,8 +435,8 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 

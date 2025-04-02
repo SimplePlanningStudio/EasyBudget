@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -70,6 +70,8 @@ object DateHelper {
     val lastTwoYear: LocalDate = today.minusYears(2)
 
     val endDayOfMonth: LocalDate = startDayOfMonth.plusMonths(1).minusDays(1)
+
+    fun lastDateOfMonth(startDate: LocalDate) = startDate.plusMonths(1).minusDays(1)
 }
 
 /**
@@ -124,7 +126,7 @@ fun LocalDate.getMonthTitle(context: Context): String {
  * Get the formatted date
  *
  * @param context non null context
- * @return a formatted string like "04 Dec 2023"
+ * @return a formatted string like "04 Dec 2025"
  */
 fun LocalDate.getFormattedDate(context: Context): String {
     val format = DateTimeFormatter.ofPattern(
@@ -156,9 +158,9 @@ fun LocalDate.getMonthTitleWithPastAndFuture(context: Context): String {
 
 
 /**
- * yyyy-MM-dd HH:mm:ss for "2022-01-18 15:30:45"
- * dd/MM/yyyy HH:mm:ss for "18/01/2022 15:30:45"
- * MMMM dd, yyyy hh:mm a for "January 18, 2022 03:30 PM"
+ * yyyy-MM-dd HH:mm:ss for "2025-01-18 15:30:45"
+ * dd/MM/yyyy HH:mm:ss for "18/01/2025 15:30:45"
+ * MMMM dd, yyyy hh:mm a for "January 18, 2025 03:30 PM"
  */
 fun LocalDateTime.formatLocalDateTime(pattern: String = "MMMM dd, yyyy hh:mm a"): String =
     this.format(DateTimeFormatter.ofPattern(pattern))

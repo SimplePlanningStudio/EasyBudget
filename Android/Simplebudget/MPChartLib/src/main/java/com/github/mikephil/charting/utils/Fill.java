@@ -10,15 +10,12 @@ import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-public class Fill
-{
-    public enum Type
-    {
+public class Fill {
+    public enum Type {
         EMPTY, COLOR, LINEAR_GRADIENT, DRAWABLE
     }
 
-    public enum Direction
-    {
+    public enum Direction {
         DOWN, UP, RIGHT, LEFT
     }
 
@@ -52,107 +49,87 @@ public class Fill
      */
     private int mAlpha = 255;
 
-    public Fill()
-    {
+    public Fill() {
     }
 
-    public Fill(int color)
-    {
+    public Fill(int color) {
         this.mType = Type.COLOR;
         this.mColor = color;
         calculateFinalColor();
     }
 
-    public Fill(int startColor, int endColor)
-    {
+    public Fill(int startColor, int endColor) {
         this.mType = Type.LINEAR_GRADIENT;
         this.mGradientColors = new int[]{startColor, endColor};
     }
 
-    public Fill(@NonNull int[] gradientColors)
-    {
+    public Fill(@NonNull int[] gradientColors) {
         this.mType = Type.LINEAR_GRADIENT;
         this.mGradientColors = gradientColors;
     }
 
-    public Fill(@NonNull int[] gradientColors, @NonNull float[] gradientPositions)
-    {
+    public Fill(@NonNull int[] gradientColors, @NonNull float[] gradientPositions) {
         this.mType = Type.LINEAR_GRADIENT;
         this.mGradientColors = gradientColors;
         this.mGradientPositions = gradientPositions;
     }
 
-    public Fill(@NonNull Drawable drawable)
-    {
+    public Fill(@NonNull Drawable drawable) {
         this.mType = Type.DRAWABLE;
         this.mDrawable = drawable;
     }
 
-    public Type getType()
-    {
+    public Type getType() {
         return mType;
     }
 
-    public void setType(Type type)
-    {
+    public void setType(Type type) {
         this.mType = type;
     }
 
     @Nullable
-    public Integer getColor()
-    {
+    public Integer getColor() {
         return mColor;
     }
 
-    public void setColor(int color)
-    {
+    public void setColor(int color) {
         this.mColor = color;
         calculateFinalColor();
     }
 
-    public int[] getGradientColors()
-    {
+    public int[] getGradientColors() {
         return mGradientColors;
     }
 
-    public void setGradientColors(int[] colors)
-    {
+    public void setGradientColors(int[] colors) {
         this.mGradientColors = colors;
     }
 
-    public float[] getGradientPositions()
-    {
+    public float[] getGradientPositions() {
         return mGradientPositions;
     }
 
-    public void setGradientPositions(float[] positions)
-    {
+    public void setGradientPositions(float[] positions) {
         this.mGradientPositions = positions;
     }
 
-    public void setGradientColors(int startColor, int endColor)
-    {
+    public void setGradientColors(int startColor, int endColor) {
         this.mGradientColors = new int[]{startColor, endColor};
     }
 
-    public int getAlpha()
-    {
+    public int getAlpha() {
         return mAlpha;
     }
 
-    public void setAlpha(int alpha)
-    {
+    public void setAlpha(int alpha) {
         this.mAlpha = alpha;
         calculateFinalColor();
     }
 
-    private void calculateFinalColor()
-    {
-        if (mColor == null)
-        {
+    private void calculateFinalColor() {
+        if (mColor == null) {
             mFinalColor = null;
-        } else
-        {
+        } else {
             int alpha = (int) Math.floor(((mColor >> 24) / 255.0) * (mAlpha / 255.0) * 255.0);
             mFinalColor = (alpha << 24) | (mColor & 0xffffff);
         }
@@ -160,28 +137,22 @@ public class Fill
 
     public void fillRect(Canvas c, Paint paint,
                          float left, float top, float right, float bottom,
-                         Direction gradientDirection)
-    {
-        switch (mType)
-        {
+                         Direction gradientDirection) {
+        switch (mType) {
             case EMPTY:
                 return;
 
-            case COLOR:
-            {
+            case COLOR: {
                 if (mFinalColor == null) return;
 
-                if (isClipPathSupported())
-                {
+                if (isClipPathSupported()) {
                     int save = c.save();
 
                     c.clipRect(left, top, right, bottom);
                     c.drawColor(mFinalColor);
 
                     c.restoreToCount(save);
-                }
-                else
-                {
+                } else {
                     // save
                     Paint.Style previous = paint.getStyle();
                     int previousColor = paint.getColor();
@@ -199,8 +170,7 @@ public class Fill
             }
             break;
 
-            case LINEAR_GRADIENT:
-            {
+            case LINEAR_GRADIENT: {
                 if (mGradientColors == null) return;
 
                 LinearGradient gradient = new LinearGradient(
@@ -234,8 +204,7 @@ public class Fill
             }
             break;
 
-            case DRAWABLE:
-            {
+            case DRAWABLE: {
                 if (mDrawable == null) return;
 
                 mDrawable.setBounds((int) left, (int) top, (int) right, (int) bottom);
@@ -246,28 +215,22 @@ public class Fill
     }
 
     public void fillPath(Canvas c, Path path, Paint paint,
-                         @Nullable RectF clipRect)
-    {
-        switch (mType)
-        {
+                         @Nullable RectF clipRect) {
+        switch (mType) {
             case EMPTY:
                 return;
 
-            case COLOR:
-            {
+            case COLOR: {
                 if (mFinalColor == null) return;
 
-                if (clipRect != null && isClipPathSupported())
-                {
+                if (clipRect != null && isClipPathSupported()) {
                     int save = c.save();
 
                     c.clipPath(path);
                     c.drawColor(mFinalColor);
 
                     c.restoreToCount(save);
-                }
-                else
-                {
+                } else {
                     // save
                     Paint.Style previous = paint.getStyle();
                     int previousColor = paint.getColor();
@@ -285,8 +248,7 @@ public class Fill
             }
             break;
 
-            case LINEAR_GRADIENT:
-            {
+            case LINEAR_GRADIENT: {
                 if (mGradientColors == null) return;
 
                 LinearGradient gradient = new LinearGradient(
@@ -304,8 +266,7 @@ public class Fill
             }
             break;
 
-            case DRAWABLE:
-            {
+            case DRAWABLE: {
                 if (mDrawable == null) return;
 
                 ensureClipPathSupported();
@@ -326,15 +287,12 @@ public class Fill
         }
     }
 
-    private boolean isClipPathSupported()
-    {
+    private boolean isClipPathSupported() {
         return Utils.getSDKInt() >= 18;
     }
 
-    private void ensureClipPathSupported()
-    {
-        if (Utils.getSDKInt() < 18)
-        {
+    private void ensureClipPathSupported() {
+        if (Utils.getSDKInt() < 18) {
             throw new RuntimeException("Fill-drawables not (yet) supported below API level 18, " +
                     "this code was run on API level " + Utils.getSDKInt() + ".");
         }

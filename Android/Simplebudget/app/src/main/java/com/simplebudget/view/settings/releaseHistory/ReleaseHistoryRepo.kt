@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,6 +23,14 @@ class ReleaseHistoryRepo {
     val historyList: List<ReleaseHistory>
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
+
+            // 3.3.6
+            releaseList.add(ReleaseHistory("Version", "3.3.6", "Added budgeting feature"))
+            releaseList.add(ReleaseHistory("Version", "3.3.6", "Create One time and Monthly Budgets."))
+            releaseList.add(ReleaseHistory("Version", "3.3.6", "Create budgets for past expenses"))
+            releaseList.add(ReleaseHistory("Version", "3.3.6", "Transfer expenses between accounts"))
+            releaseList.add(ReleaseHistory("Version", "3.3.6", "Enhanced expenses searching e.g Amount based search"))
+            releaseList.add(ReleaseHistory("Version", "3.3.6", "Overall improvements and bug fixes"))
 
             // 3.3.3
             releaseList.add(ReleaseHistory("Version", "3.3.3", "Added support for Android 14."))

@@ -10,12 +10,16 @@ import androidx.core.widget.doOnTextChanged
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityFaqBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
+import org.koin.android.ext.android.inject
 
 class FAQActivity : BaseActivity<ActivityFaqBinding>() {
 
 
     private lateinit var faqAdapter: FAQAdapter
     private var faqsList: ArrayList<Question> = ArrayList()
+    private val analyticsManager: AnalyticsManager by inject()
 
     /**
      *
@@ -28,6 +32,9 @@ class FAQActivity : BaseActivity<ActivityFaqBinding>() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_FAQ_SCREEN)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
@@ -76,6 +83,7 @@ class FAQActivity : BaseActivity<ActivityFaqBinding>() {
      */
     private fun handleVoiceSearch() {
         binding.voiceSearchQuery.setOnClickListener {
+            analyticsManager.logEvent(Events.KEY_FAQ_VOICE_SEARCHED)
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(
                     RecognizerIntent.EXTRA_LANGUAGE_MODEL,

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import androidx.viewpager.widget.ViewPager
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityMonthlyReportBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.editAccountNotifyBroadcast
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
@@ -40,11 +42,7 @@ import com.simplebudget.prefs.activeAccount
 import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.prefs.setActiveAccount
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
-import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.report.MonthlyReportFragment
-import com.simplebudget.view.report.MonthlyReportViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
@@ -61,6 +59,7 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
     private val viewModel: MonthlyReportBaseViewModel by viewModel()
 
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
 
     override fun createBinding(): ActivityMonthlyReportBinding {
         return ActivityMonthlyReportBinding.inflate(layoutInflater)
@@ -71,6 +70,9 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_MONTHLY_REPORTS_SCREEN)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
@@ -140,6 +142,8 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
                             )
                         }
                     }.start()
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
                 }, onAccountUpdated = { updatedAccount ->
                     //Account id is same as active account id and now account name is edited we need to update label.
                     if (appPreferences.activeAccount() == updatedAccount.id) {
@@ -150,6 +154,8 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
                             updatedAccount.name.appendAccount()
                         editAccountNotifyBroadcast()
                     }
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
                 })
             accountsBottomSheetDialogFragment.show(
                 supportFragmentManager, accountsBottomSheetDialogFragment.tag
@@ -167,6 +173,7 @@ class MonthlyReportBaseActivity : BaseActivity<ActivityMonthlyReportBinding>(),
                 finish()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }

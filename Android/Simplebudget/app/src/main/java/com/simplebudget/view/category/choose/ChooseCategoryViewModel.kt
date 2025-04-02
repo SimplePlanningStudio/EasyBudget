@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ class ChooseCategoryViewModel(
      */
     private val _categoriesFlow = MutableStateFlow<List<CategoryEntity>>(emptyList())
     val categoriesFlow: StateFlow<List<CategoryEntity>> = _categoriesFlow
+
 
     /**
      *

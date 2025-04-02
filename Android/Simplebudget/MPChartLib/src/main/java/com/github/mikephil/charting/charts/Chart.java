@@ -17,9 +17,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore.Images;
-
-import androidx.annotation.RequiresApi;
-
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -908,7 +905,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
      * @param easingX         a custom easing function to be used on the animation phase
      * @param easingY         a custom easing function to be used on the animation phase
      */
-    @RequiresApi(11)
+    
     public void animateXY(int durationMillisX, int durationMillisY, EasingFunction easingX,
                           EasingFunction easingY) {
         mAnimator.animateXY(durationMillisX, durationMillisY, easingX, easingY);
@@ -924,7 +921,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
      * @param durationMillisY
      * @param easing          a custom easing function to be used on the animation phase
      */
-    @RequiresApi(11)
+    
     public void animateXY(int durationMillisX, int durationMillisY, EasingFunction easing) {
         mAnimator.animateXY(durationMillisX, durationMillisY, easing);
     }
@@ -938,7 +935,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
      * @param durationMillis
      * @param easing         a custom easing function to be used on the animation phase
      */
-    @RequiresApi(11)
+    
     public void animateX(int durationMillis, EasingFunction easing) {
         mAnimator.animateX(durationMillis, easing);
     }
@@ -952,7 +949,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
      * @param durationMillis
      * @param easing         a custom easing function to be used on the animation phase
      */
-    @RequiresApi(11)
+    
     public void animateY(int durationMillis, EasingFunction easing) {
         mAnimator.animateY(durationMillis, easing);
     }
@@ -977,7 +974,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
      *
      * @param durationMillis
      */
-    @RequiresApi(11)
+    
     public void animateX(int durationMillis) {
         mAnimator.animateX(durationMillis);
     }
@@ -990,7 +987,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
      *
      * @param durationMillis
      */
-    @RequiresApi(11)
+    
     public void animateY(int durationMillis) {
         mAnimator.animateY(durationMillis);
     }
@@ -1004,7 +1001,7 @@ public abstract class Chart<T extends ChartData<? extends IDataSet<? extends Ent
      * @param durationMillisX
      * @param durationMillisY
      */
-    @RequiresApi(11)
+    
     public void animateXY(int durationMillisX, int durationMillisY) {
         mAnimator.animateXY(durationMillisX, durationMillisY);
     }

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,12 +20,17 @@ import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import com.simplebudget.db.DB
 import com.simplebudget.db.impl.accounts.AccountTypeEntity
+import com.simplebudget.db.impl.budgets.BudgetCategoryCrossRef
+import com.simplebudget.db.impl.budgets.BudgetEntity
+import com.simplebudget.db.impl.budgets.BudgetWithCategories
 import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.db.impl.expenses.ExpenseEntity
 import com.simplebudget.helper.DateHelper
 import com.simplebudget.helper.extensions.*
 import com.simplebudget.model.account.Account
 import com.simplebudget.model.account.AccountType
+import com.simplebudget.model.budget.Budget
+import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccount
@@ -51,6 +56,104 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
         roomDB.expenseDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
     }
 
+    override suspend fun persistBudget(budget: Budget): Long {
+        return roomDB.budgetDao().insertBudget(budget.toBudgetEntity())
+    }
+
+    override suspend fun persistRecurringBudget(recurringBudget: RecurringBudget): RecurringBudget {
+        val newId =
+            roomDB.budgetDao().insertRecurringBudget(recurringBudget.toRecurringBudgetEntity())
+        return recurringBudget.copy(id = newId)
+
+    }
+
+    override suspend fun updateBudget(
+        budgetId: Long,
+        spentAmount: Long,
+        remainingAmount: Long,
+    ) {
+        roomDB.budgetDao().updateBudget(budgetId, spentAmount, remainingAmount)
+    }
+
+    override suspend fun getBudgets(): List<BudgetEntity> = roomDB.budgetDao().getAllBudgets()
+
+    override suspend fun getBudgetsOfActiveAccount(): List<BudgetEntity> {
+        val startOfMonth = DateHelper.startDayOfMonth
+        val endDayOfMonth = DateHelper.endDayOfMonth
+        val activeAccount = appPreferences.activeAccount()
+        return roomDB.budgetDao().getAllBudgets(startOfMonth, endDayOfMonth, activeAccount)
+    }
+
+    override suspend fun getBudgetsWithCategoriesByCategoryAndAccount(categoryId: Long): List<BudgetWithCategories> {
+        val startOfMonth = DateHelper.startDayOfMonth
+        val endDayOfMonth = DateHelper.endDayOfMonth
+        val activeAccount = appPreferences.activeAccount()
+        return roomDB.budgetDao()
+            .getBudgetsWithCategoriesByCategoryAndAccount(categoryId, activeAccount)
+    }
+
+    override suspend fun getBudgetsWithCategoriesByAccount(monthStartDate: LocalDate): List<BudgetWithCategories> {
+        val monthEndDate = monthStartDate.plusMonths(1).minusDays(1)
+        val activeAccount = appPreferences.activeAccount()
+        return roomDB.budgetDao()
+            .getBudgetsWithCategoriesByAccount(monthStartDate, monthEndDate, activeAccount)
+    }
+
+    override suspend fun deleteBudget(budget: Budget) {
+        budget.id?.let {
+            roomDB.budgetDao().deleteOneTimeBudget(budget.id)
+            roomDB.budgetDao().deleteBudgetCategoryCrossRefUsingBudgetId(budget.id)
+
+            budget.associatedRecurringBudget?.let {
+                //Recurring Budget
+                //It will delete all future budgets of this recurring budget from budget table
+                budget.associatedRecurringBudget.id?.let {
+                    roomDB.budgetDao().deleteAllBudgetForRecurringBudgetFromDate(budget.associatedRecurringBudget.id, budget.startDate)
+
+                    //Now needs to delete all recurring budget from recurring budget table
+                    roomDB.budgetDao().deleteRecurringBudgetUsingId(budget.associatedRecurringBudget.id)
+                }
+            }
+        }
+    }
+
+    override suspend fun insertBudgetCategoryCrossRef(crossRef: BudgetCategoryCrossRef) {
+        roomDB.budgetDao().insertBudgetCategoryCrossRef(crossRef)
+    }
+
+    override suspend fun insertBudgetCategoryCrossRefs(crossRefs: List<BudgetCategoryCrossRef>) {
+        roomDB.budgetDao().insertBudgetCategoryCrossRefs(crossRefs)
+    }
+
+    override suspend fun insertBudgetWithCategories(
+        budget: BudgetEntity,
+        categoryIds: List<Long>,
+    ) {
+        roomDB.budgetDao().insertBudgetWithCategories(budget, categoryIds)
+    }
+
+    override suspend fun getBudgetWithCategories(budgetId: Long): BudgetWithCategories {
+        return roomDB.budgetDao().getBudgetWithCategories(budgetId)
+    }
+
+    override suspend fun getBudgetsForCategory(categoryId: Long): List<BudgetCategoryCrossRef> {
+        return roomDB.budgetDao().getBudgetsForCategory(categoryId)
+    }
+
+    override suspend fun updateBudgetsSpentAmount(startDate: LocalDate, endDate: LocalDate) {
+        val activeAccount = appPreferences.activeAccount()
+        return roomDB.budgetDao().updateBudgetsSpentAmount(startDate, endDate,activeAccount)
+    }
+
+    override suspend fun getOldestBudgetStartDate(): LocalDate? {
+        return roomDB.budgetDao().getOldestBudgetStartDate()
+    }
+
+    override suspend fun getExpensesForBudget(budgetId: Long, startDate: LocalDate, endDate: LocalDate): List<Expense> {
+        return roomDB.budgetDao().getExpensesForBudget(budgetId, startDate, endDate)
+            .toExpenses(this)
+    }
+
     /**
      * Category implementations
      */
@@ -73,6 +176,9 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
      */
     override suspend fun getCategory(categoryId: Long): CategoryEntity =
         roomDB.categoryDao().getCategory(categoryId)
+
+    override suspend fun getCategory(categoryName: String): CategoryEntity? =
+        roomDB.categoryDao().getCategory(categoryName)
 
     override suspend fun getMiscellaneousCategory(): CategoryEntity =
         roomDB.categoryDao().getMiscellaneousCategory()
@@ -187,13 +293,13 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun getExpensesForDay(
-        dayDate: LocalDate, accountId: Long
+        dayDate: LocalDate, accountId: Long,
     ): List<Expense> {
         return roomDB.expenseDao().getExpensesForDay(dayDate, accountId).toExpenses(this)
     }
 
     override suspend fun getExpensesForMonth(
-        monthStartDate: LocalDate
+        monthStartDate: LocalDate,
     ): List<Expense> {
         val monthEndDate = monthStartDate.plusMonths(1).minusDays(1)
 
@@ -209,20 +315,20 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun searchExpenses(search_query: String): List<Expense> {
-        val amount = search_query.toLongOrNull() ?: 0
+        val amount: Double = (search_query.toDoubleOrNull() ?: 0.0) * 100
         // Search results for last 2 year2 to end of this month!
         return roomDB.expenseDao().searchExpenses(
             search_query = "%$search_query%",
             startDate = DateHelper.lastTwoYear,
             endDate = DateHelper.endDayOfMonth,
             accountId = appPreferences.activeAccount(),
-            amount = (amount * 100),
-            minusAmount = -(amount * 100)
+            amount = amount,
+            minusAmount = -amount
         ).toExpenses(this)
     }
 
     override suspend fun getAllExpenses(
-        startDate: LocalDate, endDate: LocalDate
+        startDate: LocalDate, endDate: LocalDate,
     ): List<Expense> {
         return roomDB.expenseDao()
             .getAllExpenses(startDate, endDate, appPreferences.activeAccount()).toExpenses(this)
@@ -237,7 +343,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun getBalanceForACategory(
-        startDate: LocalDate, dayDate: LocalDate, accountId: Long, category: String
+        startDate: LocalDate, dayDate: LocalDate, accountId: Long, category: String,
     ): Double {
         return roomDB.expenseDao().getBalanceForACategory(
             startDate, dayDate, accountId, category
@@ -274,7 +380,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun getAllExpenseForRecurringExpense(
-        recurringExpense: RecurringExpense
+        recurringExpense: RecurringExpense,
     ): List<Expense> {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("getAllExpenseForRecurringExpense called with a recurring expense that has no id")
@@ -285,7 +391,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun deleteAllExpenseForRecurringExpenseFromDate(
-        recurringExpense: RecurringExpense, fromDate: LocalDate
+        recurringExpense: RecurringExpense, fromDate: LocalDate,
     ) {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("deleteAllExpenseForRecurringExpenseFromDate called with a recurring expense that has no id")
@@ -295,7 +401,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun getAllExpensesForRecurringExpenseFromDate(
-        recurringExpense: RecurringExpense, fromDate: LocalDate
+        recurringExpense: RecurringExpense, fromDate: LocalDate,
     ): List<Expense> {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("getAllExpensesForRecurringExpenseFromDate called with a recurring expense that has no id")
@@ -306,7 +412,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ) {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("deleteAllExpenseForRecurringExpenseBeforeDate called with a recurring expense that has no id")
@@ -317,7 +423,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun getAllExpensesForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ): List<Expense> {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("getAllExpensesForRecurringExpenseBeforeDate called with a recurring expense that has no id")
@@ -328,7 +434,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun hasExpensesForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ): Boolean {
         val recurringExpenseId = recurringExpense.id
             ?: throw IllegalArgumentException("hasExpensesForRecurringExpenseBeforeDate called with a recurring expense that has no id")
@@ -339,13 +445,16 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     }
 
     override suspend fun findRecurringExpenseForId(
-        recurringExpenseId: Long
+        recurringExpenseId: Long,
     ): RecurringExpense? {
         return roomDB.expenseDao()
             .findRecurringExpenseForId(recurringExpenseId, appPreferences.activeAccount())
             ?.toRecurringExpense()
     }
 
+    override suspend fun findRecurringBudgetForId(recurringBudgetId: Long): RecurringBudget? {
+        return roomDB.budgetDao().getRecurringBudget(recurringBudgetId)?.toRecurringBudget()
+    }
 
     override suspend fun getOldestExpense(): Expense? {
         return roomDB.expenseDao().getOldestExpense(appPreferences.activeAccount())?.toExpense(this)

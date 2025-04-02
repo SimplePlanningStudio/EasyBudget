@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentPieChartBreakDownBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.extensions.beGone
 import com.simplebudget.helper.extensions.beVisible
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
@@ -60,13 +62,14 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
     private lateinit var date: LocalDate
     private var type: String = ""
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private val viewModel: BreakDownViewModel by viewModel()
     private var adView: AdView? = null
     private val lisOfExpenses: ArrayList<BreakDownViewModel.CategoryWiseExpense> = ArrayList()
 // ---------------------------------->
 
     override fun onCreateBinding(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): FragmentPieChartBreakDownBinding =
         FragmentPieChartBreakDownBinding.inflate(inflater, container, false)
 
@@ -76,6 +79,10 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_PIE_CHART_SCREEN)
+
         date = requireArguments().getSerializable(ARG_DATE) as LocalDate
         type = getString(R.string.all_label)
 
@@ -127,6 +134,12 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
                     )
                     binding?.balancesContainer?.visibility =
                         if (lisOfExpenses.isEmpty()) View.GONE else View.VISIBLE
+
+                    //Expense count
+                    analyticsManager.logEvent(
+                        Events.KEY_PIE_BREAKDOWN,
+                        mapOf(Events.KEY_PIE_BREAKDOWN_EXPENSES_COUNT to lisOfExpenses.size)
+                    )
                 }
             }
         }
@@ -225,7 +238,7 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
         binding?.chart?.data = data
         binding?.chart?.isDrawHoleEnabled = true
         binding?.chart?.setDrawRoundedSlices(true)
-        binding?.chart?.animateXY(1000,1000)
+        binding?.chart?.animateXY(1000, 1000)
         binding?.chart?.invalidate()
     }
 
@@ -233,7 +246,7 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
      *
      */
     private fun generateCenterSpannableText(
-        topExpensesSize: Int, actualSize: Int
+        topExpensesSize: Int, actualSize: Int,
     ): SpannableString {
         if (topExpensesSize == 0) return SpannableString("")
         val expenseLabel = if (type == getString(R.string.all_label)) "Expenses" else type
@@ -285,8 +298,8 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 
@@ -304,6 +317,11 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
     override fun onResume() {
         adView?.resume()
         super.onResume()
+    }
+    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
+    override fun onDestroy() {
+        adView?.destroy()
+        super.onDestroy()
     }
 }
 

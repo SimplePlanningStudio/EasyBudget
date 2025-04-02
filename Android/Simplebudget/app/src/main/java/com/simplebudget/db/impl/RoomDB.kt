@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.simplebudget.db.impl.accounts.AccountTypeDao
 import com.simplebudget.db.impl.accounts.AccountTypeEntity
+import com.simplebudget.db.impl.budgets.BudgetCategoryCrossRef
+import com.simplebudget.db.impl.budgets.BudgetDao
+import com.simplebudget.db.impl.budgets.BudgetEntity
+import com.simplebudget.db.impl.budgets.RecurringBudgetEntity
 import com.simplebudget.db.impl.categories.CategoryDao
 import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.db.impl.expenses.ExpenseDao
@@ -36,11 +40,14 @@ const val DB_NAME = "easybudget.db"
 
 @Database(
     exportSchema = false,
-    version = 9,
+    version = 10,
     entities = [CategoryEntity::class,
         ExpenseEntity::class,
         RecurringExpenseEntity::class,
-        AccountTypeEntity::class
+        AccountTypeEntity::class,
+        BudgetEntity::class,
+        RecurringBudgetEntity::class,
+        BudgetCategoryCrossRef::class
     ]
 )
 @TypeConverters(TimestampConverters::class)
@@ -49,6 +56,8 @@ abstract class RoomDB : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
     abstract fun categoryDao(): CategoryDao
     abstract fun accountTypeDao(): AccountTypeDao
+    abstract fun budgetDao(): BudgetDao
+
     companion object {
         fun create(context: Context): RoomDB =
             Room.databaseBuilder(context, RoomDB::class.java, DB_NAME).addMigrations(
@@ -59,7 +68,8 @@ abstract class RoomDB : RoomDatabase() {
                 migrationFrom5To6,
                 migrateTimestamps6To7,
                 migrateTimestamps7To8,
-                migrateTimestamps8To9
+                migrateTimestamps8To9,
+                migrateTimestamps9To10
             ).build()
     }
 }
@@ -75,6 +85,107 @@ class TimestampConverters {
         return date?.toEpochDay()
     }
 }
+
+private val migrateTimestamps9To10 = object : Migration(9, 10) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+
+        // Step 1: Retrieve MISCELLANEOUS category ID
+        val cursor =
+            database.query("SELECT _category_id FROM category WHERE name = 'MISCELLANEOUS'")
+        val miscellaneousCategoryId = if (cursor.moveToFirst()) cursor.getLong(0) else 1
+        cursor.close()
+
+        // Step 2: Check if categoryId column already exists
+        val columnCursor = database.query("PRAGMA table_info(expense)")
+        var columnExists = false
+        while (columnCursor.moveToNext()) {
+            val columnName = columnCursor.getString(columnCursor.getColumnIndexOrThrow("name"))
+            if (columnName == "categoryId") {
+                columnExists = true
+                break
+            }
+        }
+        columnCursor.close()
+
+        // Step 3: Add categoryId column if it doesn't exist
+        if (!columnExists) {
+            database.execSQL("ALTER TABLE expense ADD COLUMN categoryId INTEGER NOT NULL DEFAULT $miscellaneousCategoryId")
+        }
+
+        // Step 4: Update categoryId based on category name
+        database.execSQL(
+            """
+            UPDATE expense
+            SET categoryId = COALESCE((
+                SELECT _category_id FROM category WHERE category.name = expense.category
+            ), $miscellaneousCategoryId)
+            WHERE category IS NOT NULL;
+            """.trimIndent()
+        )
+
+        // Step 5: Ensure no NULL values remain in categoryId
+        database.execSQL(
+            """
+            UPDATE expense
+            SET categoryId = $miscellaneousCategoryId
+            WHERE categoryId IS NULL;
+            """.trimIndent()
+        )
+
+        //Adding budget table
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS budget (
+                _budget_id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                goal TEXT NOT NULL, 
+                accountId INTEGER NOT NULL,
+                budgetAmount INTEGER NOT NULL, 
+                remainingAmount INTEGER NOT NULL, 
+                spentAmount INTEGER NOT NULL, 
+                startDate INTEGER NOT NULL, 
+                endDate INTEGER NOT NULL, 
+                monthly_id INTEGER
+            );
+        """.trimIndent()
+        )
+
+        // Create indexes for budget table on date,accountId and categoryId
+        database.execSQL("CREATE INDEX IF NOT EXISTS 'S_D' ON 'budget' ('startDate')")
+        database.execSQL("CREATE INDEX IF NOT EXISTS 'E_D' ON 'budget' ('endDate')")
+
+        //Adding monthly budget table
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS monthlybudget(
+                '_budget_id' INTEGER,
+                'goal' TEXT NOT NULL,
+                'accountId' INTEGER NOT NULL,
+                'budgetAmount' INTEGER NOT NULL,
+                'type' TEXT NOT NULL,
+                'recurringDate' INTEGER NOT NULL,
+                'modified' INTEGER NOT NULL,
+                PRIMARY KEY('_budget_id')
+            );
+            """.trimIndent()
+        )
+
+        //Category cross reference table for one to many (budget to categories)
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS budget_category_cross_ref (
+                _budget_id INTEGER NOT NULL,
+                _category_id INTEGER NOT NULL,
+                PRIMARY KEY(_budget_id, _category_id),
+                FOREIGN KEY(_budget_id) REFERENCES budget(_budget_id) ON DELETE CASCADE
+            );
+        """
+        )
+
+        //Create indexes for budget_category_cross_ref table
+        database.execSQL("CREATE INDEX IF NOT EXISTS 'C_I' ON 'budget_category_cross_ref' ('_category_id')")
+    }
+}
+
 
 private val migrateTimestamps8To9 = object : Migration(8, 9) {
     override fun migrate(database: SupportSQLiteDatabase) {

@@ -21,6 +21,8 @@
 
             <data android:scheme="tg" />
         </intent>
+
+        <package android:name="gplx.qr.barcode.scanner.generator" />
     </queries>
 
     <uses-permission
@@ -39,7 +41,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
-        tools:ignore="UnusedAttribute">
+        tools:ignore="UnusedAttribute"
+        tools:replace="android:supportsRtl">
         <!-- Disable advertising ID and SSAID for GA & FCM -->
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
@@ -72,16 +75,47 @@
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="simplebudget" />
+                <data android:scheme="https" />
+                <data android:host="simplebudget.online" />
+                <data android:pathPrefix="/simplebudget" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="simplebudget.online" />
+                <data android:pathPattern="/settings" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="simpleplanningstudio.online" />
+                <data android:pathPattern="/simplebudget" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="simpleplanningstudio.online" />
+                <data android:pathPattern="/settings" />
             </intent-filter>
         </activity>
         <activity
@@ -112,6 +146,18 @@
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"
             android:label="@string/title_budget_report"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".view.budgets.budgetDetails.BudgetDetailsActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/budget_details"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".view.budgets.base.BudgetBaseActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/set_up_budgets_title"
             android:screenOrientation="portrait" />
         <activity
             android:name=".view.reset.ResetAppDataActivity"
@@ -146,6 +192,12 @@
             android:label="@string/title_activity_add_expense"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustNothing" />
+        <activity
+            android:name="com.simplebudget.view.budgets.addBudget.AddBudgetActivity"
+            android:configChanges="locale|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:label="@string/title_activity_add_budget"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".view.recurringexpenseadd.RecurringExpenseEditActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"

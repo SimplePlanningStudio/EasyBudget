@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -290,7 +290,7 @@ class BackupSettingsViewModel(
 
                 appRestartEvent.postValue(Unit)
             } catch (error: Throwable) {
-                Log.e("BackupSettingsViewModel", "Error while restoring", error)
+                Logger.error("BackupSettingsViewModel", "Error while restoring", error)
                 restorationErrorEvent.value = error
             } finally {
                 restorationInProgress = false

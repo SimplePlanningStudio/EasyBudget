@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import java.time.temporal.ChronoUnit
 class RecurringExpenseEditViewModel(
     private val db: DB,
     private val appPreferences: AppPreferences,
-    private val iab: Iab
+    private val iab: Iab,
 ) : ViewModel() {
 
     val premiumStatusLiveData = MutableLiveData<Boolean>()
@@ -70,7 +70,8 @@ class RecurringExpenseEditViewModel(
             expense.amount,
             expense.associatedRecurringExpense!!.type,
             expense.associatedRecurringExpense.category,
-            expense.accountId
+            expense.accountId,
+            expense.categoryId
         ) else null
     }
 
@@ -81,7 +82,8 @@ class RecurringExpenseEditViewModel(
     fun onSave(
         value: Double, description: String, recurringExpenseType: RecurringExpenseType,
         expenseCategoryType: String,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long,
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -100,7 +102,8 @@ class RecurringExpenseEditViewModel(
             isRevenue,
             date,
             expenseCategoryType,
-            accountId
+            accountId,
+            categoryId
         )
     }
 
@@ -109,7 +112,8 @@ class RecurringExpenseEditViewModel(
         description: String,
         recurringExpenseType: RecurringExpenseType,
         expenseCategoryType: String,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long,
     ) {
         val isRevenue = editTypeLiveData.value?.isRevenue ?: return
         val date = expenseDateLiveData.value ?: return
@@ -122,7 +126,8 @@ class RecurringExpenseEditViewModel(
             isRevenue,
             date,
             expenseCategoryType,
-            accountId
+            accountId,
+            categoryId
         )
     }
 
@@ -138,7 +143,8 @@ class RecurringExpenseEditViewModel(
         isRevenue: Boolean,
         date: LocalDate,
         expenseCategoryType: String,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long,
     ) {
         savingIsRevenueEventStream.value = isRevenue
 
@@ -168,7 +174,8 @@ class RecurringExpenseEditViewModel(
                             insertedExpense,
                             date,
                             expenseCategoryType,
-                            accountId
+                            accountId,
+                            categoryId
                         )
                     ) {
                         Logger.error(
@@ -210,7 +217,8 @@ class RecurringExpenseEditViewModel(
                             recurringExpense,
                             date,
                             expenseCategoryType,
-                            accountId
+                            accountId,
+                            categoryId
                         )
                     ) {
                         Logger.error(
@@ -236,7 +244,8 @@ class RecurringExpenseEditViewModel(
         expense: RecurringExpense,
         date: LocalDate,
         expenseCategoryType: String,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long,
     ): Boolean {
         var currentDate = date
 
@@ -252,7 +261,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -265,6 +275,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plusDays(1)
                 }
             }
+
             RecurringExpenseType.WEEKLY -> {
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
@@ -276,7 +287,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -290,6 +302,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plus(1, ChronoUnit.WEEKS)
                 }
             }
+
             RecurringExpenseType.BI_WEEKLY -> {
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
@@ -301,7 +314,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -315,6 +329,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plus(2, ChronoUnit.WEEKS)
                 }
             }
+
             RecurringExpenseType.TER_WEEKLY -> {
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
@@ -326,7 +341,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -341,6 +357,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plus(3, ChronoUnit.WEEKS)
                 }
             }
+
             RecurringExpenseType.FOUR_WEEKLY -> {
                 // Add up to 5 years of expenses
                 for (i in 0 until 12 * 4 * 5) {
@@ -352,7 +369,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -366,6 +384,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plus(4, ChronoUnit.WEEKS)
                 }
             }
+
             RecurringExpenseType.MONTHLY -> {
                 // Add up to 10 years of expenses
                 for (i in 0 until 12 * 10) {
@@ -377,7 +396,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -391,6 +411,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plusMonths(1)
                 }
             }
+
             RecurringExpenseType.BI_MONTHLY -> {
                 // Add up to 25 years of expenses
                 for (i in 0 until 4 * 25) {
@@ -402,7 +423,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -416,6 +438,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plusMonths(2)
                 }
             }
+
             RecurringExpenseType.TER_MONTHLY -> {
                 // Add up to 25 years of expenses
                 for (i in 0 until 4 * 25) {
@@ -427,7 +450,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -442,6 +466,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plusMonths(3)
                 }
             }
+
             RecurringExpenseType.SIX_MONTHLY -> {
                 // Add up to 25 years of expenses
                 for (i in 0 until 2 * 25) {
@@ -453,7 +478,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -468,6 +494,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plusMonths(6)
                 }
             }
+
             RecurringExpenseType.YEARLY -> {
                 // Add up to 100 years of expenses
                 for (i in 0 until 100) {
@@ -479,7 +506,8 @@ class RecurringExpenseEditViewModel(
                                 currentDate,
                                 expense,
                                 expenseCategoryType,
-                                accountId
+                                accountId,
+                                categoryId
                             )
                         )
                     } catch (t: Throwable) {
@@ -492,6 +520,7 @@ class RecurringExpenseEditViewModel(
                     currentDate = currentDate.plusYears(1)
                 }
             }
+
             else -> {
             }
         }
@@ -515,5 +544,6 @@ data class ExistingExpenseData(
     val amount: Double,
     val type: RecurringExpenseType,
     val categoryType: String,
-    val accountId: Long
+    val accountId: Long,
+    val categoryId: Long,
 )

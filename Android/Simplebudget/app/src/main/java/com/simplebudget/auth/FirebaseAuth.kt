@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import androidx.lifecycle.MutableLiveData
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseUser
+import com.simplebudget.R
+import com.simplebudget.helper.Logger
 
 private const val SIGN_IN_REQUEST_CODE = 10524
 
@@ -51,7 +53,11 @@ class FirebaseAuth(private val auth: com.google.firebase.auth.FirebaseAuth) : Au
                 SIGN_IN_REQUEST_CODE
             )
         } catch (error: Throwable) {
-            Log.e("FirebaseAuth", "Error launching auth activity", error)
+            Logger.error(
+                FirebaseAuth::class.java.simpleName,
+                activity.getString(R.string.firebaseauth_error_launching_auth_activity),
+                error
+            )
             currentState.postValue(getAuthState())
         }
 
@@ -63,8 +69,8 @@ class FirebaseAuth(private val auth: com.google.firebase.auth.FirebaseAuth) : Au
             if (resultCode != Activity.RESULT_OK) {
                 val response = IdpResponse.fromResultIntent(data)
                 if (response != null) {
-                    Log.e(
-                        "FirebaseAuth",
+                    Logger.error(
+                        FirebaseAuth::class.java.simpleName,
                         "Error while authenticating: ${response.error?.errorCode}: ${response.error?.localizedMessage}",
                         response.error
                     )

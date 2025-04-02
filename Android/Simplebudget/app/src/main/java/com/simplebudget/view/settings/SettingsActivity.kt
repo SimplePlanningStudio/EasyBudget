@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -31,7 +31,10 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySettingsBinding
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.SHOW_PIN
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.prefs.*
+import com.simplebudget.view.reset.ResetAppDataActivity
 import com.simplebudget.view.security.SecurityActivity
 import org.koin.android.ext.android.inject
 
@@ -46,6 +49,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private var mAdIsLoading = false
     private val appPreferences: AppPreferences by inject()
     private lateinit var preferencesFragment: PreferencesFragment
+    private val analyticsManager: AnalyticsManager by inject()
 
 
     override fun createBinding(): ActivitySettingsBinding =
@@ -56,6 +60,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_SETTINGS_SCREEN)
+
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

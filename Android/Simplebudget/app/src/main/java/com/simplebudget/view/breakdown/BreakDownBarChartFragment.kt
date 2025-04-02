@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -31,8 +31,12 @@ import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentBarchartBreakDownBinding
 import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.CurrencyHelper
+import com.simplebudget.helper.Logger
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import com.simplebudget.view.main.MainActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
@@ -50,6 +54,7 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
     private lateinit var date: LocalDate
     private var type: String = ""
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private val viewModel: BreakDownViewModel by viewModel()
     private var adView: AdView? = null
     private val lisOfExpenses: ArrayList<BreakDownViewModel.CategoryWiseExpense> = ArrayList()
@@ -57,7 +62,7 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
 // ---------------------------------->
 
     override fun onCreateBinding(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): FragmentBarchartBreakDownBinding =
         FragmentBarchartBreakDownBinding.inflate(inflater, container, false)
 
@@ -66,9 +71,17 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_LINEAR_BREAKDOWN_SCREEN)
+
         date = requireArguments().getSerializable(ARG_DATE) as LocalDate
         type = getString(R.string.expenses)
         binding?.filter?.text = type
+        analyticsManager.logEvent(
+            Events.KEY_LINEAR_BREAKDOWN_FILTER,
+            mapOf(Events.KEY_VALUE to TYPE.EXPENSE.name)
+        )
         viewModel.monthlyReportDataLiveDataForAllTypesOfExpenses.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
 
@@ -158,8 +171,13 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
                     val typeEnum = BreakdownType.getSelectedType(requireContext(), type)
                     binding?.balancesContainer?.visibility =
                         if (typeEnum == TYPE.ALL.name && lisOfExpenses.isNotEmpty()) View.VISIBLE else View.GONE
+
                     viewModel.loadDataForMonth(
                         date, typeEnum
+                    )
+                    analyticsManager.logEvent(
+                        Events.KEY_LINEAR_BREAKDOWN_FILTER,
+                        mapOf(Events.KEY_VALUE to typeEnum)
                     )
                 })
         }
@@ -191,7 +209,7 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
      * Configure recycler view LayoutManager & adapter
      */
     private fun configureRecyclerView(
-        recyclerView: RecyclerView, adapter: BreakDownRecyclerViewAdapter
+        recyclerView: RecyclerView, adapter: BreakDownRecyclerViewAdapter,
     ) {
         val layoutManager = LinearLayoutManager(activity)
         recyclerView.layoutManager = layoutManager
@@ -232,8 +250,8 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 

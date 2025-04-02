@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ interface CategoryDao {
 
     @Query("SELECT * FROM category WHERE _category_id = :categoryId")
     suspend fun getCategory(categoryId: Long): CategoryEntity
+
+    @Query("SELECT * FROM category WHERE name = :categoryName")
+    suspend fun getCategory(categoryName: String): CategoryEntity
 
     @Query("SELECT * FROM category WHERE name = 'MISCELLANEOUS'")
     suspend fun getMiscellaneousCategory(): CategoryEntity

@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,56 +17,56 @@ package com.simplebudget.model.budget
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.simplebudget.model.recurringexpense.RecurringExpenseType
+import com.simplebudget.model.category.Category
 import java.time.LocalDate
 
 data class Budget(
     val id: Long?,
     val goal: String,
     val accountId: Long,
-    val categoryId: Long,
     val budgetAmount: Double,
     val remainingAmount: Double,
     val spentAmount: Double,
-    val date: LocalDate,
+    val startDate: LocalDate,
+    val endDate: LocalDate,
     val associatedRecurringBudget: RecurringBudget?,
-    val categoryName: String = ""
+    val categories: List<Category>,
 ) : Parcelable {
 
     constructor(
         goal: String,
         accountId: Long,
-        categoryId: Long,
         budgetAmount: Double,
         remainingAmount: Double,
         spentAmount: Double,
-        date: LocalDate,
+        startDate: LocalDate,
+        endDate: LocalDate,
         associatedRecurringBudget: RecurringBudget?,
-        categoryName: String = ""
+        categories: List<Category>,
     ) : this(
         null,
         goal,
         accountId,
-        categoryId,
         budgetAmount,
         remainingAmount,
         spentAmount,
-        date,
+        startDate,
+        endDate,
         associatedRecurringBudget,
-        categoryName
+        categories
     )
 
     constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,
         parcel.readString() ?: "",
         parcel.readLong(),
-        parcel.readLong(),
         parcel.readDouble(),
         parcel.readDouble(),
         parcel.readDouble(),
         LocalDate.ofEpochDay(parcel.readLong()),
+        LocalDate.ofEpochDay(parcel.readLong()),
         parcel.readParcelable(RecurringBudget::class.java.classLoader),
-        parcel.readString() ?: "",
+        categories = parcel.createTypedArrayList(Category.CREATOR)!!
     )
 
     override fun describeContents(): Int = 0
@@ -75,13 +75,14 @@ data class Budget(
         parcel.writeValue(id)
         parcel.writeString(goal)
         parcel.writeLong(accountId)
-        parcel.writeLong(categoryId)
         parcel.writeDouble(budgetAmount)
         parcel.writeDouble(remainingAmount)
         parcel.writeDouble(spentAmount)
-        parcel.writeLong(date.toEpochDay())
+        parcel.writeLong(startDate.toEpochDay())
+        parcel.writeLong(endDate.toEpochDay())
         parcel.writeParcelable(associatedRecurringBudget, flags)
-        parcel.writeString(categoryName)
+        parcel.writeTypedList(categories)
+
     }
 
     companion object CREATOR : Parcelable.Creator<Budget> {
@@ -99,12 +100,11 @@ data class Budget(
                 "id=$id, " +
                 "goal='$goal', " +
                 "accountId=$accountId, " +
-                "categoryId=$categoryId, " +
                 "budgetAmount=$budgetAmount, " +
                 "remainingAmount=$remainingAmount, " +
                 "spentAmount=$spentAmount, " +
-                "date=$date, " +
-                "associatedRecurringBudget=${associatedRecurringBudget.toString()}, " +
-                "categoryName='$categoryName')"
+                "StartDate=$startDate, " +
+                "EndDate=$endDate, " +
+                "associatedRecurringBudget=${associatedRecurringBudget.toString()})"
     }
 }

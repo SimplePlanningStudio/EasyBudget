@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.simplebudget.view.breakdown.base
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
@@ -24,6 +25,8 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.simplebudget.databinding.ActivityBreakdownExpensesBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.editAccountNotifyBroadcast
 import com.simplebudget.helper.getMonthTitleWithPastAndFuture
 import com.simplebudget.helper.removeButtonBorder
@@ -44,11 +47,9 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     ViewPager.OnPageChangeListener {
 
     private val viewModel: BreakDownBaseViewModel by viewModel()
-
     private var isAddedExpense: Boolean = false
-
     private val appPreferences: AppPreferences by inject()
-
+    private val analyticsManager: AnalyticsManager by inject()
 
     /**
      *
@@ -62,7 +63,6 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -109,6 +109,8 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
                         selectedAccount.name.appendAccount()
                     updateAccountNotifyBroadcast()
                     viewModel.loadData()
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
                 }, onAccountUpdated = { updatedAccount ->
                     //Account id is same as active account id and now account name is edited we need to update label.
                     if (appPreferences.activeAccount() == updatedAccount.id) {
@@ -117,6 +119,8 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
                         appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
                         editAccountNotifyBroadcast()
                     }
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
                 })
             accountsBottomSheetDialogFragment.show(
                 supportFragmentManager, accountsBottomSheetDialogFragment.tag
@@ -142,6 +146,7 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
     /**
      *
      */
+    @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (isAddedExpense) {

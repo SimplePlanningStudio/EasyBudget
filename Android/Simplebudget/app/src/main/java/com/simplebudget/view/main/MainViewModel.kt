@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,12 +15,18 @@
  */
 package com.simplebudget.view.main
 
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkInfo
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
 import com.simplebudget.helper.SingleLiveEvent
+import com.simplebudget.job.budget.BUDGET_JOB_REQUEST_TAG
+import com.simplebudget.job.budget.getBudgetJobInfosLiveData
+import com.simplebudget.job.budget.scheduleBudgetJob
 import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategories
@@ -37,7 +43,8 @@ import java.time.LocalDate
 class MainViewModel(
     private val db: DB,
     private val iab: Iab,
-    private val appPreferences: AppPreferences
+    private val appPreferences: AppPreferences,
+    private val appContext: Context,
 ) : ViewModel() {
     private var selectedDate: LocalDate = LocalDate.now()
 
@@ -58,6 +65,15 @@ class MainViewModel(
     val currentBalanceRestoringEventStream = SingleLiveEvent<Unit>()
     val currentBalanceRestoringErrorEventStream = SingleLiveEvent<Exception>()
 
+    val budgetJobStateStream: MutableLiveData<WorkInfo.State> = MutableLiveData()
+    private val budgetJobObserver = Observer<List<WorkInfo>> {
+        it.forEach { info ->
+            if (info.tags.contains(BUDGET_JOB_REQUEST_TAG)) {
+                budgetJobStateStream.value = info.state
+            }
+        }
+    }
+
     sealed class RecurringExpenseDeleteProgressState {
         class Starting(val expense: Expense) : RecurringExpenseDeleteProgressState()
 
@@ -72,21 +88,21 @@ class MainViewModel(
         class Deleted(
             val recurringExpense: RecurringExpense,
             val restoreRecurring: Boolean,
-            val expensesToRestore: List<Expense>
+            val expensesToRestore: List<Expense>,
         ) : RecurringExpenseDeleteProgressState()
     }
 
     sealed class RecurringExpenseRestoreProgressState {
         class Starting(
-            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>
+            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>,
         ) : RecurringExpenseRestoreProgressState()
 
         class ErrorIO(
-            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>
+            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>,
         ) : RecurringExpenseRestoreProgressState()
 
         class Restored(
-            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>
+            val recurringExpense: RecurringExpense, val expensesToRestore: List<Expense>,
         ) : RecurringExpenseRestoreProgressState()
     }
 
@@ -95,6 +111,13 @@ class MainViewModel(
         refreshDataForDate(selectedDate)
         refreshCategories()
         refreshAccountTypes()
+        getBudgetJobInfosLiveData(appContext).observeForever(budgetJobObserver)
+        scheduleBudgetJob(appContext)
+    }
+
+    override fun onCleared() {
+        getBudgetJobInfosLiveData(appContext).removeObserver(budgetJobObserver)
+        super.onCleared()
     }
 
     /**
@@ -216,6 +239,7 @@ class MainViewModel(
 
                         expensesToRestore
                     }
+
                     RecurringExpenseDeleteType.FROM -> {
                         val expensesToRestore = db.getAllExpensesForRecurringExpenseFromDate(
                             associatedRecurringExpense, expense.date
@@ -231,6 +255,7 @@ class MainViewModel(
 
                         expensesToRestore
                     }
+
                     RecurringExpenseDeleteType.TO -> {
                         val expensesToRestore = db.getAllExpensesForRecurringExpenseBeforeDate(
                             associatedRecurringExpense, expense.date
@@ -247,6 +272,7 @@ class MainViewModel(
 
                         expensesToRestore
                     }
+
                     RecurringExpenseDeleteType.ONE -> {
                         val expensesToRestore = listOf(expense)
 
@@ -281,7 +307,7 @@ class MainViewModel(
     fun onRestoreRecurringExpenseClicked(
         recurringExpense: RecurringExpense,
         restoreRecurring: Boolean,
-        expensesToRestore: List<Expense>
+        expensesToRestore: List<Expense>,
     ) {
         viewModelScope.launch {
             recurringExpenseRestoreProgressEventStream.value =
@@ -358,10 +384,13 @@ class MainViewModel(
                         .find { it.title == balanceExpenseTitle }
                 }
 
+                var categoryId = existingExpense?.categoryId ?: 0
+
                 if (existingExpense != null) { // If the adjust balance exists, just add the diff and persist it
                     val newExpense = withContext(Dispatchers.Default) {
                         db.persistExpense(existingExpense.copy(amount = existingExpense.amount - diff))
                     }
+                    categoryId = newExpense.categoryId
 
                     currentBalanceEditedEventStream.value =
                         BalanceAdjustedData(newExpense, diff, newBalance)
@@ -374,7 +403,8 @@ class MainViewModel(
                                 -diff,
                                 LocalDate.now(),
                                 ExpenseCategoryType.BALANCE.name,
-                                appPreferences.activeAccount()
+                                appPreferences.activeAccount(),
+                                categoryId
                             )
                         )
                     }
@@ -466,11 +496,11 @@ class MainViewModel(
 }
 
 data class SelectedDateExpensesData(
-    val date: LocalDate, val balance: Double, val expenses: List<Expense>
+    val date: LocalDate, val balance: Double, val expenses: List<Expense>,
 )
 
 data class ExpenseDeletionSuccessData(val deletedExpense: Expense, val newDayBalance: Double)
 
 data class BalanceAdjustedData(
-    val balanceExpense: Expense, val diffWithOldBalance: Double, val newBalance: Double
+    val balanceExpense: Expense, val diffWithOldBalance: Double, val newBalance: Double,
 )

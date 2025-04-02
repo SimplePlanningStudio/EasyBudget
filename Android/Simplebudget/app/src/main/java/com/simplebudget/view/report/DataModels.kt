@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package com.simplebudget.view.report
 
+import com.simplebudget.helper.banner.AppBanner
 import com.simplebudget.model.expense.Expense
 
 class DataModels {
     open class SuperParent()
-    data class Parent(var category: String, var totalCredit: Double, var totalDebit: Double) : SuperParent()
+    data class Parent(var category: String, var totalCredit: Double, var totalDebit: Double) :
+        SuperParent()
 
     data class Child(var expense: Expense) : SuperParent()
 
@@ -29,10 +31,12 @@ class DataModels {
             var totalCredit: Double,
             var totalDebit: Double,
             var amountSpend: Double,
-            var expenses: ArrayList<Expense>
+            var expenses: ArrayList<Expense>,
         ) : SuperParent()
     }
 
+
+    data class BannerItem(val banner: AppBanner?) : SuperParent()
 
     sealed class MonthlyReportData {
         object Empty : MonthlyReportData()
@@ -42,7 +46,7 @@ class DataModels {
             val allExpensesOfThisMonth: List<SuperParent>,
             val allExpensesParentList: List<CustomTriple.Data>,
             val expensesAmount: Double,
-            val revenuesAmount: Double
+            val revenuesAmount: Double,
         ) : MonthlyReportData()
     }
 }

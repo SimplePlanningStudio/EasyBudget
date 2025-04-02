@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,7 +23,10 @@ import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityResetAppDataBinding
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.view.main.MainActivity
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -34,6 +37,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class ResetAppDataActivity : BaseActivity<ActivityResetAppDataBinding>() {
 
     private val viewModel: ResetAppDataViewModel by viewModel()
+    private val analyticsManager: AnalyticsManager by inject()
 
 
     override fun createBinding(): ActivityResetAppDataBinding =
@@ -45,8 +49,10 @@ class ResetAppDataActivity : BaseActivity<ActivityResetAppDataBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setSupportActionBar(binding.toolbar)
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_RESET_APP_SCREEN)
 
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -57,12 +63,13 @@ class ResetAppDataActivity : BaseActivity<ActivityResetAppDataBinding>() {
 
         viewModel.progress.observe(this) {
             it?.let {
-                binding.progress.visibility= if(it) View.VISIBLE else View.GONE
+                binding.progress.visibility = if (it) View.VISIBLE else View.GONE
                 binding.btnProceedWithReset.isClickable = it
             }
         }
 
         viewModel.clearDataEventStream.observe(this) {
+            analyticsManager.logEvent(Events.KEY_SETTINGS_RESET_APP_DONE)
             startActivity(Intent(this, MainActivity::class.java))
             finishAffinity()
         }

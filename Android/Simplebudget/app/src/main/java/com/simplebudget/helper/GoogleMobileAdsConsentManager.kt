@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ class GoogleMobileAdsConsentManager private constructor(context: Context) {
         onConsentGatheringCompleteListener: OnConsentGatheringCompleteListener
     ) {
         // For testing purposes, you can force a DebugGeography of EEA or NOT_EEA.
-        val params = if (BuildConfig.DEBUG && BuildConfig.FLAVOR == "prod") {
+        val params = if (BuildConfig.DEBUG) {
             val debugSettings =
                 ConsentDebugSettings.Builder(activity)
                     .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)

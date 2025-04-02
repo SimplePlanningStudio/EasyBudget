@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ data class Category(
 ) : Parcelable {
 
     constructor(
-        title: String,
-    ) : this(null, title)
+        name: String,
+    ) : this(null, name)
 
     private constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,

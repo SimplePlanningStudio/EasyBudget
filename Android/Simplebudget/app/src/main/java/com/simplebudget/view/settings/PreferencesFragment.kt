@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.R
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.iab.Iab
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
@@ -83,6 +85,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
     private val iab: Iab by inject()
 
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
@@ -148,7 +151,8 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_category_rate_button_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 activity?.let { activity ->
-                    RatingPopup(activity, appPreferences).show(true)
+                    analyticsManager.logEvent(Events.KEY_SETTINGS_RATE_APP)
+                    RatingPopup(activity, appPreferences, analyticsManager).show(true)
                 }
                 false
             }
@@ -159,7 +163,9 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_reset_app_data_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 activity?.let { activity ->
+                    analyticsManager.logEvent(Events.KEY_SETTINGS_RESET_APP_DATA)
                     startActivity(Intent(activity, ResetAppDataActivity::class.java))
+
                 }
                 false
             }
@@ -201,6 +207,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                     )
                     dialog.dismiss()
                 }.show()
+            analyticsManager.logEvent(Events.KEY_SETTINGS_CHANGE_START_DAY_OF_WEEK)
             true
         }
 
@@ -213,6 +220,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
             String.format("%s", if (appPreferences.isAppPasswordProtectionOn()) "ON" else "OFF")
         enableAppPasswordProtection?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_SETTINGS_APP_PASSWORD_PROTECTION)
                 if (!iab.isUserPremium()) (activity as SettingsActivity).loadInterstitial()
                 (activity as SettingsActivity).handleAppPasswordProtection()
                 true
@@ -223,6 +231,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         val monthlyReports =
             findPreference<Preference>(getString(R.string.setting_monthly_reports_key))
         monthlyReports?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            analyticsManager.logEvent(Events.KEY_SETTINGS_MONTHLY_REPORT)
             val startIntent = Intent(requireActivity(), MonthlyReportBaseActivity::class.java)
             startIntent.putExtra(MonthlyReportBaseActivity.FROM_NOTIFICATION_EXTRA, false)
             ActivityCompat.startActivity(requireActivity(), startIntent, null)
@@ -235,6 +244,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         val monthlyBreakDown =
             findPreference<Preference>(getString(R.string.setting_monthly_breakdown_key))
         monthlyBreakDown?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            analyticsManager.logEvent(Events.KEY_SETTINGS_BREAKDOWN)
             val startIntent = Intent(requireActivity(), BreakDownBaseActivity::class.java)
             startIntent.putExtra(BreakDownBaseActivity.FROM_NOTIFICATION_EXTRA, false)
             startIntent.putExtra(BreakDownBaseActivity.REQUEST_CODE_FOR_PIE_CHART, false)
@@ -247,6 +257,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         val monthlyBreakDownPieChart =
             findPreference<Preference>(getString(R.string.setting_monthly_breakdown_pie_chart_key))
         monthlyBreakDownPieChart?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            analyticsManager.logEvent(Events.KEY_SETTINGS_PIE_CHART)
             val startIntent = Intent(requireActivity(), BreakDownBaseActivity::class.java)
             startIntent.putExtra(BreakDownBaseActivity.FROM_NOTIFICATION_EXTRA, false)
             startIntent.putExtra(BreakDownBaseActivity.REQUEST_CODE_FOR_PIE_CHART, true)
@@ -259,6 +270,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(getString(R.string.setting_category_backup))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_SETTINGS_DATA_BACKUP)
                 startActivity(Intent(context, BackupSettingsActivity::class.java))
                 false
             }
@@ -270,6 +282,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_category_share_app_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 try {
+                    analyticsManager.logEvent(Events.KEY_SETTINGS_SHARE_APP)
                     val sendIntent = Intent()
                     sendIntent.action = Intent.ACTION_SEND
                     sendIntent.putExtra(
@@ -279,7 +292,10 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                     sendIntent.type = "text/plain"
                     startActivity(sendIntent)
                 } catch (e: Exception) {
-                    Logger.error("An error occurred during sharing app activity start", e)
+                    Logger.error(
+                        resources.getString(R.string.an_error_occurred_during_sharing_app_activity_start),
+                        e
+                    )
                 }
 
                 false
@@ -290,6 +306,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_category_contact_us))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_SETTINGS_CONTACT_US)
                 startActivity(Intent(requireActivity(), HelpActivity::class.java))
                 false
             }
@@ -299,6 +316,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_category_currency_change_button_key))?.let { currencyPreference ->
             currencyPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_SETTINGS_CHANGE_CURRENCY)
                 selectCurrencyDialog = SelectCurrencyFragment()
                 selectCurrencyDialog!!.show(
                     (activity as SettingsActivity).supportFragmentManager, "SelectCurrency"
@@ -316,6 +334,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         findPreference<Preference>(resources.getString(R.string.setting_category_limit_set_button_key))?.let { limitWarningPreference ->
             limitWarningPreference.onPreferenceClickListener =
                 Preference.OnPreferenceClickListener {
+                    analyticsManager.logEvent(Events.KEY_SETTINGS_LOW_BALANCE_THRESHOLD)
                     val dialogView =
                         activity?.layoutInflater?.inflate(R.layout.dialog_set_warning_limit, null)
                     val limitEditText =
@@ -421,6 +440,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         // Redeem promo code pref
         findPreference<Preference>(resources.getString(R.string.setting_category_premium_redeem_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_SETTINGS_PROMO_CODE)
                 RedeemPromo.openPromoCodeDialog(activity)
                 false
             }
@@ -428,6 +448,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         // About Us
         findPreference<Preference>(resources.getString(R.string.setting_about_us_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_SETTINGS_ABOUT_US)
                 startActivity(Intent(context, AboutUsActivity::class.java))
                 false
             }
@@ -545,6 +566,7 @@ class PreferencesFragment : PreferenceFragmentCompat() {
 
     private fun showBecomePremiumDialog() {
         // Launch in app here
+        analyticsManager.logEvent(Events.KEY_SETTINGS_REMOVE_ADS)
         startActivity(Intent(context, PremiumActivity::class.java))
     }
 

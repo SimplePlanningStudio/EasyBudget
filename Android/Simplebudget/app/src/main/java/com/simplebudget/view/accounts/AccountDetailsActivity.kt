@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -26,41 +26,46 @@ import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.firebase.analytics.FirebaseAnalytics.Event
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityAccountDetailsBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
+import com.simplebudget.helper.extensions.isVisible
 import com.simplebudget.helper.extensions.toAccounts
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.Account
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.getBanner
 import com.simplebudget.view.accounts.adapter.AccountDataModels
 import com.simplebudget.view.accounts.adapter.AccountDetailsAdapter
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.time.LocalDate
+import androidx.core.net.toUri
 
 /**
  *
  */
 class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
 
-
     /**
      * The first date of the month at 00:00:00
      */
-    private var date: LocalDate = LocalDate.now()
     private val toastManager: ToastManager by inject()
     private val appPreferences: AppPreferences by inject()
     private val accountsViewModel: AccountsViewModel by viewModel()
+    private val analyticsManager: AnalyticsManager by inject()
     private var adView: AdView? = null
     private lateinit var accountDetailsAdapter: AccountDetailsAdapter
     private var accounts: List<Account> = emptyList()
@@ -84,10 +89,12 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //Screen event
+        analyticsManager.logEvent(Events.KEY_ACCOUNT_DETAILS_SCREEN)
+
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
 
         binding.progressBarAccountDetails.visibility = View.VISIBLE
 
@@ -103,9 +110,14 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
 
             when (result) {
                 is AccountDataModels.MonthlyAccountData.Data -> {
+                    //Log account count
+                    analyticsManager.logEvent(
+                        Events.KEY_ACCOUNT_DETAILS, mapOf(
+                            Events.KEY_ACCOUNTS_COUNTS to result.allExpensesParentList.size
+                        )
+                    )
                     accountDetailsAdapter = AccountDetailsAdapter(
-                        ArrayList(result.allExpensesParentList),
-                        appPreferences
+                        ArrayList(result.allExpensesParentList), appPreferences
                     ) { selectedAccountDetails ->
                     }
                     configureRecyclerView(
@@ -125,13 +137,60 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
             loadAndDisplayBannerAds()
         }
 
+        showAppBanner()
+    }
+
+    /**
+     * Show app promotion banner
+     */
+    private fun showAppBanner() {
+        // Show app banner promotion
+        if (appPreferences.isUserPremium().not() && shouldShowBanner()) {
+            val banner = appPreferences.getBanner()
+            binding.bannerLayout.bannerCard.visibility = banner?.let { View.VISIBLE } ?: View.GONE
+            banner?.let {
+                if (AppInstallHelper.isInstalled(banner.packageName ?: "", this).not()) {
+                    binding.bannerLayout.bannerTitle.text = banner.title
+                    binding.bannerLayout.bannerDescription.text = banner.description
+                    Glide.with(this).load(banner.imageUrl).diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .into(binding.bannerLayout.bannerImage)
+                    binding.bannerLayout.bannerCard.setOnClickListener {
+                        if (banner.appName != null && banner.packageName != null) {
+                            analyticsManager.logEvent(
+                                Events.KEY_PROMOTION_BANNER_CLICKED, mapOf<String, String>(
+                                    Events.KEY_PROMOTION_BANNER_NAME to banner.appName,
+                                    Events.KEY_PROMOTION_BANNER_PACKAGE to banner.packageName,
+                                )
+                            )
+                        }
+                        banner.redirectUrl?.let {
+                            val intent = Intent(Intent.ACTION_VIEW, banner.redirectUrl.toUri())
+                            startActivity(intent)
+                        }
+                    }
+                    updateBannerCount()
+                    if (binding.bannerLayout.bannerCard.isVisible()) {
+                        if (banner.appName != null && banner.packageName != null) {
+                            analyticsManager.logEvent(
+                                Events.KEY_PROMOTION_BANNER_SHOWN, mapOf<String, String>(
+                                    Events.KEY_PROMOTION_BANNER_NAME to banner.appName,
+                                    Events.KEY_PROMOTION_BANNER_PACKAGE to banner.packageName,
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            binding.bannerLayout.bannerCard.visibility = View.GONE
+        }
     }
 
     /**
      * Configure recycler view LayoutManager & adapter
      */
     private fun configureRecyclerView(
-        recyclerView: RecyclerView, adapter: AccountDetailsAdapter
+        recyclerView: RecyclerView, adapter: AccountDetailsAdapter,
     ) {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -163,6 +222,12 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
         tvMenuAddAccount = rootView?.findViewById<TextView>(R.id.tvMenuAddAccount)
         tvMenuAddAccount?.let {
             it.setOnClickListener {
+                //Log add account
+                analyticsManager.logEvent(
+                    Events.KEY_ADD_ACCOUNT_CLICKED, mapOf(
+                        Events.KEY_ACCOUNTS_COUNTS to accountDetailsAdapter.itemCount
+                    )
+                )
                 handleAddAndEditAccount()
             }
         }
@@ -191,6 +256,8 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
                         )
                     } else {
                         // Adding new case
+                        //Log account add
+                        analyticsManager.logEvent(Events.KEY_ACCOUNT_ADDED)
                         accountsViewModel.addAccount(Account(name = newAccountTriple.first))
                         // Update the account list by adding new item no need to reload it from
                         // DB there won't be any new expenses for newly created accounts.
@@ -225,6 +292,7 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
                 finish()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -253,8 +321,8 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 

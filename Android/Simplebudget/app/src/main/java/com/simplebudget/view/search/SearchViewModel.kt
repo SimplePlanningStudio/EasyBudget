@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.DateHelper
+import com.simplebudget.helper.Logger
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.prefs.AppPreferences
@@ -44,7 +45,7 @@ import kotlin.collections.ArrayList
  */
 
 class SearchViewModel(
-    private val db: DB, private val appPreferences: AppPreferences
+    private val db: DB, private val appPreferences: AppPreferences,
 ) : ViewModel() {
 
     private val allExpensesLiveData = MutableLiveData<List<Expense>>()
@@ -259,7 +260,11 @@ class SearchViewModel(
                     "",
                     file
                 )
-                e.printStackTrace()
+                Logger.error(
+                    SearchViewModel::class.java.simpleName,
+                    "An error occurred while exporting CSV file ${e.localizedMessage}",
+                    e
+                )
             } finally {
                 try {
                     fileWriter?.flush()
@@ -271,12 +276,15 @@ class SearchViewModel(
                         "",
                         file
                     )
-                    e.printStackTrace()
+                    Logger.error(
+                        SearchViewModel::class.java.simpleName,
+                        "An error occurred while exporting CSV file ${e.localizedMessage}",
+                        e
+                    )
                 }
             }
 
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
         }
     }
 

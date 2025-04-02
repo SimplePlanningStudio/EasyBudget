@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -26,16 +26,30 @@ import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewbinding.ViewBinding
+import com.simplebudget.BuildConfig
 import com.simplebudget.R
+import com.simplebudget.helper.APP_BANNER_DISPLAY_THRESHOLD
+import com.simplebudget.helper.DateHelper
+import com.simplebudget.helper.Logger
 import com.simplebudget.helper.Rate
+import com.simplebudget.helper.getFormattedDate
+import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.getAppInstallationDate
+import com.simplebudget.prefs.getShowBannerCount
+import com.simplebudget.prefs.getShowBannerDate
+import com.simplebudget.prefs.saveAppInstallationDate
+import com.simplebudget.prefs.saveShowBannerCount
+import com.simplebudget.prefs.saveShowBannerDate
 import com.simplebudget.push.MyFirebaseMessagingService.Companion.ACTION_TRIGGER_DOWNLOAD
 import com.simplebudget.push.MyFirebaseMessagingService.Companion.NOTIFICATION_ID_NEW_FEATURES
+import org.koin.android.ext.android.inject
 
 abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
 
     protected lateinit var binding: V
     private lateinit var listener: MyBroadcastReceiver
     private lateinit var localBroadcastManager: LocalBroadcastManager
+    private val appPreferences: AppPreferences by inject()
 
     abstract fun createBinding(): V
 
@@ -55,6 +69,11 @@ abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
         listener = MyBroadcastReceiver()
         localBroadcastManager = LocalBroadcastManager.getInstance(this)
         localBroadcastManager.registerReceiver(listener, IntentFilter(ACTION_TRIGGER_DOWNLOAD))
+
+        // Save app installation day or day 1 after that day we'll show app promotion banner
+        if (appPreferences.getAppInstallationDate().isEmpty()) {
+            appPreferences.saveAppInstallationDate(DateHelper.today.getFormattedDate(this))
+        }
     }
 
     /**
@@ -98,8 +117,55 @@ abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
                 )
             }
             alert.show()
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(
+                BaseActivity::class.java.simpleName,
+                getString(R.string.error_showing_download_app_dialog),
+                e
+            )
+        }
+    }
+
+
+    /**
+     * It'll check the threshold to show banner for now 3 times per day only.
+     */
+    protected fun shouldShowBanner(): Boolean {
+        if (BuildConfig.DEBUG) {
+            return true
+        } else {
+            val lastShownDate = appPreferences.getShowBannerDate()
+            val currentDate = DateHelper.today.getFormattedDate(this)
+            val showCount = appPreferences.getShowBannerCount()
+            val installDate = appPreferences.getAppInstallationDate()
+
+            // Check if it's the first day
+            if (installDate == currentDate) {
+                return false
+            }
+            return if (lastShownDate == currentDate) {
+                showCount < APP_BANNER_DISPLAY_THRESHOLD
+            } else {
+                true
+            }
+        }
+    }
+
+
+    /**
+     * Whenever the banner displayed we need to update the display count
+     */
+    protected fun updateBannerCount() {
+        val currentDate = DateHelper.today.getFormattedDate(this)
+        val lastShownDate = appPreferences.getShowBannerDate()
+        val currentCount = appPreferences.getShowBannerCount()
+
+        if (lastShownDate == currentDate) {
+            appPreferences.saveShowBannerCount((currentCount + 1))
+        } else {
+            appPreferences.saveShowBannerDate(currentDate)
+            appPreferences.saveShowBannerCount(1)
+
         }
     }
 

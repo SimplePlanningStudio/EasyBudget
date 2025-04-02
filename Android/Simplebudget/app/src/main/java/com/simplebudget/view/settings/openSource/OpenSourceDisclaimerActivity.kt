@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,8 +19,14 @@ import android.os.Bundle
 import android.view.MenuItem
 import com.simplebudget.databinding.ActivityOpenSourceDisclaimerBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
+import org.koin.android.ext.android.inject
 
 class OpenSourceDisclaimerActivity : BaseActivity<ActivityOpenSourceDisclaimerBinding>() {
+
+
+    private val analyticsManager: AnalyticsManager by inject()
 
     /**
      *
@@ -33,6 +39,9 @@ class OpenSourceDisclaimerActivity : BaseActivity<ActivityOpenSourceDisclaimerBi
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_OPEN_SOURCE_SCREEN)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)

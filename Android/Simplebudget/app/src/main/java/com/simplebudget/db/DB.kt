@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 package com.simplebudget.db
 
 import com.simplebudget.db.impl.accounts.AccountTypeEntity
+import com.simplebudget.db.impl.budgets.BudgetCategoryCrossRef
+import com.simplebudget.db.impl.budgets.BudgetEntity
+import com.simplebudget.db.impl.budgets.BudgetWithCategories
 import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.model.account.Account
+import com.simplebudget.model.budget.Budget
+import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
@@ -35,6 +40,60 @@ interface DB : Closeable {
     suspend fun triggerForceWriteToDisk()
 
     /**
+     * Save a budget
+     */
+    suspend fun persistBudget(budget: Budget): Long
+
+    /**
+     * Save recurring budget
+     */
+    suspend fun persistRecurringBudget(recurringBudget: RecurringBudget): RecurringBudget
+
+    /**
+     * Update budget (Spent , remaining amount) in case of any entry / deletion to expenses.
+     */
+    suspend fun updateBudget(budgetId: Long, spentAmount: Long, remainingAmount: Long)
+
+    /**
+     * Get all budgets for all accounts / categories.
+     */
+    suspend fun getBudgets(): List<BudgetEntity>
+
+    /**
+     * Get recurring budget associated to a budget.
+     */
+    suspend fun findRecurringBudgetForId(
+        recurringBudgetId: Long,
+    ): RecurringBudget?
+
+    /**
+     * Get all budgets for an account
+     */
+    suspend fun getBudgetsOfActiveAccount(): List<BudgetEntity>
+
+    suspend fun getBudgetsWithCategoriesByCategoryAndAccount(categoryId: Long): List<BudgetWithCategories>
+
+    suspend fun getBudgetsWithCategoriesByAccount(monthStartDate: LocalDate): List<BudgetWithCategories>
+
+    /**
+     *
+     */
+    suspend fun deleteBudget(budget: Budget)
+    suspend fun insertBudgetCategoryCrossRef(crossRef: BudgetCategoryCrossRef)
+
+    suspend fun insertBudgetCategoryCrossRefs(crossRefs: List<BudgetCategoryCrossRef>)
+
+    suspend fun insertBudgetWithCategories(budget: BudgetEntity, categoryIds: List<Long>)
+
+    suspend fun getBudgetWithCategories(budgetId: Long): BudgetWithCategories
+
+    suspend fun getBudgetsForCategory(categoryId: Long): List<BudgetCategoryCrossRef>
+
+    suspend fun updateBudgetsSpentAmount(startDate: LocalDate, endDate: LocalDate)
+    suspend fun getOldestBudgetStartDate(): LocalDate?
+    suspend fun getExpensesForBudget(budgetId: Long, startDate: LocalDate, endDate: LocalDate): List<Expense>
+
+    /**
      * Save a category
      */
     suspend fun persistCategory(category: Category): Category
@@ -46,6 +105,7 @@ interface DB : Closeable {
 
     fun getCategories(): Flow<List<CategoryEntity>>
     suspend fun getCategory(categoryId: Long): CategoryEntity
+    suspend fun getCategory(categoryName: String): CategoryEntity?
     suspend fun getMiscellaneousCategory(): CategoryEntity
 
     suspend fun deleteCategory(category: Category)
@@ -111,7 +171,7 @@ interface DB : Closeable {
     suspend fun getExpensesForDay(dayDate: LocalDate, accountId: Long): List<Expense>
 
     suspend fun getExpensesForMonth(
-        monthStartDate: LocalDate
+        monthStartDate: LocalDate,
     ): List<Expense>
 
     /**
@@ -130,7 +190,7 @@ interface DB : Closeable {
         startDate: LocalDate,
         dayDate: LocalDate,
         accountId: Long,
-        category: String
+        category: String,
     ): Double
 
     suspend fun persistRecurringExpense(recurringExpense: RecurringExpense): RecurringExpense
@@ -142,31 +202,31 @@ interface DB : Closeable {
     suspend fun deleteAllExpenseForRecurringExpense(recurringExpense: RecurringExpense)
 
     suspend fun getAllExpenseForRecurringExpense(
-        recurringExpense: RecurringExpense
+        recurringExpense: RecurringExpense,
     ): List<Expense>
 
     suspend fun deleteAllExpenseForRecurringExpenseFromDate(
-        recurringExpense: RecurringExpense, fromDate: LocalDate
+        recurringExpense: RecurringExpense, fromDate: LocalDate,
     )
 
     suspend fun getAllExpensesForRecurringExpenseFromDate(
-        recurringExpense: RecurringExpense, fromDate: LocalDate
+        recurringExpense: RecurringExpense, fromDate: LocalDate,
     ): List<Expense>
 
     suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     )
 
     suspend fun getAllExpensesForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ): List<Expense>
 
     suspend fun hasExpensesForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ): Boolean
 
     suspend fun findRecurringExpenseForId(
-        recurringExpenseId: Long
+        recurringExpenseId: Long,
     ): RecurringExpense?
 
     suspend fun getOldestExpense(): Expense?

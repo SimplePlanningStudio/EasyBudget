@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -29,10 +29,13 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivityPremiumBinding
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.RedeemPromo
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.iab.InAppProductsAdapter
 import com.simplebudget.iab.PremiumFlowStatus
 import com.simplebudget.iab.SKU_SUBSCRIPTION
 import com.simplebudget.view.settings.webview.WebViewActivity
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -43,6 +46,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
 
     private val viewModel: PremiumViewModel by viewModel()
+    private val analyticsManager: AnalyticsManager by inject()
+
 
     override fun createBinding(): ActivityPremiumBinding {
         return ActivityPremiumBinding.inflate(layoutInflater)
@@ -50,6 +55,8 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_REMOVE_ADS_SCREEN)
 
         var loadingProgressDialog: ProgressDialog? = null
         viewModel.premiumFlowErrorEventStream.observe(this) { status ->
@@ -57,6 +64,8 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                 PremiumPurchaseFlowResult.Cancelled -> {
                     loadingProgressDialog?.dismiss()
                     loadingProgressDialog = null
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_PREMIUM_PURCHASE_CANCELLED)
                 }
 
                 is PremiumPurchaseFlowResult.Error -> {
@@ -68,6 +77,12 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                         .setPositiveButton(R.string.ok) { dialog, _ ->
                             dialog.dismiss()
                         }.show()
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_PREMIUM_PURCHASE_ERROR, mapOf(
+                            Events.KEY_VALUE to status.reason
+                        )
+                    )
                 }
 
                 else -> {}
@@ -101,6 +116,8 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
                         )
                     )
                     finish()
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_PREMIUM_PURCHASE_SUCCESS)
                 }
 
                 null -> {
@@ -140,11 +157,13 @@ class PremiumActivity : BaseActivity<ActivityPremiumBinding>() {
         binding.buttonBuy.setOnClickListener {
             if (viewModel.getSelectedProduct()?.productType == BillingClient.ProductType.INAPP) {
                 viewModel.onBuyInAppPremiumClicked(this)
+                analyticsManager.logEvent(Events.KEY_PREMIUM_LIFE_TIME_CLICKED)
             } else {
                 viewModel.onBuySubscriptionPremiumClicked(
                     this,
                     viewModel.getSelectedProduct()?.productId ?: SKU_SUBSCRIPTION
                 )
+                analyticsManager.logEvent(Events.KEY_PREMIUM_SUBSCRIPTION_CLICKED)
             }
         }
         binding.whatPeopleSay.setOnClickListener {

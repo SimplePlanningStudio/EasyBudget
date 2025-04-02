@@ -45,7 +45,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvTitle"
-        tools:text="MONTHLY, 01 JAN 2024" />
+        tools:text="MONTHLY, 01 JAN 2025" />
 
     <ImageView
         android:id="@+id/edit_icon"

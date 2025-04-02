@@ -41,6 +41,14 @@
                 android:textColor="@color/placeholder_text"
                 android:textSize="12sp" />
 
+            <TextView
+                android:id="@+id/tvTrySwitchingAccount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/try_switching_account_to_see_expenses"
+                android:textColor="@color/colorBlack"
+                android:textSize="@dimen/_11ssp" />
+
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView

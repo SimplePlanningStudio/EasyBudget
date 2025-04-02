@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR / Waheed Nazir
+ *   Copyright 2025 Benoit LETONDOR / Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -25,6 +25,10 @@ import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditViewModel
 import com.simplebudget.view.report.MonthlyReportViewModel
 import com.simplebudget.view.report.base.MonthlyReportBaseViewModel
 import com.simplebudget.view.breakdown.BreakDownViewModel
+import com.simplebudget.view.budgets.addBudget.AddBudgetViewModel
+import com.simplebudget.view.budgets.BudgetViewModel
+import com.simplebudget.view.budgets.base.BudgetBaseViewModel
+import com.simplebudget.view.budgets.budgetDetails.BudgetDetailsViewModel
 import com.simplebudget.view.category.manage.ManageCategoriesViewModel
 import com.simplebudget.view.reset.ResetAppDataViewModel
 import com.simplebudget.view.search.SearchViewModel
@@ -38,7 +42,7 @@ val viewModelModule = module {
     /**
      * Main activity view model
      */
-    viewModel { MainViewModel(get(), get(), get()) }
+    viewModel { MainViewModel(get(), get(), get(), get()) }
 
     /**
      * Categories view model
@@ -94,4 +98,21 @@ val viewModelModule = module {
      * Accounts view model
      */
     viewModel { AccountsViewModel(get(), get()) }
+
+    /**
+     *  Add Budget view model
+     */
+    viewModel { AddBudgetViewModel(get(), get()) }
+    /**
+     *  Budget base view model
+     */
+    viewModel { BudgetBaseViewModel(get(), get()) }
+    /**
+     *  Budget view model
+     */
+    viewModel { BudgetViewModel(get()) }
+    /**
+     *  Budget details view model
+     */
+    viewModel { BudgetDetailsViewModel(get()) }
 }

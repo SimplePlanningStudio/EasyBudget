@@ -42,12 +42,20 @@
         android:textColor="@color/colorBlack"
         android:textSize="@dimen/_14ssp" />
 
+    <include
+        android:id="@+id/bannerLayout"
+        layout="@layout/item_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/title"
+        android:layout_marginVertical="@dimen/_5sdp" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/monthly_report_fragment_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/ad_view_container"
-        android:layout_below="@+id/title"
+        android:layout_below="@+id/bannerLayout"
         android:scrollbars="vertical" />
 
     <FrameLayout

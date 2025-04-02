@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -48,6 +48,8 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityManageCategoriesBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.extensions.toCategories
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
@@ -66,6 +68,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
     ManageCategoriesAdapter.ManageCategoriesListener {
 
     private val toastManager: ToastManager by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private val viewModelCategory: ManageCategoriesViewModel by viewModel()
     private var categories: ArrayList<Category> = ArrayList()
     private lateinit var manageCategoriesAdapter: ManageCategoriesAdapter
@@ -87,6 +90,10 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_MANAGE_CATEGORIES_SCREEN)
+
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -140,6 +147,13 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
             toggleImageView("")
             manageCategoriesAdapter.notifyDataSetChanged()
             viewModelCategory.saveCategory(Category(id = null, name = newCategory))
+            //Log event
+            analyticsManager.logEvent(
+                Events.KEY_CATEGORY_ADDED,
+                mapOf(
+                    Events.KEY_VALUE to ManageCategoriesActivity::class.java.simpleName
+                )
+            )
         }
         handleVoiceSearch()
         loadCategories()
@@ -203,6 +217,13 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                     selectedOption = SortOption.Alphabetically
                     appPreferences.setSortingType(SortOption.Alphabetically.name)
                     attachAdapter(categories)
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_CATEGORY_SORTED,
+                        mapOf(
+                            Events.KEY_VALUE to SortOption.Alphabetically.name,
+                        )
+                    )
                     true
                 }
 
@@ -210,6 +231,13 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                     selectedOption = SortOption.ByLatest
                     appPreferences.setSortingType(SortOption.ByLatest.name)
                     attachAdapter(categories)
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_CATEGORY_SORTED,
+                        mapOf(
+                            Events.KEY_VALUE to SortOption.ByLatest.name,
+                        )
+                    )
                     true
                 }
 
@@ -244,6 +272,8 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                 )
             }
             voiceSearchIntentLauncher.launch(intent)
+            //Log event
+            analyticsManager.logEvent(Events.KEY_CATEGORY_VOICE_SEARCHED)
         }
     }
 
@@ -304,6 +334,11 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                     categories.addAll(categoriesEntities.toCategories().asReversed())
                     attachAdapter(categories)
                     binding.progressBar.visibility = View.INVISIBLE
+                    //Log event
+                    analyticsManager.logEvent(
+                        Events.KEY_CATEGORIES_COUNT,
+                        mapOf(Events.KEY_VALUE to categoriesEntities.size)
+                    )
                 }
             }
         }
@@ -341,7 +376,8 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
      */
     private fun handleItemClick(selectedCategory: Category, position: Int) {
         if (selectedCategory.name == getString(R.string.miscellaneous)) {
-            DialogUtil.createDialog(this,
+            DialogUtil.createDialog(
+                this,
                 title = getString(R.string.oops),
                 message = getString(R.string.cant_edit_miscellaneous),
                 positiveBtn = getString(R.string.ok),
@@ -376,7 +412,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
      * Edit Category
      */
     private fun editCategory(
-        selectedCategory: Category, position: Int
+        selectedCategory: Category, position: Int,
     ) {
         EditCategoryDialog.open(this, selectedCategory, updateCategory = { newCategory ->
             categories.add(
@@ -391,6 +427,8 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
             )
             manageCategoriesAdapter.notifyItemChanged(position)
             toastManager.showShort(getString(R.string.category_updated_successfully))
+            //Log event
+            analyticsManager.logEvent(Events.KEY_CATEGORY_EDITED)
         }, toastManager)
     }
 
@@ -410,6 +448,8 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                 manageCategoriesAdapter.notifyItemChanged(position)
                 toastManager.showShort("${getString(R.string.deleted)} category ${selectedCategory.name}")
                 dialog.cancel()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_CATEGORY_DELETED)
             }
         val alertDialog = builder.create()
         alertDialog.show()
@@ -455,9 +495,14 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
+    }
+
+    override fun onResume() {
+        adView?.resume()
+        super.onResume()
     }
 
     /**

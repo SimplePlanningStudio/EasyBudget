@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ data class Expense(
     val associatedRecurringExpense: RecurringExpense?,
     val category: String,
     val accountId: Long,
-    val reminderId: Long = -1
+    val categoryId: Long,
 ) : Parcelable {
 
     constructor(
@@ -41,8 +41,8 @@ data class Expense(
         date: LocalDate,
         category: String,
         accountId: Long,
-        reminderId: Long = -1
-    ) : this(null, title, amount, date, null, category, accountId, reminderId)
+        categoryId: Long,
+    ) : this(null, title, amount, date, null, category, accountId, categoryId)
 
     constructor(
         id: Long,
@@ -51,8 +51,8 @@ data class Expense(
         date: LocalDate,
         category: String,
         accountId: Long,
-        reminderId: Long = -1
-    ) : this(id, title, amount, date, null, category, accountId, reminderId)
+        categoryId: Long,
+    ) : this(id, title, amount, date, null, category, accountId, categoryId)
 
     constructor(
         title: String,
@@ -61,7 +61,7 @@ data class Expense(
         associatedRecurringExpense: RecurringExpense,
         category: String,
         accountId: Long,
-        reminderId: Long = -1
+        reminderId: Long = -1,
     ) : this(
         null,
         title,
@@ -103,7 +103,7 @@ data class Expense(
         parcel.writeParcelable(associatedRecurringExpense, flags)
         parcel.writeString(category)
         parcel.writeLong(accountId)
-        parcel.writeLong(reminderId)
+        parcel.writeLong(categoryId)
     }
 
     override fun describeContents(): Int = 0

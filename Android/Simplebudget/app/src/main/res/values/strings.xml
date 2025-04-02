@@ -29,13 +29,15 @@
     <string name="amount">Amount ( %s )</string>
     <string name="budget_amount_hint">Budget Amount ( %s )</string>
     <string name="description">Description</string>
-    <string name="budget_description">Your budget goal. Education, Home, Car, Wedding ....</string>
+    <string name="budget_description">Budget Title</string>
     <string name="type">Type</string>
     <string name="payment">Expense</string>
     <string name="income">Income</string>
     <string name="date">Date</string>
-    <string name="start_date">Start Date:</string>
-    <string name="end_date">End Date:</string>
+    <string name="start_date">Start Date</string>
+    <string name="start">🗓️ Start:</string>
+    <string name="end_date">End Date</string>
+    <string name="end">🗓️ End:</string>
     <string name="first_occurence">First instance</string>
     <string name="no_expense_for_today">No income or expense found</string>
     <string name="no_records_found">No records found</string>
@@ -128,6 +130,7 @@
     <string name="expense_delete_error_title">Oops</string>
     <string name="expense_delete_error_message">An error occurred.</string>
 
+    <string name="select_interval">Select Budget Interval</string>
     <string name="recurring_expense_interval">Interval</string>
     <string name="recurring_interval_daily">Every day</string>
     <string name="recurring_interval_weekly">Every week</string>
@@ -161,7 +164,6 @@
     <string name="setting_category_start_day_of_week_title">Change start day of weeks</string>
     <string name="setting_category_manage_category_title">Manage Categories / Budget</string>
     <string name="setting_category_start_day_of_week_summary">Start day of week is (%s)</string>
-    <string name="setting_category_manage_category_summary">Set budget and add or remove categories</string>
     <string name="setting_category_app_version_title" translatable="false">SimpleBudget %s</string>
     <string name="setting_category_share_app_title">Share with friends</string>
     <string name="setting_category_rate_app_title">Feedback / Contact Us</string>
@@ -561,6 +563,8 @@
     <string name="text_general">General</string>
     <string name="error_occurred_try_again">Sorry! an unknown error occurred. Retry again. Thank you</string>
     <string name="select_category">Select Category</string>
+    <string name="select_categories">Select Categories</string>
+    <string name="please_select_categories">Please select categories</string>
     <string name="done_with_selection">Done with selection</string>
     <string name="done_with_editing">Done with editing</string>
     <string name="enter_new_category_or_choose_from_existing_categories">Enter new category or choose from existing categories.</string>
@@ -574,6 +578,7 @@
     <string name="no_budget_found">Budgets Not Found</string>
     <string name="category_not_found_do_you_want_add_now">Do you want to add it as a category?</string>
     <string name="budget_not_found_do_you_want_add_now">Do you want to add a budget?</string>
+    <string name="categories_for_budget">🏷️ Categories</string>
     <string name="categories">Categories</string>
     <string name="edit_categories">Edit Categories</string>
     <string name="manage_categories">Manage Categories</string>
@@ -600,7 +605,7 @@
     <string name="setting_notification_permission_rejected_dialog_accept_cta">Allow</string>
     <string name="setting_notification_permission_rejected_dialog_not_now_cta">Not now</string>
     <string name="title_account">Account</string>
-    <string name="select_account">Select Account:</string>
+    <string name="select_account">Select Account</string>
     <string name="change_account">Change Account</string>
     <string name="accounts">Accounts</string>
     <string name="add_account">Add Account</string>
@@ -638,7 +643,7 @@
     <string name="buy_permanently">Buy permanently</string>
     <string name="premium_caption_one">1. Ad-Free Experience</string>
     <string name="premium_caption_two">2. Multiple Accounts</string>
-    <string name="premium_caption_three">3. Set Budgets (Coming soon)</string>
+    <string name="premium_caption_three">3. Set Multiple Budgets</string>
     <string name="premium_caption_four">4. Premium Features</string>
     <string name="try_free_and_subscribe">Try free and subscribe</string>
     <string name="onetime_payment">One Time Payment</string>
@@ -646,7 +651,7 @@
     <string name="become_premium">Become Premium User</string>
     <string name="to_access_this_feature_you_need_to_upgrade_to_premium">Sorry! To access this feature you need to upgrade to premium!\nExplore premium options?</string>
     <string name="to_add_more_accounts_you_need_to_upgrade_to_premium">Sorry! To add more accounts you need to upgrade to premium!\n\nExplore premium options?</string>
-    <string name="to_setup_more_budgets_you_need_to_upgrade_to_premium">Sorry! To setup more budgets you need to upgrade to premium!\n\nExplore premium options?</string>
+    <string name="to_setup_more_budgets_you_need_to_upgrade_to_premium">Sorry! To add more budgets you need to upgrade to premium!\n\nExplore premium options?</string>
     <string name="set_category_budget_title">Set Category Budget</string>
     <string name="set_category_budget_detail">Once you set the budget for a category each month you\'ll be notified upon reaching the threshold!</string>
     <string name="action_help">Help</string>
@@ -664,8 +669,8 @@
     <string name="set_up_budgets_title">Budgets</string>
     <string name="set_up_reminders_title">Reminders</string>
     <string name="set_up_reminders_description">Smart reminders at your fingertips.</string>
-    <string name="set_up_budgets_description">Set budgets for each category</string>
-    <string name="category_for_budget_goal">Category for budget goal:</string>
+    <string name="set_up_budgets_description">Create one time and monthly budgets</string>
+    <string name="category_for_budget_goal">Category for budget goal</string>
     <string name="label_add">Add</string>
     <string name="accounts_description">Manage and check account balances</string>
     <string name="this_month">This Month</string>
@@ -699,5 +704,43 @@
     <string name="sort_alphabetically">Sort Alphabetically</string>
     <string name="sort_by_latest">Sort By Latest</string>
     <string name="sort_categories">Sort Categories</string>
-
+    <string name="onetime_budgets">One Time</string>
+    <string name="occurrence">Occurrence:</string>
+    <string name="last_instance">Last instance</string>
+    <string name="limit">💰 Budget Amount:</string>
+    <string name="spent">📤 Total Spent:</string>
+    <string name="remaining">💼 Remaining:</string>
+    <string name="surplus">💹 Surplus:</string>
+    <string name="budget_details">Budget Details</string>
+    <string name="total_debit">Total Debit</string>
+    <string name="total_credit">Total Credit</string>
+    <string name="error_logging_firebase_analytics_events">Error logging firebase analytics events.</string>
+    <string name="error_logging_facebook_analytics_events">Error logging facebook analytics events.</string>
+    <string name="error_setting_user_property_for_analytics">Error setting user property for analytics.</string>
+    <string name="error_while_displaying_banner_ad">Error while displaying banner ad</string>
+    <string name="firebaseauth_error_launching_auth_activity">FirebaseAuth: Error launching auth activity</string>
+    <string name="error_showing_download_app_dialog">Error showing download app dialog</string>
+    <string name="error_while_showing_rating_popup">Error while showing rating popup</string>
+    <string name="unable_to_redirect_to_mail_for_feedback">Unable to redirect to mail for feedback</string>
+    <string name="unable_to_share_spreadsheet_file">Unable to share spreadsheet file</string>
+    <string name="error_while_redeeming_promo_code">Error while redeeming promo code</string>
+    <string name="error_displaying_app_logo_on_toolbar">Error displaying app logo on toolbar</string>
+    <string name="error_getting_side_menu_header">Error getting side menu header</string>
+    <string name="error_checking_download_campaign_and_dismissing_notification">Error checking download campaign and dismissing notification</string>
+    <string name="an_error_occurred_during_sharing_app_activity_start">An error occurred during sharing app activity start</string>
+    <string name="error_while_opening_report_activity_from_intent">Error while opening report activity from intent</string>
+    <string name="edit_one_time_budget_interval">Edit Interval</string>
+    <string name="cant_edit_one_time_budget_interval">This budget is set as one-time, so the interval cannot be modified.</string>
+    <string name="delete_budget">Delete Budget</string>
+    <string name="budget_details_note">All transactions for this budget, past and upcoming. ℹ️</string>
+    <string name="try_switching_account_to_see_expenses">OR, switch account to view expenses!</string>
+    <string name="try_switching_account_to_see_budgets">OR, switch account to view budgets!</string>
+    <string name="try_now">Try Now</string>
+    <string name="budget_intro_message">A smarter way to manage your expenses—set budgets and stay on track!</string>
+    <string name="budget_intro_title">Budget Feature Added</string>
+    <string name="you_can_access_it_from_the_side_menu">ℹ️ You can access it from the side menu!</string>
+    <string name="error_while_opening_budgte_intro_from_notification">Error:While opening budgte intro from notification</string>
+    <string name="error_while_opening_budget_from_the_notification">Error: While opening budget from the notification</string>
+    <string name="later">Later</string>
+    <string name="recurring_monthly">🔁 Recurring: Monthly</string>
 </resources>

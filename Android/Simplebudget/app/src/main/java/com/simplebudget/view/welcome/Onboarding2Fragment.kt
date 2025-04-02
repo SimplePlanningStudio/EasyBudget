@@ -11,6 +11,8 @@ import android.view.ViewGroup
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.simplebudget.R
 import com.simplebudget.databinding.FragmentOnboarding2Binding
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.helper.getUserCurrency
 import com.simplebudget.view.selectcurrency.SelectCurrencyFragment
@@ -27,6 +29,8 @@ class Onboarding2Fragment : OnboardingFragment<FragmentOnboarding2Binding>() {
     private lateinit var receiver: BroadcastReceiver
 
     private val appPreferences: AppPreferences by inject()
+
+    private val analyticsManager: AnalyticsManager by inject()
 
     override val statusBarColor: Int
         get() = R.color.primary
@@ -49,6 +53,12 @@ class Onboarding2Fragment : OnboardingFragment<FragmentOnboarding2Binding>() {
             override fun onReceive(context: Context, intent: Intent) {
                 selectedCurrency =
                     Currency.getInstance(intent.getStringExtra(SelectCurrencyFragment.CURRENCY_ISO_EXTRA))
+                analyticsManager.logEvent(
+                    Events.KEY_CURRENCY_SELECTED,
+                    mapOf(
+                        Events.KEY_VALUE to (selectedCurrency?.currencyCode ?: "USD")
+                    )
+                )
                 setNextButtonText()
             }
         }
@@ -76,6 +86,6 @@ class Onboarding2Fragment : OnboardingFragment<FragmentOnboarding2Binding>() {
     override fun onCreateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): FragmentOnboarding2Binding = FragmentOnboarding2Binding.inflate(inflater, container, false)
 }

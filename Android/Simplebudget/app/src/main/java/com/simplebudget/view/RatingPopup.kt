@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import android.content.Context
 import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.hasUserCompleteRating
 import com.simplebudget.prefs.setUserHasCompleteRating
@@ -30,7 +32,8 @@ import com.simplebudget.prefs.setUserHasCompleteRating
  */
 class RatingPopup(
     private val context: Context,
-    private val appPreferences: AppPreferences
+    private val appPreferences: AppPreferences,
+    private val analyticsManager: AnalyticsManager,
 ) {
 
     /**
@@ -76,10 +79,14 @@ class RatingPopup(
             .setNegativeButton(R.string.rating_popup_question_cta_negative) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_DISLIKE)
                 buildNegativeStep().show()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_RATE_APP_DISLIKE)
             }
             .setPositiveButton(R.string.rating_popup_question_cta_positive) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_LIKE)
                 buildPositiveStep().show()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_RATE_APP_LIKE)
             }
 
         if (includeDontAskMeAgainButton) {
@@ -87,6 +94,8 @@ class RatingPopup(
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_NOT_ASK_ME_AGAIN)
                 appPreferences.setUserHasCompleteRating()
                 dialog.dismiss()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_REVIEW_DON_NOT_ASK_AGAIN)
             }
         }
 
@@ -105,11 +114,15 @@ class RatingPopup(
             .setNegativeButton(R.string.no_thanks) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_DISLIKE_NO_FEEDBACK)
                 appPreferences.setUserHasCompleteRating()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_REVIEW_FEEDBACK_NO_THANKS)
             }
             .setPositiveButton(R.string.sure) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_DISLIKE_FEEDBACK)
                 appPreferences.setUserHasCompleteRating()
                 Feedback.askForFeedback(context)
+                //Log event
+                analyticsManager.logEvent(Events.KEY_REVIEW_FEEDBACK)
             }
             .create()
     }
@@ -126,11 +139,15 @@ class RatingPopup(
             .setNegativeButton(R.string.no_thanks) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_LIKE_NOT_RATED)
                 appPreferences.setUserHasCompleteRating()
+                //Log event
+                analyticsManager.logEvent(Events.KEY_REVIEW_FEEDBACK_NO_THANKS)
             }
             .setPositiveButton(R.string.sure) { _, _ ->
                 appPreferences.setRatingPopupStep(RatingPopupStep.STEP_LIKE_RATED)
                 appPreferences.setUserHasCompleteRating()
                 Rate.onPlayStore(context)
+                //Log event
+                analyticsManager.logEvent(Events.KEY_REVIEW_FEEDBACK)
             }
             .create()
     }

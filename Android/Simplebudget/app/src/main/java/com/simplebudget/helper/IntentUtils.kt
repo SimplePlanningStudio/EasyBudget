@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package com.simplebudget.helper
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import android.text.Html
 import android.widget.Toast
+import com.simplebudget.R
+import androidx.core.net.toUri
 
 /**
  * Created by Waheed
  */
 fun intentOpenWebsite(activity: Activity, url: String) {
     val openURL = Intent(Intent.ACTION_VIEW)
-    openURL.data = Uri.parse(url)
+    openURL.data = url.toUri()
     activity.startActivity(openURL)
 }
 
@@ -42,6 +42,9 @@ fun intentShareCSV(activity: Activity, uri: Uri) {
         shareIntent.type = "text/file"
         activity.startActivity(Intent.createChooser(shareIntent, "Send to"))
     } catch (e: Exception) {
-        e.printStackTrace()
+        Logger.error(
+            activity.getString(R.string.unable_to_share_spreadsheet_file),
+            e
+        )
     }
 }

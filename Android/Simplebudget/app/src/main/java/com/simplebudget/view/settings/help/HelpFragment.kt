@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  */
 package com.simplebudget.view.settings.help
 
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.simplebudget.R
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.extensions.*
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.view.settings.faq.FAQActivity
@@ -40,6 +38,8 @@ class HelpFragment : PreferenceFragmentCompat() {
 
     private val toastManager: ToastManager by inject()
 
+    private val analyticsManager: AnalyticsManager by inject()
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.help_preferences, rootKey)
     }
@@ -47,11 +47,14 @@ class HelpFragment : PreferenceFragmentCompat() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_CONTACT_US_SCREEN)
         /*
          * Telegram channel button
          */
         findPreference<Preference>(resources.getString(R.string.setting_telegram_channel_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_TELEGRAM)
                 Intent().openTelegramChannel(requireActivity(), toastManager)
                 false
             }
@@ -62,6 +65,7 @@ class HelpFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_whatsapp_channel_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_WHATSAPP)
                 Intent().openWhatsAppChannel(requireActivity(), toastManager)
                 false
             }
@@ -72,6 +76,7 @@ class HelpFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_youtube_channel_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_YOUTUBE)
                 Intent().openYoutubeChannel(requireActivity(), toastManager)
                 false
             }
@@ -80,6 +85,7 @@ class HelpFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_category_faq_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_FAQ)
                 startActivity(Intent(requireActivity(), FAQActivity::class.java))
                 false
             }
@@ -89,6 +95,7 @@ class HelpFragment : PreferenceFragmentCompat() {
          */
         findPreference<Preference>(resources.getString(R.string.setting_category_feedback_app_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
+                analyticsManager.logEvent(Events.KEY_FEEDBACK_GMAIL)
                 Feedback.askForFeedback(requireActivity())
                 false
             }

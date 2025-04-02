@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import android.view.ViewGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.simplebudget.R
 import com.simplebudget.helper.afterTextChanged
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.prefs.AppPreferences
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -54,7 +56,7 @@ class SelectCurrencyFragment : DialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         if (showsDialog) {
             return null
@@ -124,7 +126,7 @@ class SelectCurrencyFragment : DialogFragment() {
             searchCurrency.afterTextChanged {
                 adapter?.filter?.filter(it)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
     }
 

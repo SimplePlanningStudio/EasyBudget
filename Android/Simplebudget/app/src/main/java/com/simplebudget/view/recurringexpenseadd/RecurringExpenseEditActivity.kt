@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package com.simplebudget.view.recurringexpenseadd
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.BroadcastReceiver
@@ -44,6 +42,8 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityRecurringExpenseAddBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.extensions.toAccount
 import com.simplebudget.helper.extensions.toAccounts
@@ -60,6 +60,7 @@ import com.simplebudget.view.DatePickerDialogFragment
 import com.simplebudget.view.accounts.AccountsSpinnerAdapter
 import com.simplebudget.view.accounts.AccountsViewModel
 import com.simplebudget.view.category.choose.ChooseCategoryActivity
+import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -74,12 +75,13 @@ import kotlin.math.abs
 class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBinding>() {
 
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private val viewModel: RecurringExpenseEditViewModel by viewModel()
     private val accountsViewModel: AccountsViewModel by viewModel()
     private lateinit var receiver: BroadcastReceiver
     private var adView: AdView? = null
     private var existingExpenseCategory: String = ""
-    private var selectedCategory: Category? = null
+    private var existingExpenseCategoryId: Long = 53 //Miscellaneous
     private var isEdit: Boolean = false
     private var isRevenue: Boolean = false
 
@@ -101,8 +103,11 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setSupportActionBar(binding.toolbar)
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_ADD_RECURRING_SCREEN)
+        analyticsManager.logEvent(Events.KEY_ADD_RECURRING_EXPENSE)
 
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -124,8 +129,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         if (savedInstanceState == null) {
             val initDate = intent.getLongExtra("dateStart", 0)
             viewModel.initWithDateAndExpense(
-                if (initDate <= 0) LocalDate.now() else
-                    LocalDate.ofEpochDay(initDate),
+                if (initDate <= 0) LocalDate.now() else LocalDate.ofEpochDay(initDate),
                 intent.getParcelableExtra("expense")
             )
         }
@@ -160,7 +164,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                             parentView: AdapterView<*>?,
                             selectedItemView: View?,
                             position: Int,
-                            id: Long
+                            id: Long,
                         ) {
                             selectedAccount = accountsSpinnerAdapter?.getItem(position)
                         }
@@ -189,7 +193,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                     existingValues.amount,
                     type = existingValues.type,
                     categoryType = existingValues.categoryType,
-                    accountId = existingValues.accountId
+                    accountId = existingValues.accountId,
+                    categoryId = existingValues.categoryId
                 )
             } else {
                 setUpTextFields(
@@ -197,7 +202,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                     amount = null,
                     type = null,
                     categoryType = null,
-                    accountId = 0L
+                    accountId = 0L,
+                    categoryId = existingExpenseCategoryId
                 )
             }
         }
@@ -231,16 +237,13 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             progressDialog?.dismiss()
             progressDialog = null
 
-            AlertDialog.Builder(this)
-                .setTitle(R.string.oops)
+            AlertDialog.Builder(this).setTitle(R.string.oops)
                 .setMessage(getString(R.string.error_occurred_try_again))
-                .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-                .show()
+                .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }.show()
         }
 
         viewModel.expenseAddBeforeInitDateEventStream.observe(this) {
-            AlertDialog.Builder(this)
-                .setTitle(R.string.expense_add_before_init_date_dialog_title)
+            AlertDialog.Builder(this).setTitle(R.string.expense_add_before_init_date_dialog_title)
                 .setMessage(R.string.expense_add_before_init_date_dialog_description)
                 .setPositiveButton(R.string.expense_add_before_init_date_dialog_positive_cta) { _, _ ->
                     viewModel.onAddExpenseBeforeInitDateConfirmed(
@@ -249,13 +252,13 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                         ExpenseType.getRecurringTypeFromSpinnerSelection(binding.expenseTypeSpinner.selectedItemPosition),
                         binding.tvCategoryName.text?.toString()
                             ?: ExpenseCategoryType.MISCELLANEOUS.name,
-                        selectedAccount?.id ?: appPreferences.activeAccount()
+                        selectedAccount?.id ?: appPreferences.activeAccount(),
+                        existingExpenseCategoryId
                     )
                 }
                 .setNegativeButton(R.string.expense_add_before_init_date_dialog_negative_cta) { _, _ ->
                     viewModel.onAddExpenseBeforeInitDateCancelled()
-                }
-                .show()
+                }.show()
         }
 
         //Handle category
@@ -325,8 +328,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         }
 
         val category = binding.tvCategoryName.text.toString()
-        if (category.trim().isEmpty())
-            binding.tvCategoryName.text = ExpenseCategoryType.MISCELLANEOUS.name.uppercase()
+        if (category.trim().isEmpty()) binding.tvCategoryName.text =
+            ExpenseCategoryType.MISCELLANEOUS.name.uppercase()
 
         return ok
     }
@@ -345,13 +348,30 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
 
         binding.saveExpenseFab.setOnClickListener {
             if (validateInputs()) {
+                val selectedCategory = binding.tvCategoryName.text?.toString()?.uppercase()
+                    ?: ExpenseCategoryType.MISCELLANEOUS.name
+                val type: RecurringExpenseType =
+                    ExpenseType.getRecurringTypeFromSpinnerSelection(binding.expenseTypeSpinner.selectedItemPosition)
                 viewModel.onSave(
                     getCurrentAmount(),
                     binding.descriptionEdittext.text.toString(),
-                    ExpenseType.getRecurringTypeFromSpinnerSelection(binding.expenseTypeSpinner.selectedItemPosition),
-                    binding.tvCategoryName.text?.toString()?.uppercase()
-                        ?: ExpenseCategoryType.MISCELLANEOUS.name,
-                    selectedAccount?.id ?: appPreferences.activeAccount()
+                    type,
+                    selectedCategory,
+                    selectedAccount?.id ?: appPreferences.activeAccount(),
+                    existingExpenseCategoryId
+                )
+                //As account switched need to update selected account
+                if (selectedAccount?.id != activeAccount?.id) {
+                    accountsViewModel.updateActiveAccount(selectedAccount!!)
+                    this@RecurringExpenseEditActivity.updateAccountNotifyBroadcast()
+                }
+                //Log event
+                analyticsManager.logEvent(
+                    Events.KEY_ADD_RECURRING_EXPENSE,
+                    mapOf(
+                        Events.KEY_ADD_EXPENSE_SELECTED_INTERVAL to type.name,
+                        Events.KEY_ADD_EXPENSE_SELECTED_CATEGORY to selectedCategory
+                    )
                 )
             }
         }
@@ -394,7 +414,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         amount: Double?,
         type: RecurringExpenseType?,
         categoryType: String?,
-        accountId: Long
+        accountId: Long,
+        categoryId: Long?,
     ) {
         binding.amountInputlayout.hint =
             resources.getString(R.string.amount, appPreferences.getUserCurrency().symbol)
@@ -420,16 +441,14 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             ExpenseType.setSpinnerSelectionFromRecurringType(type, binding.expenseTypeSpinner)
         } else {
             ExpenseType.setSpinnerSelectionFromRecurringType(
-                RecurringExpenseType.MONTHLY,
-                binding.expenseTypeSpinner
+                RecurringExpenseType.MONTHLY, binding.expenseTypeSpinner
             )
         }
 
         if (description != null) {
             binding.descriptionEdittext.setText(description)
             binding.descriptionEdittext.setSelection(
-                binding.descriptionEdittext.text?.length
-                    ?: 0
+                binding.descriptionEdittext.text?.length ?: 0
             ) // Put focus at the end of the text
         }
 
@@ -439,7 +458,8 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             binding.amountEdittext.setText(CurrencyHelper.getFormattedAmountValue(abs(amount)))
         }
 
-        existingExpenseCategory = categoryType ?: ""
+        existingExpenseCategory = categoryType ?: existingExpenseCategory
+        existingExpenseCategoryId = categoryId ?: existingExpenseCategoryId
         binding.tvCategoryName.text = existingExpenseCategory
 
         accountsViewModel.getAccountFromId(if (accountId != 0L) accountId else appPreferences.activeAccount())
@@ -450,8 +470,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
      */
     private fun setUpDateButton(date: LocalDate) {
         val formatter = DateTimeFormatter.ofPattern(
-            resources.getString(R.string.add_expense_date_format),
-            Locale.getDefault()
+            resources.getString(R.string.add_expense_date_format), Locale.getDefault()
         )
         binding.dateButton.text = formatter.format(date)
 
@@ -479,8 +498,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
             adView = AdView(this)
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
             adContainerView.addView(adView)
-            val actualAdRequest = AdRequest.Builder()
-                .build()
+            val actualAdRequest = AdRequest.Builder().build()
             adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)
             adView?.adListener = object : AdListener() {
@@ -490,9 +508,14 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
+    }
+
+    override fun onResume() {
+        adView?.resume()
+        super.onResume()
     }
 
     /**
@@ -518,9 +541,10 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
      */
     private var securityActivityLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            selectedCategory =
+            val category =
                 result.data?.getParcelableExtra(ChooseCategoryActivity.REQUEST_CODE_SELECTED_CATEGORY) as Category?
-            binding.tvCategoryName.text = selectedCategory?.name ?: ""
+            existingExpenseCategoryId = category?.id ?: existingExpenseCategoryId
+            binding.tvCategoryName.text = category?.name ?: ""
         }
 
     /**
@@ -547,8 +571,7 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
                 message = getString(R.string.switch_expense_income_hint_message),
                 handleGuideListener = {
                     appPreferences.setUserSawSwitchExpenseHint()
-                }
-            )
+                })
         }
     }
 

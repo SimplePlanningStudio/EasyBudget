@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,16 +16,23 @@
 package com.simplebudget.helper.extensions
 
 import com.simplebudget.BuildConfig
+import com.simplebudget.db.DB
 import com.simplebudget.db.impl.accounts.AccountTypeEntity
+import com.simplebudget.db.impl.budgets.BudgetEntity
+import com.simplebudget.db.impl.budgets.BudgetWithCategories
+import com.simplebudget.db.impl.budgets.RecurringBudgetEntity
 import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.db.impl.expenses.ExpenseEntity
 import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.Logger
 import com.simplebudget.model.account.Account
+import com.simplebudget.model.budget.Budget
+import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
+import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -99,13 +106,80 @@ fun List<AccountTypeEntity>.toAccounts(): List<Account> {
 }
 
 fun Expense.toExpenseEntity() = ExpenseEntity(
-    id, title, amount.getDBValue(), date, associatedRecurringExpense?.id, category, accountId
+    id,
+    title,
+    amount.getDBValue(),
+    date,
+    associatedRecurringExpense?.id,
+    category,
+    accountId,
+    categoryId
 )
 
 
 fun RecurringExpense.toRecurringExpenseEntity() = RecurringExpenseEntity(
     id, title, amount.getDBValue(), recurringDate, modified, type.name, category, accountId
 )
+
+fun Budget.toBudgetEntity() = BudgetEntity(
+    id = id,
+    goal = goal,
+    accountId = accountId,
+    budgetAmount = budgetAmount.getDBValue(),
+    remainingAmount = remainingAmount.getDBValue(),
+    spentAmount = spentAmount.getDBValue(),
+    startDate = startDate,
+    endDate = endDate,
+    associatedRecurringBudgetId = associatedRecurringBudget?.id
+)
+
+
+fun RecurringBudget.toRecurringBudgetEntity() = RecurringBudgetEntity(
+    id = id,
+    goal = goal,
+    accountId = accountId,
+    originalAmount = budgetAmount.getDBValue(),
+    type = type.name,
+    recurringDate = recurringDate,
+    modified = modified
+)
+
+suspend fun List<BudgetEntity>.toBudgets(db: DB): List<Budget> {
+    return map { it.toBudget(db) }
+}
+
+suspend fun List<CategoryEntity>.toCategoriesFromCategoryEntity(): List<Category> {
+    return map { it.toCategory() }
+}
+
+suspend fun List<Category>.toCategoriesId(): List<Long> {
+    return map { it.id!! }
+}
+
+fun List<Category>.namesAsCommaSeparatedString(): String {
+    return if (this.size > 3) {
+        this.take(3).joinToString(", ") {
+            it.name.toLowerCase(Locale.getDefault()).replaceFirstChar { char -> char.uppercase() }
+        } + ", etc."
+    } else {
+        this.joinToString(", ") {
+            it.name.toLowerCase(Locale.getDefault()).replaceFirstChar { char -> char.uppercase() }
+        }
+    }
+}
+
+suspend fun BudgetEntity.toBudget(db: DB, categories: List<Category> = emptyList()): Budget {
+    val recurringBudget = this.associatedRecurringBudgetId?.let { id ->
+        db.findRecurringBudgetForId(id)
+    }
+    return toBudget(recurringBudget, categories)
+}
+
+suspend fun BudgetWithCategories.toBudget(db: DB): Budget {
+    val categories = this.categories.toCategoriesFromCategoryEntity()
+    val budget = this.budget.toBudget(db, categories)
+    return budget
+}
 
 /**
  * Check the selected account default or not.

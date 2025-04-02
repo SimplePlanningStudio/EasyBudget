@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -22,10 +22,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityReleaseHistoryTimelineBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.stickytimelineview.callback.SectionCallback
 import com.simplebudget.helper.stickytimelineview.model.SectionInfo
+import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
+import org.koin.android.ext.android.inject
 
 class ReleaseHistoryTimelineActivity : BaseActivity<ActivityReleaseHistoryTimelineBinding>() {
+
+
+    private val analyticsManager: AnalyticsManager by inject()
 
     /**
      *
@@ -38,6 +45,9 @@ class ReleaseHistoryTimelineActivity : BaseActivity<ActivityReleaseHistoryTimeli
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Screen name event
+        analyticsManager.logEvent(Events.KEY_APP_RELEASE_SCREEN)
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowHomeEnabled(true)

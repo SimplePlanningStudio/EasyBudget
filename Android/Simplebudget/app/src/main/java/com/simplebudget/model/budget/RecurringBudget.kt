@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -17,33 +17,29 @@ package com.simplebudget.model.budget
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.simplebudget.model.recurringexpense.RecurringExpenseType
 import java.time.LocalDate
 
 data class RecurringBudget(
     val id: Long?,
     val goal: String,
     val accountId: Long,
-    val categoryId: Long,
     val budgetAmount: Double,
     val type: RecurringBudgetType,
     val recurringDate: LocalDate,
-    val modified: Boolean
+    val modified: Boolean,
 ) : Parcelable {
 
     constructor(
         accountId: Long,
         goal: String,
-        categoryId: Long,
         budgetAmount: Double,
         type: RecurringBudgetType,
         recurringDate: LocalDate,
-        modified: Boolean
+        modified: Boolean,
     ) : this(
         null,
         goal,
         accountId,
-        categoryId,
         budgetAmount,
         type,
         recurringDate,
@@ -53,7 +49,6 @@ data class RecurringBudget(
     constructor(parcel: Parcel) : this(
         parcel.readValue(Long::class.java.classLoader) as? Long,
         parcel.readString() ?: "",
-        parcel.readLong(),
         parcel.readLong(),
         parcel.readDouble(),
         RecurringBudgetType.values()[parcel.readInt()],
@@ -67,7 +62,6 @@ data class RecurringBudget(
         parcel.writeValue(id)
         parcel.writeString(goal)
         parcel.writeLong(accountId)
-        parcel.writeLong(categoryId)
         parcel.writeDouble(budgetAmount)
         parcel.writeInt(type.ordinal)
         parcel.writeLong(recurringDate.toEpochDay())
@@ -89,7 +83,6 @@ data class RecurringBudget(
                 "id=$id, " +
                 "goal='$goal', " +
                 "accountId=$accountId, " +
-                "categoryId=$categoryId, " +
                 "budgetAmount=$budgetAmount, " +
                 "recurringDate=$recurringDate, " +
                 "Type='${type.name}', " +

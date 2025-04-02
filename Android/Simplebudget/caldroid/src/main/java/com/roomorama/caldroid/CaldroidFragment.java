@@ -905,29 +905,22 @@ public class CaldroidFragment extends DialogFragment {
      */
     public OnItemClickListener getDateItemClickListener() {
         if (dateItemClickListener == null) {
-            dateItemClickListener = new OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view,
-                                        int position, long id) {
-
+            dateItemClickListener = (parent, view, position, id) -> {
+                if (caldroidListener != null && position >= 0 && position < dateInMonthsList.size()) {
                     DateTime dateTime = dateInMonthsList.get(position);
-
-                    if (caldroidListener != null) {
-                        if (!enableClickOnDisabledDates) {
-                            if ((minDateTime != null && dateTime
-                                    .lt(minDateTime))
-                                    || (maxDateTime != null && dateTime
-                                    .gt(maxDateTime))
-                                    || (disableDates != null && disableDates
-                                    .indexOf(dateTime) != -1)) {
-                                return;
-                            }
+                    if (!enableClickOnDisabledDates) {
+                        if ((minDateTime != null && dateTime
+                                .lt(minDateTime))
+                                || (maxDateTime != null && dateTime
+                                .gt(maxDateTime))
+                                || (disableDates != null && disableDates
+                                .indexOf(dateTime) != -1)) {
+                            return;
                         }
-
-                        LocalDate date = CalendarHelper
-                                .convertDateTimeToDate(dateTime);
-                        caldroidListener.onSelectDate(date, view);
                     }
+                    LocalDate date = CalendarHelper
+                            .convertDateTimeToDate(dateTime);
+                    caldroidListener.onSelectDate(date, view);
                 }
             };
         }
@@ -943,31 +936,25 @@ public class CaldroidFragment extends DialogFragment {
      */
     public OnItemLongClickListener getDateItemLongClickListener() {
         if (dateItemLongClickListener == null) {
-            dateItemLongClickListener = new OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent,
-                                               View view, int position, long id) {
-
+            dateItemLongClickListener = (parent, view, position, id) -> {
+                if (caldroidListener != null && position >= 0 && position < dateInMonthsList.size()) {
                     DateTime dateTime = dateInMonthsList.get(position);
-
-                    if (caldroidListener != null) {
-                        if (!enableClickOnDisabledDates) {
-                            if ((minDateTime != null && dateTime
-                                    .lt(minDateTime))
-                                    || (maxDateTime != null && dateTime
-                                    .gt(maxDateTime))
-                                    || (disableDates != null && disableDates
-                                    .indexOf(dateTime) != -1)) {
-                                return false;
-                            }
+                    if (!enableClickOnDisabledDates) {
+                        if ((minDateTime != null && dateTime
+                                .lt(minDateTime))
+                                || (maxDateTime != null && dateTime
+                                .gt(maxDateTime))
+                                || (disableDates != null && disableDates
+                                .indexOf(dateTime) != -1)) {
+                            return false;
                         }
-                        LocalDate date = CalendarHelper
-                                .convertDateTimeToDate(dateTime);
-                        caldroidListener.onLongClickDate(date, view);
                     }
-
-                    return true;
+                    LocalDate date = CalendarHelper
+                            .convertDateTimeToDate(dateTime);
+                    caldroidListener.onLongClickDate(date, view);
                 }
+
+                return true;
             };
         }
 

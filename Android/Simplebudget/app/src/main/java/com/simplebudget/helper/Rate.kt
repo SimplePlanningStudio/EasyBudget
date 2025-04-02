@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,19 +19,20 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 
 object Rate {
     fun onPlayStore(context: Context) {
         val appPackageName = context.packageName
         try {
             val intent =
-                Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
+                Intent(Intent.ACTION_VIEW, "market://details?id=$appPackageName".toUri())
 
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
             val intent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")
+                "https://play.google.com/store/apps/details?id=$appPackageName".toUri()
             )
             context.startActivity(intent)
         }
@@ -42,7 +43,7 @@ object Rate {
      */
     fun openPlayStore(packageName: String, context: Context) {
         if (packageName.isEmpty()) return
-        val uri = Uri.parse("market://details?id=$packageName")
+        val uri = "market://details?id=$packageName".toUri()
         val goToMarket = Intent(Intent.ACTION_VIEW, uri)
         goToMarket.addFlags(
             Intent.FLAG_ACTIVITY_NO_HISTORY or
@@ -54,7 +55,7 @@ object Rate {
             context.startActivity(
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("http://play.google.com/store/apps/details?id=$packageName")
+                    "http://play.google.com/store/apps/details?id=$packageName".toUri()
                 )
             )
         }

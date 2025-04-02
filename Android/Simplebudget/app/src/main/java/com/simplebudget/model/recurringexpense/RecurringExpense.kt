@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ data class RecurringExpense(
     val modified: Boolean,
     val type: RecurringExpenseType,
     val category: String,
-    val accountId: Long
+    val accountId: Long,
 ) : Parcelable {
 
     private constructor(parcel: Parcel) : this(
@@ -50,7 +50,7 @@ data class RecurringExpense(
         recurringDate: LocalDate,
         type: RecurringExpenseType,
         category: String,
-        accountId: Long
+        accountId: Long,
     ) : this(
         null,
         title,

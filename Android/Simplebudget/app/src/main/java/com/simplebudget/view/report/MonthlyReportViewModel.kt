@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.simplebudget.view.report
 
+import android.os.Bundle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -23,13 +24,23 @@ import com.simplebudget.model.expense.Expense
 import com.simplebudget.db.DB
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.CurrencyHelper.getFormattedAmountValue
+import com.simplebudget.helper.InternetUtils
+import com.simplebudget.helper.Logger
+import com.simplebudget.helper.banner.AppBanner
+import com.simplebudget.helper.banner.BannerResponse
+import com.simplebudget.helper.banner.RetrofitClient
 import com.simplebudget.model.account.appendAccount
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccount
 import com.simplebudget.prefs.activeAccountLabel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
@@ -52,7 +63,7 @@ class MonthlyReportViewModel(
     private val db: DB,
     private val appPreferences: AppPreferences,
 ) : ViewModel() {
-    val monthlyReportDataLiveData = MutableLiveData<DataModels.MonthlyReportData>()
+    val monthlyReportDataLiveData = MutableLiveData<DataModels.MonthlyReportData?>()
     val expenses = mutableListOf<Expense>()
     val revenues = mutableListOf<Expense>()
     private val allExpensesOfThisMonth = mutableListOf<DataModels.SuperParent>()
@@ -130,6 +141,7 @@ class MonthlyReportViewModel(
                     }
                 }
                 balance = revenuesAmount - expensesAmount
+
 
                 monthlyReportDataLiveData.postValue(
                     DataModels.MonthlyReportData.Data(
@@ -237,7 +249,11 @@ class MonthlyReportViewModel(
                     "",
                     file
                 )
-                e.printStackTrace()
+                Logger.error(
+                    MonthlyReportViewModel::class.java.simpleName,
+                    "An error occurred while exporting CSV file ${e.localizedMessage}",
+                    e
+                )
             } finally {
                 try {
                     fileWriter?.flush()
@@ -249,12 +265,15 @@ class MonthlyReportViewModel(
                         "",
                         file
                     )
-                    e.printStackTrace()
+                    Logger.error(
+                        MonthlyReportViewModel::class.java.simpleName,
+                        "An error occurred while exporting CSV file ${e.localizedMessage}",
+                        e
+                    )
                 }
             }
 
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
         }
     }
 

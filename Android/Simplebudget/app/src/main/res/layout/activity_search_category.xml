@@ -85,9 +85,17 @@
         android:layout_height="2dp"
         android:layout_marginTop="@dimen/_2sdp"
         android:layout_marginEnd="@dimen/_10sdp"
-        app:layout_constraintBottom_toTopOf="@+id/recyclerViewCategories"
+        app:layout_constraintBottom_toTopOf="@+id/bannerLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/search_card_view" />
+
+    <include
+        android:id="@+id/bannerLayout"
+        layout="@layout/item_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="@dimen/_5sdp"
+        app:layout_constraintTop_toBottomOf="@id/search_card_view" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCategories"
@@ -95,8 +103,8 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/ad_view_container"
-        app:layout_constraintTop_toBottomOf="@id/search_card_view"
+        app:layout_constraintBottom_toTopOf="@id/doneWithSelection"
+        app:layout_constraintTop_toBottomOf="@id/bannerLayout"
         tools:itemCount="12"
         tools:listitem="@layout/item_category" />
 
@@ -141,6 +149,14 @@
             android:text="@string/category_not_found_do_you_want_add_now"
             android:textColor="@color/placeholder_text"
             android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvTrySwitchingAccount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/try_switching_account_to_see_expenses"
+            android:textColor="@color/colorBlack"
+            android:textSize="@dimen/_11ssp" />
 
         <LinearLayout
             android:id="@+id/llAddCategoryContainer"
@@ -198,6 +214,32 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+
+    <Button
+        android:id="@+id/doneWithSelection"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_35sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:background="@drawable/expense_save_background_drawable"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:text="@string/done_with_selection"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/ad_view_container" />
+
+
+    <Button
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="@dimen/_8sdp"
+        android:textSize="@dimen/_12ssp"
+        app:layout_constraintBottom_toTopOf="@+id/ad_view_container" />
 
     <FrameLayout
         android:id="@+id/ad_view_container"

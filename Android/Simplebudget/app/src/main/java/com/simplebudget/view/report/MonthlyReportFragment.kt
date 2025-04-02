@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.simplebudget.view.report
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -31,7 +32,6 @@ import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.androidisland.ezpermission.EzPermission
-import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
@@ -41,11 +41,11 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentMonthlyReportBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.activeAccountLabel
-import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.report.adapter.MainAdapter
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -53,9 +53,9 @@ import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.collections.ArrayList
+import androidx.core.net.toUri
 
-
-private const val ARG_DATE = "arg_date"
 
 /**
  * Fragment that displays monthly report for a given month
@@ -69,6 +69,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     private lateinit var date: LocalDate
 
     private val appPreferences: AppPreferences by inject()
+    private val analyticsManager: AnalyticsManager by inject()
     private val viewModel: MonthlyReportViewModel by viewModel()
     private val toastManager: ToastManager by inject()
     private var adView: AdView? = null
@@ -88,7 +89,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     override fun onCreateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): FragmentMonthlyReportBinding =
         FragmentMonthlyReportBinding.inflate(inflater, container, false)
 
@@ -97,70 +98,77 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        date = requireArguments().getSerializable(ARG_DATE) as LocalDate
+        date = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requireArguments().getSerializable(ARG_DATE, LocalDate::class.java) as LocalDate
+        } else {
+            requireArguments().getSerializable(ARG_DATE) as LocalDate
+        }
 
-
-
-        viewModel.monthlyReportDataLiveData.observe(requireActivity()) { result ->
+        viewModel.monthlyReportDataLiveData.observe(viewLifecycleOwner) { result ->
             binding?.monthlyReportFragmentProgressBar?.visibility = View.GONE
             binding?.monthlyReportFragmentContent?.visibility = View.VISIBLE
+            if (result == null)
+                emptyViews()
+            result?.let {
+                when (result) {
+                    DataModels.MonthlyReportData.Empty -> {
+                        emptyViews()
+                    }
 
-            when (result) {
-                DataModels.MonthlyReportData.Empty -> {
-                    binding?.monthlyReportFragmentRecyclerView?.visibility = View.GONE
-                    binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
+                    is DataModels.MonthlyReportData.Data -> {
+                        val expensesList: ArrayList<DataModels.SuperParent> = ArrayList()
+                        expensesList.addAll(result.allExpensesParentList)
 
-                    binding?.monthlyReportFragmentRevenuesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    binding?.monthlyReportFragmentExpensesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    binding?.monthlyReportFragmentBalanceTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
-                    binding?.monthlyReportFragmentBalanceTv?.setTextColor(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            R.color.budget_green
-                        )
-                    )
-                }
-                is DataModels.MonthlyReportData.Data -> {
-                    mainAdapter = MainAdapter(
-                        result.allExpensesParentList,
-                        appPreferences
-                    )
-                    configureRecyclerView(
-                        binding?.monthlyReportFragmentRecyclerView!!,
-                        mainAdapter
-                        /*MonthlyReportRecyclerViewAdapter(
-                            result.expenses,
-                            result.revenues,
-                            result.allExpensesOfThisMonth,
-                            appPreferences
-                        )*/
-                    )
+                        if (expensesList.isEmpty()) {
+                            emptyViews()
+                            return@observe
+                        }
 
-                    binding?.monthlyReportFragmentRevenuesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(
+                        mainAdapter = MainAdapter(
+                            expensesList,
                             appPreferences,
-                            result.revenuesAmount
+                            onBannerClick = { banner ->
+                                /* val bundle = Bundle().apply {
+                                     putString("banner_name", banner.app_name)
+                                     putString("app_package", banner.package_name)
+                                 }
+                                 logAnalyticEvent("banner_clicked", bundle)*/
+                                if (banner.redirectUrl != null) {
+                                    val intent =
+                                        Intent(Intent.ACTION_VIEW, banner.redirectUrl.toUri())
+                                    startActivity(intent)
+                                }
+                            }
                         )
-                    binding?.monthlyReportFragmentExpensesTotalTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(
-                            appPreferences,
-                            result.expensesAmount
+                        configureRecyclerView(
+                            binding?.monthlyReportFragmentRecyclerView!!,
+                            mainAdapter
                         )
 
-                    val balance = result.revenuesAmount - result.expensesAmount
-                    binding?.monthlyReportFragmentBalanceTv?.text =
-                        CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
-                    binding?.monthlyReportFragmentBalanceTv?.setTextColor(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            if (balance >= 0) R.color.budget_green else R.color.budget_red
+                        binding?.monthlyReportFragmentRevenuesTotalTv?.text =
+                            CurrencyHelper.getFormattedCurrencyString(
+                                appPreferences,
+                                result.revenuesAmount
+                            )
+                        binding?.monthlyReportFragmentExpensesTotalTv?.text =
+                            CurrencyHelper.getFormattedCurrencyString(
+                                appPreferences,
+                                result.expensesAmount
+                            )
+
+                        val balance = result.revenuesAmount - result.expensesAmount
+                        binding?.monthlyReportFragmentBalanceTv?.text =
+                            CurrencyHelper.getFormattedCurrencyString(appPreferences, balance)
+                        binding?.monthlyReportFragmentBalanceTv?.setTextColor(
+                            ContextCompat.getColor(
+                                requireContext(),
+                                if (balance >= 0) R.color.budget_green else R.color.budget_red
+                            )
                         )
-                    )
+                    }
                 }
             }
+
         }
 
         viewModel.loadDataForMonth(date)
@@ -218,12 +226,33 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     }
 
     /**
+     * When there's no data
+     */
+    private fun emptyViews() {
+        binding?.monthlyReportFragmentRecyclerView?.visibility = View.GONE
+        binding?.monthlyReportFragmentEmptyState?.visibility = View.VISIBLE
+
+        binding?.monthlyReportFragmentRevenuesTotalTv?.text =
+            CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
+        binding?.monthlyReportFragmentExpensesTotalTv?.text =
+            CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
+        binding?.monthlyReportFragmentBalanceTv?.text =
+            CurrencyHelper.getFormattedCurrencyString(appPreferences, 0.0)
+        binding?.monthlyReportFragmentBalanceTv?.setTextColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.budget_green
+            )
+        )
+    }
+
+    /**
      * Configure recycler view LayoutManager & adapter
      */
     private fun configureRecyclerView(
         recyclerView: RecyclerView,
         /*adapter: MonthlyReportRecyclerViewAdapter*/
-        adapter: MainAdapter
+        adapter: MainAdapter,
     ) {
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
@@ -262,8 +291,8 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                     loadAndDisplayBannerAds()
                 }
             }
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
+        } catch (e: Exception) {
+            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 
@@ -447,8 +476,12 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
             .setItems(weeks) { dialog, which ->
                 if (which == 0) {
                     viewModel.generateHtml(appPreferences.getUserCurrency(), date)
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_PRINT_PDF_REPORT)
                 } else {
                     exportExcel()
+                    //Log event
+                    analyticsManager.logEvent(Events.KEY_PRINT_EXCEL_REPORT)
                 }
                 dialog.dismiss()
             }
@@ -456,6 +489,8 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                 dialog.dismiss()
             }.setCancelable(false)
             .show()
+        //Log event
+        analyticsManager.logEvent(Events.KEY_REPORT_EXPORT)
     }
 
     /**
@@ -486,6 +521,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                 }
                 viewModel.exportCSV(appPreferences.getUserCurrency(), date, file)
             }
+
             else -> {
                 askStoragePermission()
             }

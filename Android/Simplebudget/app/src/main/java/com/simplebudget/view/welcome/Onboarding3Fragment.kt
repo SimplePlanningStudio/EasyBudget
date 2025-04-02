@@ -8,6 +8,8 @@ import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
 import com.simplebudget.databinding.FragmentOnboarding3Binding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
@@ -25,6 +27,8 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
     CoroutineScope by MainScope() {
     private val appPreferences: AppPreferences by inject()
 
+    private val analyticsManager: AnalyticsManager by inject()
+
     override val statusBarColor: Int
         get() = R.color.primary
 
@@ -39,12 +43,9 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
             } catch (e: Exception) {
                 val context = context ?: return 0.0
 
-                AlertDialog.Builder(context)
-                    .setTitle(R.string.oops)
+                AlertDialog.Builder(context).setTitle(R.string.oops)
                     .setMessage(R.string.adjust_balance_error_message)
-                    .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-                    .show()
-
+                    .setNegativeButton(R.string.ok) { dialog, _ -> dialog.dismiss() }.show()
                 Logger.warning("An error occurred during initial amount parsing: $valueString", e)
                 return 0.0
             }
@@ -75,6 +76,10 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
                         -db.getBalanceForDay(LocalDate.now(), appPreferences.activeAccount())
                     val newBalance = amountValue
 
+                    val category = withContext(Dispatchers.Default) {
+                        db.getCategory(ExpenseCategoryType.BALANCE.name)
+                    }
+
                     if (newBalance != currentBalance) {
                         val diff = newBalance - currentBalance
 
@@ -83,15 +88,20 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
                             -diff,
                             LocalDate.now(),
                             ExpenseCategoryType.BALANCE.name,
-                            appPreferences.activeAccount()
+                            appPreferences.activeAccount(),
+                            category?.id ?: 0
                         )
                         db.persistExpense(expense)
+                        analyticsManager.logEvent(
+                            Events.KEY_ADDED_BALANCE, mapOf(
+                                Events.KEY_VALUE to newBalance
+                            )
+                        )
                     }
                 }
 
                 Keyboard.hideSoftKeyboard(
-                    requireContext(),
-                    binding?.onboardingScreen3InitialAmountEt!!
+                    requireContext(), binding?.onboardingScreen3InitialAmountEt!!
                 )
 
                 next(binding?.onboardingScreen3NextButton!!)
@@ -129,6 +139,6 @@ class Onboarding3Fragment : OnboardingFragment<FragmentOnboarding3Binding>(),
     override fun onCreateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): FragmentOnboarding3Binding = FragmentOnboarding3Binding.inflate(inflater, container, false)
 }

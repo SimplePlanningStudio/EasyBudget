@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.simplebudget.injection
 
 import androidx.collection.ArrayMap
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.simplebudget.iab.Iab
 import com.simplebudget.auth.Auth
 import com.simplebudget.auth.FirebaseAuth
@@ -26,6 +27,7 @@ import com.simplebudget.db.impl.CacheDBStorage
 import com.simplebudget.db.impl.CachedDBImpl
 import com.simplebudget.db.impl.DBImpl
 import com.simplebudget.db.impl.RoomDB
+import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.helper.toast.ToastManagerImpl
 import com.simplebudget.iab.IabImpl
@@ -40,6 +42,10 @@ import java.util.concurrent.TimeUnit
 val appModule = module {
 
     single { AppPreferences(get()) }
+
+    single {
+        AnalyticsManager(get())
+    }
 
     single<ToastManager> { ToastManagerImpl(get()) }
 

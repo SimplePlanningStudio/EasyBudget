@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR , Waheed Nazir
+ *   Copyright 2025 Benoit LETONDOR , Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -19,10 +19,18 @@ import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import com.simplebudget.db.DB
 import com.simplebudget.db.impl.accounts.AccountTypeEntity
+import com.simplebudget.db.impl.budgets.BudgetCategoryCrossRef
+import com.simplebudget.db.impl.budgets.BudgetEntity
+import com.simplebudget.db.impl.budgets.BudgetWithCategories
 import com.simplebudget.db.impl.categories.CategoryEntity
+import com.simplebudget.db.impl.expenses.ExpenseEntity
+import com.simplebudget.helper.DateHelper
 import com.simplebudget.helper.Logger
 import com.simplebudget.model.account.Account
+import com.simplebudget.model.budget.Budget
+import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
+import com.simplebudget.prefs.activeAccount
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
@@ -32,7 +40,7 @@ import java.util.concurrent.Executor
 class CachedDBImpl(
     private val wrappedDB: DB,
     private val cacheStorage: CacheDBStorage,
-    private val executor: Executor
+    private val executor: Executor,
 ) : DB {
     override suspend fun clearAllTables() {
         wrappedDB.clearAllTables()
@@ -45,6 +53,84 @@ class CachedDBImpl(
 
     override suspend fun triggerForceWriteToDisk() {
         wrappedDB.triggerForceWriteToDisk()
+    }
+
+    override suspend fun persistBudget(budget: Budget): Long {
+        return wrappedDB.persistBudget(budget)
+    }
+
+    override suspend fun persistRecurringBudget(recurringBudget: RecurringBudget): RecurringBudget {
+        return wrappedDB.persistRecurringBudget(recurringBudget)
+    }
+
+    override suspend fun updateBudget(
+        budgetId: Long, spentAmount: Long, remainingAmount: Long,
+    ) {
+        wrappedDB.updateBudget(budgetId, spentAmount, remainingAmount)
+    }
+
+    override suspend fun getBudgets(): List<BudgetEntity> {
+        return wrappedDB.getBudgets()
+    }
+
+    override suspend fun findRecurringBudgetForId(recurringBudgetId: Long): RecurringBudget? {
+        return wrappedDB.findRecurringBudgetForId(recurringBudgetId)
+    }
+
+    override suspend fun getBudgetsOfActiveAccount(): List<BudgetEntity> =
+        wrappedDB.getBudgetsOfActiveAccount()
+
+
+    override suspend fun getBudgetsWithCategoriesByCategoryAndAccount(categoryId: Long): List<BudgetWithCategories> {
+        return wrappedDB.getBudgetsWithCategoriesByCategoryAndAccount(categoryId)
+    }
+
+    override suspend fun getBudgetsWithCategoriesByAccount(monthStartDate: LocalDate): List<BudgetWithCategories> {
+        return wrappedDB.getBudgetsWithCategoriesByAccount(monthStartDate)
+    }
+
+    override suspend fun deleteBudget(budget: Budget) {
+        wrappedDB.deleteBudget(budget)
+        wipeCache()
+
+    }
+
+    override suspend fun insertBudgetCategoryCrossRef(crossRef: BudgetCategoryCrossRef) {
+        wrappedDB.insertBudgetCategoryCrossRef(crossRef)
+    }
+
+    override suspend fun insertBudgetCategoryCrossRefs(crossRefs: List<BudgetCategoryCrossRef>) {
+        wrappedDB.insertBudgetCategoryCrossRefs(crossRefs)
+    }
+
+    override suspend fun insertBudgetWithCategories(
+        budget: BudgetEntity, categoryIds: List<Long>,
+    ) {
+        wrappedDB.insertBudgetWithCategories(budget, categoryIds)
+    }
+
+    override suspend fun getBudgetWithCategories(budgetId: Long): BudgetWithCategories {
+        return wrappedDB.getBudgetWithCategories(budgetId)
+    }
+
+    override suspend fun getBudgetsForCategory(categoryId: Long): List<BudgetCategoryCrossRef> {
+        return wrappedDB.getBudgetsForCategory(categoryId)
+    }
+
+    override suspend fun updateBudgetsSpentAmount(startDate: LocalDate, endDate: LocalDate) {
+        return wrappedDB.updateBudgetsSpentAmount(startDate, endDate)
+    }
+
+    override suspend fun getOldestBudgetStartDate(): LocalDate? {
+        return wrappedDB.getOldestBudgetStartDate()
+    }
+
+    override suspend fun getExpensesForBudget(
+        budgetId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<Expense> {
+        return wrappedDB.getExpensesForBudget(budgetId, startDate, endDate)
     }
 
     override fun close() {
@@ -62,6 +148,9 @@ class CachedDBImpl(
 
     override suspend fun getCategory(categoryId: Long): CategoryEntity =
         wrappedDB.getCategory(categoryId)
+
+    override suspend fun getCategory(categoryName: String): CategoryEntity? =
+        wrappedDB.getCategory(categoryName)
 
     override suspend fun getMiscellaneousCategory(): CategoryEntity =
         wrappedDB.getMiscellaneousCategory()
@@ -160,7 +249,7 @@ class CachedDBImpl(
     }
 
     override suspend fun getExpensesForDay(
-        dayDate: LocalDate, accountId: Long
+        dayDate: LocalDate, accountId: Long,
     ): List<Expense> {
         val cached = synchronized(cacheStorage.expenses) {
             cacheStorage.expenses[dayDate]
@@ -182,7 +271,7 @@ class CachedDBImpl(
         wrappedDB.getExpensesForDay(dayDate, accountId)
 
     override suspend fun getExpensesForMonth(
-        monthStartDate: LocalDate
+        monthStartDate: LocalDate,
     ): List<Expense> = wrappedDB.getExpensesForMonth(monthStartDate)
 
     override suspend fun getExpensesForMonthWithoutCheckingAccount(): List<Expense> =
@@ -192,7 +281,7 @@ class CachedDBImpl(
         wrappedDB.searchExpenses(search_query)
 
     override suspend fun getAllExpenses(
-        startDate: LocalDate, endDate: LocalDate
+        startDate: LocalDate, endDate: LocalDate,
     ): List<Expense> = wrappedDB.getAllExpenses(startDate, endDate)
 
     override suspend fun getAllExpenses(): List<Expense> = wrappedDB.getAllExpenses()
@@ -214,10 +303,7 @@ class CachedDBImpl(
     }
 
     override suspend fun getBalanceForACategory(
-        startDate: LocalDate,
-        dayDate: LocalDate,
-        accountId: Long,
-        category: String
+        startDate: LocalDate, dayDate: LocalDate, accountId: Long, category: String,
     ): Double {
         val cached = synchronized(cacheStorage.balances) {
             cacheStorage.balances[dayDate]
@@ -235,7 +321,7 @@ class CachedDBImpl(
     }
 
     private suspend fun getBalanceForDayWithoutCache(
-        dayDate: LocalDate, accountId: Long
+        dayDate: LocalDate, accountId: Long,
     ): Double = wrappedDB.getBalanceForDay(dayDate, accountId)
 
     override suspend fun persistRecurringExpense(recurringExpense: RecurringExpense): RecurringExpense =
@@ -257,11 +343,11 @@ class CachedDBImpl(
     }
 
     override suspend fun getAllExpenseForRecurringExpense(
-        recurringExpense: RecurringExpense
+        recurringExpense: RecurringExpense,
     ): List<Expense> = wrappedDB.getAllExpenseForRecurringExpense(recurringExpense)
 
     override suspend fun deleteAllExpenseForRecurringExpenseFromDate(
-        recurringExpense: RecurringExpense, fromDate: LocalDate
+        recurringExpense: RecurringExpense, fromDate: LocalDate,
     ) {
         wrappedDB.deleteAllExpenseForRecurringExpenseFromDate(recurringExpense, fromDate)
 
@@ -269,13 +355,13 @@ class CachedDBImpl(
     }
 
     override suspend fun getAllExpensesForRecurringExpenseFromDate(
-        recurringExpense: RecurringExpense, fromDate: LocalDate
+        recurringExpense: RecurringExpense, fromDate: LocalDate,
     ): List<Expense> = wrappedDB.getAllExpensesForRecurringExpenseFromDate(
         recurringExpense, fromDate
     )
 
     override suspend fun deleteAllExpenseForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ) {
         wrappedDB.deleteAllExpenseForRecurringExpenseBeforeDate(
             recurringExpense, beforeDate
@@ -285,19 +371,19 @@ class CachedDBImpl(
     }
 
     override suspend fun getAllExpensesForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ): List<Expense> = wrappedDB.getAllExpensesForRecurringExpenseBeforeDate(
         recurringExpense, beforeDate
     )
 
     override suspend fun hasExpensesForRecurringExpenseBeforeDate(
-        recurringExpense: RecurringExpense, beforeDate: LocalDate
+        recurringExpense: RecurringExpense, beforeDate: LocalDate,
     ): Boolean = wrappedDB.hasExpensesForRecurringExpenseBeforeDate(
         recurringExpense, beforeDate
     )
 
     override suspend fun findRecurringExpenseForId(
-        recurringExpenseId: Long
+        recurringExpenseId: Long,
     ): RecurringExpense? = wrappedDB.findRecurringExpenseForId(recurringExpenseId)
 
     override suspend fun getOldestExpense(): Expense? = wrappedDB.getOldestExpense()
@@ -322,7 +408,7 @@ class CachedDBImpl(
         private val startOfMonthDate: LocalDate,
         private val db: CachedDBImpl,
         private val cacheStorage: CacheDBStorage,
-        private val accountId: Long
+        private val accountId: Long,
     ) : Runnable {
 
         override fun run() {
@@ -361,7 +447,7 @@ class CachedDBImpl(
         private val startOfMonthDate: LocalDate,
         private val db: CachedDBImpl,
         private val cacheStorage: CacheDBStorage,
-        private val accountId: Long
+        private val accountId: Long,
     ) : Runnable {
 
         override fun run() {

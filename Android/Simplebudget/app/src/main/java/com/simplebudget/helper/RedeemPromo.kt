@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.simplebudget.R
 import java.net.URLEncoder
+import androidx.core.net.toUri
 
 object RedeemPromo {
 
@@ -86,10 +87,10 @@ object RedeemPromo {
     private fun launch(activity: Activity?, promoCode: String): Boolean {
         return try {
             val url = "https://play.google.com/redeem?code=" + URLEncoder.encode(promoCode, "UTF-8")
-            activity?.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            activity?.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
             true
         } catch (e: Exception) {
-            Logger.error(false, "Error while redeeming promo code", e)
+            Logger.error(false, activity?.getString(R.string.error_while_redeeming_promo_code), e)
             false
         }
     }

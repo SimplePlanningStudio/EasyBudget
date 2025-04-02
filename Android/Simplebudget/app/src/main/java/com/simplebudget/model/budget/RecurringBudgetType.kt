@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,39 +15,9 @@
  */
 package com.simplebudget.model.budget
 
-import android.widget.Spinner
-
-
 enum class RecurringBudgetType {
-    /**
-     * An expense that occurs every month
-     */
+    ONE_TIME,
     MONTHLY,
 }
 
-
-object BudgetType {
-    /**
-     * Get the recurring expense type associated with the spinner selection
-     *
-     * @param spinnerSelectedItem index of the spinner selection
-     * @return the corresponding expense type
-     */
-    fun getRecurringTypeFromSpinnerSelection(spinnerSelectedItem: Int): RecurringBudgetType {
-        return when (spinnerSelectedItem) {
-            0 -> RecurringBudgetType.MONTHLY
-            else -> RecurringBudgetType.MONTHLY
-        }
-    }
-
-    fun setSpinnerSelectionFromRecurringType(
-        type: RecurringBudgetType,
-        spinner: Spinner
-    ) {
-        val selectionIndex = when (type) {
-            RecurringBudgetType.MONTHLY -> 0
-            else -> 0
-        }
-        spinner.setSelection(selectionIndex, false)
-    }
-}
+val arrayOfRecurringBudgetType = enumValues<RecurringBudgetType>().map { it.name }.toTypedArray()

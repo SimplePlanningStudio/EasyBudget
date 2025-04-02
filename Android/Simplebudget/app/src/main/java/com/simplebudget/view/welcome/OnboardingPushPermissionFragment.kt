@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.simplebudget.R
 import com.simplebudget.databinding.FragmentOnboardingPushPermissionBinding
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
+import org.koin.android.ext.android.inject
 
 /**
  * Onboarding step push permission fragment
@@ -42,11 +45,28 @@ class OnboardingPushPermissionFragment :
 
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
 
+    private val analyticsManager: AnalyticsManager by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         requestPermissionLauncher =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+                if (ContextCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    analyticsManager.logEvent(
+                        Events.KEY_NOTIFICATION_PERMISSION,
+                        mapOf(Events.KEY_VALUE to Events.KEY_PERMISSION_NOT_GRANTED)
+                    )
+                } else {
+                    analyticsManager.logEvent(
+                        Events.KEY_NOTIFICATION_PERMISSION,
+                        mapOf(Events.KEY_VALUE to Events.KEY_PERMISSION_GRANTED)
+                    )
+                }
                 next()
             }
     }
@@ -54,7 +74,7 @@ class OnboardingPushPermissionFragment :
     override fun onCreateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): FragmentOnboardingPushPermissionBinding =
         FragmentOnboardingPushPermissionBinding.inflate(inflater, container, false)
 
@@ -70,11 +90,19 @@ class OnboardingPushPermissionFragment :
             ) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             } else {
+                analyticsManager.logEvent(
+                    Events.KEY_NOTIFICATION_PERMISSION,
+                    mapOf(Events.KEY_VALUE to Events.KEY_PERMISSION_GRANTED)
+                )
                 next(button)
             }
         }
 
         binding?.onboardingScreenPushPermissionRefuseButton?.setOnClickListener { button ->
+            analyticsManager.logEvent(
+                Events.KEY_NOTIFICATION_PERMISSION,
+                mapOf(Events.KEY_VALUE to Events.KEY_PERMISSION_NOT_GRANTED)
+            )
             next(button)
         }
     }

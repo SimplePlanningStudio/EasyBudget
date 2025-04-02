@@ -1,3 +1,0 @@
-include ':app', ':caldroid'
-include ':MPChartLib'
-include ':ezpermission'

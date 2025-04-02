@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -32,8 +32,13 @@ import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityWebViewBinding
 import com.simplebudget.helper.DialogUtil
 import com.simplebudget.helper.Rate
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
+import org.koin.android.ext.android.inject
 
 class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
+
+    private val analyticsManager: AnalyticsManager by inject()
 
     /**
      *
@@ -74,13 +79,14 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
             binding.webView.addJavascriptInterface(jsInterface, "Android")
             binding.shareYourReview.visibility = View.VISIBLE
             binding.shareYourReview.setOnClickListener {
+                analyticsManager.logEvent(Events.KEY_REVIEW_APP_RATE)
                 Rate.onPlayStore(this)
             }
         }
         // Set a WebViewClient to handle page navigation within the WebView
         binding.webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(
-                view: WebView?, url: String?, favicon: android.graphics.Bitmap?
+                view: WebView?, url: String?, favicon: android.graphics.Bitmap?,
             ) {
                 binding.progress.visibility = View.VISIBLE
             }
@@ -91,10 +97,11 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
 
             @Deprecated("Deprecated in Java")
             override fun onReceivedError(
-                view: WebView?, errorCode: Int, description: String?, failingUrl: String?
+                view: WebView?, errorCode: Int, description: String?, failingUrl: String?,
             ) {
                 binding.progress.visibility = View.GONE
-                DialogUtil.createDialog(this@WebViewActivity,
+                DialogUtil.createDialog(
+                    this@WebViewActivity,
                     title = "Error",
                     message = description ?: "Something went wrong, please try again. Thank you",
                     positiveBtn = getString(R.string.ok),
@@ -103,8 +110,7 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
                     positiveClickListener = {
                         finish()
                     },
-                    negativeClickListener = {})
-                    .show()
+                    negativeClickListener = {}).show()
             }
         }
 
@@ -116,10 +122,15 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
             binding.webView.loadUrl(simpleBudgetWebUrl)
         }
 
-        if (intent.hasExtra(REQUEST_SCREEN_TITLE)) {
-            intent.getStringExtra(REQUEST_SCREEN_TITLE)?.let {
-                title = intent.getStringExtra(REQUEST_SCREEN_TITLE)
-            }
+        val screenTitle: String? = intent.getStringExtra(REQUEST_SCREEN_TITLE)
+        if (screenTitle != null) {
+            title = screenTitle
+            //Screen name event
+            val eventName = screenTitle.replace(" ", "_").lowercase().plus("_screen")
+            analyticsManager.logEvent(eventName)
+        } else {
+            //Screen name event
+            analyticsManager.logEvent(Events.KEY_USER_TESTIMONIAL_SCREEN)
         }
     }
 

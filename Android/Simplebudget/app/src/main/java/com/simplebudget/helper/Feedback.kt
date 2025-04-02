@@ -1,5 +1,5 @@
 /*
- *   Copyright 2024 Waheed Nazir
+ *   Copyright 2025 Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -42,7 +42,11 @@ object Feedback {
             emailIntent.putExtra(Intent.EXTRA_TEXT, "")
             context.startActivity(Intent.createChooser(emailIntent, intentChooserTitle))
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.error(
+                Feedback::class.java.simpleName,
+                context.getString(R.string.unable_to_redirect_to_mail_for_feedback),
+                e
+            )
         }
     }
 }
