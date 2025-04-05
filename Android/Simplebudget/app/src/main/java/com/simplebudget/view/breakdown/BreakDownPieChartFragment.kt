@@ -281,6 +281,7 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(), requireActivity().windowManager.defaultDisplay
@@ -318,6 +319,7 @@ class BreakDownPieChartFragment : BaseFragment<FragmentPieChartBreakDownBinding>
         adView?.resume()
         super.onResume()
     }
+
     // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
     override fun onDestroy() {
         adView?.destroy()

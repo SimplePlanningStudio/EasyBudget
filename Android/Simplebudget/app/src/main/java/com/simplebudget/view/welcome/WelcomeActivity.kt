@@ -27,12 +27,12 @@ import androidx.viewpager.widget.ViewPager
 import android.os.Bundle
 import android.view.View
 import android.view.ViewAnimationUtils
+import androidx.activity.OnBackPressedCallback
 import com.simplebudget.databinding.ActivityWelcomeBinding
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.setStatusBarColor
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.main.MainActivity
-import java.lang.IllegalStateException
 import kotlin.math.max
 import org.koin.android.ext.android.inject
 
@@ -100,7 +100,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             override fun onPageScrolled(
                 position: Int,
                 positionOffset: Float,
-                positionOffsetPixels: Int
+                positionOffsetPixels: Int,
             ) {
             }
 
@@ -183,16 +183,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         var flags = window.decorView.systemUiVisibility
         flags = flags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
         window.decorView.systemUiVisibility = flags
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackPressed()
+            }
+        })
     }
 
-    override fun onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
-
-        super.onDestroy()
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
+    /**
+     * Handle back pressed
+     */
+    private fun handleBackPressed() {
         if (binding.welcomeViewPager.currentItem > 0) {
             binding.welcomeViewPager.setCurrentItem(binding.welcomeViewPager.currentItem - 1, true)
             return
@@ -200,6 +202,12 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         startActivity(Intent(this@WelcomeActivity, MainActivity::class.java))
         finish()
     }
+
+    override fun onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
+        super.onDestroy()
+    }
+
 
     companion object {
         const val STEP_COMPLETED = Integer.MAX_VALUE

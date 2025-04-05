@@ -34,12 +34,14 @@ import android.util.Log
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,19 +54,15 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.messaging.Constants
 import com.google.firebase.messaging.FirebaseMessaging
 import com.roomorama.caldroid.CaldroidFragment
 import com.roomorama.caldroid.CaldroidListener
-import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityMainBinding
 import com.simplebudget.helper.*
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
-import com.simplebudget.helper.banner.AppBanner
-import com.simplebudget.helper.banner.BannerResponse
 import com.simplebudget.helper.banner.RetrofitClient
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.toast.ToastManager
@@ -100,15 +98,19 @@ import com.simplebudget.view.welcome.WelcomeActivity
 import com.simplebudget.view.welcome.getOnboardingStep
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
+import com.simplebudget.helper.ads.AdSdkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -138,6 +140,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val isMobileAdsInitializeCalled = AtomicBoolean(false)
     private var adView: AdView? = null
     private var googleMobileAdsConsentManager: GoogleMobileAdsConsentManager? = null
+    private var appUpdateManager: AppUpdateManager? = null
+
 // ------------------------------------------>
 
     /**
@@ -168,6 +172,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
 
     /**
+     * Start activity for result for app update
+     */
+    private var appUpdateLauncher =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                // ✅ Update completed
+            } else {
+                // ❌ Update canceled or failed
+            }
+        }
+
+    /**
      * Create binding
      */
     override fun createBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -177,20 +193,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        window.setBackgroundDrawable(
-            ColorDrawable(Color.TRANSPARENT)
-        )
-        this.window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
-
         //Check if on boarding done
         if (appPreferences.getOnboardingStep() != WelcomeActivity.STEP_COMPLETED) {
             startActivity(Intent(this@MainActivity, WelcomeActivity::class.java))
             finish()
         }
-
         setSupportActionBar(binding.toolbar)
         try {
             binding.toolbar.apply {
@@ -584,6 +591,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             )
         }
 
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackPressed()
+            }
+        })
+
         observeAndRefreshExpenses()
 
         // Handle drawer layout
@@ -591,6 +605,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         //Handle app banner promotion
         loadAppBannerContent()
+
+        //Check for app update
+        checkForAppUpdate()
+    }
+
+    /**
+     * Handle back pressed
+     */
+    private fun handleBackPressed() {
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            finish()
+        }
     }
 
     /**
@@ -624,7 +652,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 appPreferences.saveBanner(null)
             }
         } catch (e: Exception) {
-            appPreferences.saveBanner(null)
+            Logger.error(
+                "PromotionBanner",
+                "Error loading promotion banner: ${e.localizedMessage}",
+                e
+            )
         } finally {
             appPreferences.saveBanner(null)
         }
@@ -833,18 +865,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /**
      * Only enable for testing.
      */
-    @SuppressWarnings("unused")
     private fun checkToken() {
-        if (BuildConfig.DEBUG) {
-            FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    return@OnCompleteListener
-                }
-                // Get new FCM registration token
-                val token = task.result
-                Log.d("FCM TOKEN", token ?: "")
-            })
-        }
+        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                return@OnCompleteListener
+            }
+            // Get new FCM registration token
+            val token = task.result
+            Logger.debug("FCM TOKEN", token ?: "")
+            appPreferences.saveFCMToken(token)
+        })
     }
 
     /**
@@ -969,16 +999,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         } else if (requestCode == SETTINGS_SCREEN_ACTIVITY_CODE) {
             calendarFragment.setFirstDayOfWeek(appPreferences.getCaldroidFirstDayOfWeek())
-        }
-    }
-
-    @SuppressLint("MissingSuperCall")
-    @Deprecated("Deprecated in Java", ReplaceWith("finish()"))
-    override fun onBackPressed() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            finish()
         }
     }
 
@@ -1789,7 +1809,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Initialize the Mobile Ads SDK.
         if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
             if (isMobileAdsInitializeCalled.getAndSet(true)) {
-                MobileAds.initialize(this) {
+                AdSdkManager.initialize(this) {
                     loadAndDisplayBannerAds()
                 }
             } else {
@@ -1803,13 +1823,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
-            val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
+            if (InternetUtils.isInternetAvailable(this).not()) return
             if (googleMobileAdsConsentManager?.canRequestAds != false) {
-                adContainerView.visibility = View.VISIBLE
+                binding.adViewContainer.visibility = View.VISIBLE
                 val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
                 adView = AdView(this)
                 adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-                adContainerView.addView(adView)
+                binding.adViewContainer.addView(adView)
                 val actualAdRequest = AdRequest.Builder().build()
                 adView?.setAdSize(adSize)
                 adView?.loadAd(actualAdRequest)
@@ -1839,6 +1859,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     override fun onResume() {
         adView?.resume()
+        try {
+            appUpdateManager?.appUpdateInfo?.addOnSuccessListener { appUpdateInfo ->
+                if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        getString(R.string.an_update_has_just_been_downloaded),
+                        Snackbar.LENGTH_INDEFINITE
+                    ).setAction(getString(R.string.restart)) {
+                        appUpdateManager?.completeUpdate()
+                    }.show()
+                }
+            }
+        } catch (e: Exception) {
+            Logger.error("AppUpdate", "Error progress app update: ${e.localizedMessage}", e)
+        }
         super.onResume()
     }
 
@@ -1869,11 +1904,35 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     analyticsManager.logEvent(Events.KEY_BUDGETS_FROM_INTRO)
                     openBudgetScreen()
                 },
-                negativeClickListener = {
-                }).show()
+                negativeClickListener = {}).show()
 
             //Done displaying intro dialog
             appPreferences.setDoneDisplayingBudgetIntroDialog()
+        }
+    }
+
+    /**
+     * Check for app updates
+     */
+    private fun checkForAppUpdate() {
+        try {
+            appUpdateManager = AppUpdateManagerFactory.create(this)
+            val appUpdateInfoTask = appUpdateManager?.appUpdateInfo
+            appUpdateInfoTask?.addOnSuccessListener { appUpdateInfo ->
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE && appUpdateInfo.isUpdateTypeAllowed(
+                        AppUpdateType.FLEXIBLE
+                    )
+                ) {
+                    val appUpdateOptions =
+                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build()
+
+                    appUpdateManager?.startUpdateFlowForResult(
+                        appUpdateInfo, appUpdateLauncher, appUpdateOptions
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Logger.error("AppUpdate", "Error app update: ${e.localizedMessage}", e)
         }
     }
 

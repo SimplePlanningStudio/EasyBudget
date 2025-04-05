@@ -30,8 +30,8 @@ const val LOCALE_ENGLISH = "en"
 // global intents
 const val OPEN_DOCUMENT_TREE = 1000
 
-const val ACCOUNTS_LIMIT = 6
-val FREE_BUDGETS_LIMIT = 1
+const val ACCOUNTS_LIMIT = 10
+const val FREE_BUDGETS_LIMIT = 1
 
 // security
 const val WAS_PROTECTION_HANDLED = "was_protection_handled"

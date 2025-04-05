@@ -34,5 +34,6 @@ sealed class AuthState {
 
 interface CurrentUser {
     val id: String
+    val name: String
     val email: String
 }

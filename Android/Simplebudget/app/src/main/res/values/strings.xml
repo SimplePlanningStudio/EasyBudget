@@ -417,6 +417,10 @@
     <string name="setting_youtube_channel_title" translatable="false">Youtube</string>
     <string name="setting_youtube_channel_summary" translatable="false">Watch helpful videos about \'Simple Budget\'</string>
 
+    <string name="setting_how_to_key" translatable="false">how_to</string>
+    <string name="setting_how_to_title" translatable="false">How to?</string>
+    <string name="setting_how_to_summary" translatable="false">How to use common feature in \'Simple Budget\'</string>
+
     <string name="setting_app_open_source_key" translatable="false">app_open_source</string>
     <string name="setting_app_open_source_title" translatable="false">Open source (Apache License, Version 2.0)</string>
     <string name="text_open_source" translatable="false">Open source</string>
@@ -678,7 +682,7 @@
     <string name="update">Update</string>
     <string name="default_account_delete_disclaimer">Sorry, Default account can\'t be deleted!</string>
     <string name="title_delete_account_and_its_transactions">Delete account and it\'s transactions</string>
-    <string name="description_delete_account_and_its_transactions">Are you sure you want to delete %s?\n\nNote: You can restore it if you have a backup otherwise with newly auto-backup it would be overwrite and you can\'t restore it!</string>
+    <string name="description_delete_account_and_its_transactions">Are you sure you want to delete %s?\n\nNote: Note: You can restore it if you have a backup. Otherwise, it may be overwritten by the new auto-backup, and you won\'t be able to restore it.</string>
     <string name="yes_delete_it">Yes, Delete it!</string>
     <string name="noted">Noted!</string>
     <string name="you_have_already_added_five_accounts">You have already added 5 accounts!</string>
@@ -697,6 +701,7 @@
     <string name="what_people_say">What people say?</string>
     <string name="simple_budget_web_url">https://www.simplebudget.online</string>
     <string name="simple_budget_reviews_url">https://www.simplebudget.online/reviews/</string>
+    <string name="simple_budget_how_to_url">https://simplebudget.online/howto/</string>
     <string name="share_your_review">Share Your Review</string>
     <string name="explore_the_feedback_of_our_valued_users">Explore the feedback of our valued users.</string>
     <string name="user_testimonials">User Testimonials</string>
@@ -743,4 +748,9 @@
     <string name="error_while_opening_budget_from_the_notification">Error: While opening budget from the notification</string>
     <string name="later">Later</string>
     <string name="recurring_monthly">🔁 Recurring: Monthly</string>
+    <string name="an_update_has_just_been_downloaded">An update has just been downloaded.</string>
+    <string name="restart">Restart</string>
+    <string name="install">Install</string>
+    <string name="check_how_to_use_features">Check \'How to?\' use features</string>
+    <string name="no_internet_connection">Opps! No internet connection</string>
 </resources>

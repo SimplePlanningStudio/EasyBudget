@@ -20,6 +20,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
@@ -37,6 +38,7 @@ import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.BreakDownBarChartFragment
 import com.simplebudget.view.breakdown.BreakDownPieChartFragment
 import com.simplebudget.view.main.MainActivity
+import com.simplebudget.view.premium.PremiumSuccessActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
@@ -126,29 +128,19 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
                 supportFragmentManager, accountsBottomSheetDialogFragment.tag
             )
         }
-    }
 
-    // ------------------------------------------>
-    /**
-     *
-     */
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
-                onBackPressed()
-                true
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackPressed()
             }
-
-            else -> super.onOptionsItemSelected(item)
-        }
+        })
     }
-// ------------------------------------------>
+
     /**
-     *
+     * Handle back pressed
      */
-    @SuppressLint("MissingSuperCall")
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
+    private fun handleBackPressed() {
         if (isAddedExpense) {
             startActivity(Intent(this, MainActivity::class.java))
             finishAffinity()
@@ -156,6 +148,19 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
             finish()
         }
     }
+
+    // ------------------------------------------>
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                handleBackPressed()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+// ------------------------------------------>
 
     /**
      * Configure the [.pager] adapter and listener.

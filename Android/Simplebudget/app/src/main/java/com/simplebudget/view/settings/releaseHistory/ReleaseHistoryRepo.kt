@@ -24,6 +24,12 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 3.3.7
+            releaseList.add(ReleaseHistory("Version", "3.3.7", "Now you can create up to 10 accounts"))
+            releaseList.add(ReleaseHistory("Version", "3.3.7", "Added 'How to?' section explaining common features, You can check it inside Help ❓section."))
+            releaseList.add(ReleaseHistory("Version", "3.3.7", "Fixed bugs related to budgeting feature"))
+            releaseList.add(ReleaseHistory("Version", "3.3.7", "Overall improvements and bug fixes"))
+
             // 3.3.6
             releaseList.add(ReleaseHistory("Version", "3.3.6", "Added budgeting feature"))
             releaseList.add(ReleaseHistory("Version", "3.3.6", "Create One time and Monthly Budgets."))

@@ -15,7 +15,6 @@
  */
 package com.simplebudget.prefs
 
-import android.content.Context
 import com.google.gson.Gson
 import com.roomorama.caldroid.CaldroidFragment
 import com.simplebudget.helper.*
@@ -224,6 +223,11 @@ private const val APP_INSTALLATION_DATE = "app_installation_date"
  * Done displaying budget intro dialog
  */
 private const val KEY_INTRO_BUDGET_DIALOG = "intro_budget_dialog"
+
+/**
+ * FCM Token Key
+ */
+private const val KEY_FCM_TOKEN = "fcm_token_sb"
 
 fun AppPreferences.getInitDate(): LocalDate? {
     val timestamp = getLong(INIT_DATE_PARAMETERS_KEY, 0L)
@@ -730,4 +734,19 @@ fun AppPreferences.isDoneDisplayingBudgetIntroDialog(): Boolean {
  */
 fun AppPreferences.setDoneDisplayingBudgetIntroDialog() {
     putBoolean(KEY_INTRO_BUDGET_DIALOG, true)
+}
+
+
+/**
+ * Get FCM Token
+ */
+fun AppPreferences.getFCMToken(): String {
+    return getString(KEY_FCM_TOKEN) ?: ""
+}
+
+/**
+ * Save FCM Token
+ */
+fun AppPreferences.saveFCMToken(fcmToken: String?) {
+    putString(KEY_FCM_TOKEN, fcmToken ?: "")
 }

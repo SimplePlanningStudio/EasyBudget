@@ -23,6 +23,7 @@ import com.simplebudget.db.impl.budgets.BudgetWithCategories
 import com.simplebudget.db.impl.budgets.RecurringBudgetEntity
 import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.db.impl.expenses.ExpenseEntity
+import com.simplebudget.db.impl.profile.ProfileEntity
 import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.CurrencyHelper
 import com.simplebudget.helper.Logger
@@ -31,6 +32,7 @@ import com.simplebudget.model.budget.Budget
 import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.profile.Profile
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import java.util.Locale
 import kotlin.math.ceil
@@ -142,6 +144,17 @@ fun RecurringBudget.toRecurringBudgetEntity() = RecurringBudgetEntity(
     type = type.name,
     recurringDate = recurringDate,
     modified = modified
+)
+
+fun Profile.toProfileEntity() = ProfileEntity(
+    id,
+    userName,
+    email,
+    fcmToken,
+    loginId,
+    isPremium,
+    premiumType,
+    appVersion
 )
 
 suspend fun List<BudgetEntity>.toBudgets(db: DB): List<Budget> {

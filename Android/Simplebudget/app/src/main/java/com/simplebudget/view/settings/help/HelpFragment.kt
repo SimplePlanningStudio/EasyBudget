@@ -26,6 +26,7 @@ import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.extensions.*
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.view.settings.faq.FAQActivity
+import com.simplebudget.view.settings.webview.WebViewActivity
 import org.koin.android.ext.android.inject
 
 
@@ -49,6 +50,25 @@ class HelpFragment : PreferenceFragmentCompat() {
 
         // Screen name event
         analyticsManager.logEvent(Events.KEY_CONTACT_US_SCREEN)
+        /*
+         * Telegram channel button
+         */
+        findPreference<Preference>(resources.getString(R.string.setting_how_to_key))?.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                if (InternetUtils.isInternetAvailable(requireActivity())) {
+                    analyticsManager.logEvent(Events.KEY_HOW_TO)
+                    WebViewActivity.start(
+                        requireActivity(),
+                        getString(R.string.simple_budget_how_to_url),
+                        getString(R.string.setting_how_to_title),
+                        false
+                    )
+                } else {
+                    toastManager.showShort(getString(R.string.no_internet_connection))
+                }
+                false
+            }
+
         /*
          * Telegram channel button
          */

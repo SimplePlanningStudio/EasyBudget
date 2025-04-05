@@ -31,6 +31,7 @@ import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentBarchartBreakDownBinding
 import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.CurrencyHelper
+import com.simplebudget.helper.InternetUtils
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
@@ -233,6 +234,7 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(), requireActivity().windowManager.defaultDisplay

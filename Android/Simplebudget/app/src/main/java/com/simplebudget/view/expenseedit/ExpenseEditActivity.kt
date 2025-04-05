@@ -414,6 +414,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if(InternetUtils.isInternetAvailable(this).not())return
             val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
             adContainerView.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)

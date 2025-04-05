@@ -383,6 +383,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
     override fun onDestroy() {
         adView?.destroy()
+        mInterstitialAd = null
         super.onDestroy()
     }
 
@@ -404,6 +405,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      * Load Interstitial
      */
     private fun loadInterstitial() {
+        if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             requireActivity(),
@@ -790,6 +792,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(), requireActivity().windowManager.defaultDisplay

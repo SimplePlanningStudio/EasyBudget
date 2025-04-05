@@ -29,6 +29,7 @@ import com.simplebudget.R
 import com.simplebudget.databinding.ActivityBackupSettingsBinding
 import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.InternetUtils
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
@@ -157,7 +158,6 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                         binding.backupSettingsCloudStorageDeleteExplanation.visibility = View.GONE
                         binding.backupSettingsCloudDeleteCta.visibility = View.GONE
                     }
-
                     binding.backupSettingsCloudBackupLoadingProgress.visibility = View.GONE
                 }
 
@@ -416,6 +416,7 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if (InternetUtils.isInternetAvailable(this).not()) return
             binding.adViewContainer.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 this,

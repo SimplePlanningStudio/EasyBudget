@@ -25,6 +25,7 @@ import com.simplebudget.model.budget.Budget
 import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.expense.Expense
+import com.simplebudget.model.profile.Profile
 import com.simplebudget.model.recurringexpense.RecurringExpense
 import kotlinx.coroutines.flow.Flow
 import java.io.Closeable
@@ -38,6 +39,16 @@ interface DB : Closeable {
 
 
     suspend fun triggerForceWriteToDisk()
+
+
+    /**
+     * Save user profile
+     */
+    suspend fun persistProfile(profile: Profile)
+
+    suspend fun getProfile(): Profile?
+
+    suspend fun deleteProfile()
 
     /**
      * Save a budget
@@ -91,7 +102,11 @@ interface DB : Closeable {
 
     suspend fun updateBudgetsSpentAmount(startDate: LocalDate, endDate: LocalDate)
     suspend fun getOldestBudgetStartDate(): LocalDate?
-    suspend fun getExpensesForBudget(budgetId: Long, startDate: LocalDate, endDate: LocalDate): List<Expense>
+    suspend fun getExpensesForBudget(
+        budgetId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<Expense>
 
     /**
      * Save a category
@@ -179,7 +194,7 @@ interface DB : Closeable {
      */
     suspend fun getExpensesForMonthWithoutCheckingAccount(): List<Expense>
 
-    suspend fun searchExpenses(search_query: String): List<Expense>
+    suspend fun searchExpenses(searchQuery: String): List<Expense>
 
     suspend fun getAllExpenses(startDate: LocalDate, endDate: LocalDate): List<Expense>
 

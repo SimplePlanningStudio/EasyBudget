@@ -1,5 +1,5 @@
 /*
- *   Copyright 2025 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR, Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.budget.Budget
 import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
+import com.simplebudget.model.profile.Profile
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.prefs.activeAccount
 import kotlinx.coroutines.flow.Flow
@@ -54,6 +55,18 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
      */
     override suspend fun triggerForceWriteToDisk() {
         roomDB.expenseDao().checkpoint(SimpleSQLiteQuery("pragma wal_checkpoint(full)"))
+    }
+
+    override suspend fun persistProfile(profile: Profile) {
+        roomDB.profileDao().upsertUser(profile.toProfileEntity())
+    }
+
+    override suspend fun getProfile(): Profile? {
+        return roomDB.profileDao().getUser()?.toProfile()
+    }
+
+    override suspend fun deleteProfile() {
+        roomDB.profileDao().deleteUser()
     }
 
     override suspend fun persistBudget(budget: Budget): Long {
@@ -108,10 +121,13 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
                 //Recurring Budget
                 //It will delete all future budgets of this recurring budget from budget table
                 budget.associatedRecurringBudget.id?.let {
-                    roomDB.budgetDao().deleteAllBudgetForRecurringBudgetFromDate(budget.associatedRecurringBudget.id, budget.startDate)
+                    roomDB.budgetDao().deleteAllBudgetForRecurringBudgetFromDate(
+                        budget.associatedRecurringBudget.id, budget.startDate
+                    )
 
                     //Now needs to delete all recurring budget from recurring budget table
-                    roomDB.budgetDao().deleteRecurringBudgetUsingId(budget.associatedRecurringBudget.id)
+                    roomDB.budgetDao()
+                        .deleteRecurringBudgetUsingId(budget.associatedRecurringBudget.id)
                 }
             }
         }
@@ -142,14 +158,18 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
 
     override suspend fun updateBudgetsSpentAmount(startDate: LocalDate, endDate: LocalDate) {
         val activeAccount = appPreferences.activeAccount()
-        return roomDB.budgetDao().updateBudgetsSpentAmount(startDate, endDate,activeAccount)
+        return roomDB.budgetDao().updateBudgetsSpentAmount(startDate, endDate, activeAccount)
     }
 
     override suspend fun getOldestBudgetStartDate(): LocalDate? {
         return roomDB.budgetDao().getOldestBudgetStartDate()
     }
 
-    override suspend fun getExpensesForBudget(budgetId: Long, startDate: LocalDate, endDate: LocalDate): List<Expense> {
+    override suspend fun getExpensesForBudget(
+        budgetId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<Expense> {
         return roomDB.budgetDao().getExpensesForBudget(budgetId, startDate, endDate)
             .toExpenses(this)
     }
@@ -459,6 +479,7 @@ class DBImpl(private val roomDB: RoomDB, private val appPreferences: AppPreferen
     override suspend fun getOldestExpense(): Expense? {
         return roomDB.expenseDao().getOldestExpense(appPreferences.activeAccount())?.toExpense(this)
     }
+
 }
 
 private suspend fun List<ExpenseEntity>.toExpenses(db: DB): List<Expense> {
@@ -471,4 +492,3 @@ private suspend fun ExpenseEntity.toExpense(db: DB): Expense {
     }
     return toExpense(recurringExpense)
 }
-

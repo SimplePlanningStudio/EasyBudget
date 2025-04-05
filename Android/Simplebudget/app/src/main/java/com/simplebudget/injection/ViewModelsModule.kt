@@ -42,7 +42,7 @@ val viewModelModule = module {
     /**
      * Main activity view model
      */
-    viewModel { MainViewModel(get(), get(), get(), get()) }
+    viewModel { MainViewModel(get(), get(), get()) }
 
     /**
      * Categories view model
@@ -87,7 +87,7 @@ val viewModelModule = module {
     /**
      * Backup view model
      */
-    viewModel { BackupSettingsViewModel(get(), get(), get()) }
+    viewModel { BackupSettingsViewModel(get(),get(), get(), get()) }
 
     /**
      * Reset app data view model

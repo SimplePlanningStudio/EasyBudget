@@ -31,6 +31,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.lifecycleScope
@@ -48,6 +49,7 @@ import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.helper.AppInstallHelper
 import com.simplebudget.helper.DateHelper
+import com.simplebudget.helper.InternetUtils
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.SortOption
 import com.simplebudget.helper.analytics.AnalyticsManager
@@ -61,6 +63,7 @@ import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.category.Category
 import com.simplebudget.prefs.*
 import com.simplebudget.view.category.manage.ManageCategoriesActivity
+import com.simplebudget.view.main.MainActivity
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -191,6 +194,20 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
 
         //Show banner
         showAppBanner()
+
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackPressed()
+            }
+        })
+    }
+
+    /**
+     * Handle back pressed
+     */
+    private fun handleBackPressed() {
+        doneWithSelection()
     }
 
 
@@ -280,7 +297,7 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                handleBackPressed()
                 true
             }
 
@@ -359,17 +376,26 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
      * Handle Voice Search Activity
      */
     private fun handleVoiceSearch() {
-        binding.voiceSearchQuery.setOnClickListener {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(
-                    RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        try {
+            binding.voiceSearchQuery.setOnClickListener {
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                    putExtra(
+                        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                    )
+                }
+                voiceSearchIntentLauncher.launch(intent)
+                //Log event
+                analyticsManager.logEvent(
+                    Events.KEY_CATEGORY_VOICE_SEARCHED,
+                    mapOf(Events.KEY_VALUE to ChooseCategoryActivity::class.java.simpleName)
                 )
             }
-            voiceSearchIntentLauncher.launch(intent)
-            //Log event
-            analyticsManager.logEvent(
-                Events.KEY_CATEGORY_VOICE_SEARCHED,
-                mapOf(Events.KEY_VALUE to ChooseCategoryActivity::class.java.simpleName)
+        } catch (e: Exception) {
+            Logger.error(
+                ChooseCategoryActivity::class.java.simpleName,
+                "Error in searching Categories using voice ${e.localizedMessage}",
+                e
             )
         }
     }
@@ -479,16 +505,6 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
         finish()
     }
 
-
-    /**
-     *
-     */
-    @SuppressLint("MissingSuperCall")
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        doneWithSelection()
-    }
-
     /**
      *
      */
@@ -521,6 +537,7 @@ class ChooseCategoryActivity : BaseActivity<ActivitySearchCategoryBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if(InternetUtils.isInternetAvailable(this).not())return
             binding.adViewContainer.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
             adView = AdView(this)

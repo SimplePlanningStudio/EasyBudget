@@ -1,5 +1,10 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
+        app:icon="@drawable/ic_how_to_black"
+        app:key="@string/setting_how_to_key"
+        app:summary="@string/setting_how_to_summary"
+        app:title="@string/setting_how_to_title" />
+    <Preference
         app:icon="@drawable/ic_contact_us_black"
         app:key="@string/setting_category_faq_key"
         app:summary="@string/setting_category_faq_message"

@@ -15,8 +15,8 @@ android {
         minSdk = 26
         targetSdk = 35
         compileSdk = 35
-        versionCode = 65
-        versionName = "3.3.6"
+        versionCode = 69
+        versionName = "3.3.7"
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
     }
@@ -42,12 +42,10 @@ android {
         getByName("debug") {
             isMinifyEnabled = false
             isDebuggable = true
-
             // Ensure that both prod and dev flavors can be used in debug
             firebaseCrashlytics {
                 mappingFileUploadEnabled = false
             }
-
             // Apply the same configurations for debug builds
             buildConfigField("boolean", "DEBUG_LOG", "true")
             buildConfigField("boolean", "CRASHLYTICS_ACTIVATED", "true")
@@ -125,6 +123,7 @@ dependencies {
 
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.activity:activity-ktx:1.10.0")
     ksp("androidx.room:room-compiler:2.6.1")
 
     //Google Ads
@@ -162,6 +161,7 @@ dependencies {
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
+    implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-messaging-ktx")
@@ -176,6 +176,10 @@ dependencies {
     implementation("me.relex:circleindicator:2.1.6@aar")
     implementation("androidx.viewpager:viewpager:1.1.0")
     api("com.darwinsys:hirondelle-date4j:1.5.1")
+
+    //App Update
+    implementation("com.google.android.play:app-update:2.1.0")
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
 
     //https://developer.android.com/studio/write/java8-support#library-desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")

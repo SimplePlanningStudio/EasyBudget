@@ -1,5 +1,5 @@
 /*
- *   Copyright 2025 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR, Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import com.simplebudget.db.impl.categories.CategoryDao
 import com.simplebudget.db.impl.categories.CategoryEntity
 import com.simplebudget.db.impl.expenses.ExpenseDao
 import com.simplebudget.db.impl.expenses.ExpenseEntity
+import com.simplebudget.db.impl.profile.ProfileDao
+import com.simplebudget.db.impl.profile.ProfileEntity
 import com.simplebudget.db.impl.recurringexpenses.RecurringExpenseEntity
 import com.simplebudget.helper.localDateFromTimestamp
 import com.simplebudget.model.account.Accounts
@@ -40,14 +42,15 @@ const val DB_NAME = "easybudget.db"
 
 @Database(
     exportSchema = false,
-    version = 10,
+    version = 11,
     entities = [CategoryEntity::class,
         ExpenseEntity::class,
         RecurringExpenseEntity::class,
         AccountTypeEntity::class,
         BudgetEntity::class,
         RecurringBudgetEntity::class,
-        BudgetCategoryCrossRef::class
+        BudgetCategoryCrossRef::class,
+        ProfileEntity::class
     ]
 )
 @TypeConverters(TimestampConverters::class)
@@ -57,6 +60,7 @@ abstract class RoomDB : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun accountTypeDao(): AccountTypeDao
     abstract fun budgetDao(): BudgetDao
+    abstract fun profileDao(): ProfileDao
 
     companion object {
         fun create(context: Context): RoomDB =
@@ -69,7 +73,8 @@ abstract class RoomDB : RoomDatabase() {
                 migrateTimestamps6To7,
                 migrateTimestamps7To8,
                 migrateTimestamps8To9,
-                migrateTimestamps9To10
+                migrateTimestamps9To10,
+                migrateTimestamps10To11
             ).build()
     }
 }
@@ -86,17 +91,36 @@ class TimestampConverters {
     }
 }
 
+private val migrateTimestamps10To11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // Adding profile table to have user info
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS profile (
+                id INTEGER PRIMARY KEY NOT NULL,
+                userName TEXT,
+                email TEXT,
+                fcmToken TEXT,
+                loginId TEXT,
+                isPremium INTEGER NOT NULL DEFAULT 0,
+                premiumType TEXT,
+                appVersion TEXT
+            )
+            """.trimIndent()
+        )
+    }
+}
+
 private val migrateTimestamps9To10 = object : Migration(9, 10) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
 
         // Step 1: Retrieve MISCELLANEOUS category ID
-        val cursor =
-            database.query("SELECT _category_id FROM category WHERE name = 'MISCELLANEOUS'")
+        val cursor = db.query("SELECT _category_id FROM category WHERE name = 'MISCELLANEOUS'")
         val miscellaneousCategoryId = if (cursor.moveToFirst()) cursor.getLong(0) else 1
         cursor.close()
 
         // Step 2: Check if categoryId column already exists
-        val columnCursor = database.query("PRAGMA table_info(expense)")
+        val columnCursor = db.query("PRAGMA table_info(expense)")
         var columnExists = false
         while (columnCursor.moveToNext()) {
             val columnName = columnCursor.getString(columnCursor.getColumnIndexOrThrow("name"))
@@ -109,11 +133,11 @@ private val migrateTimestamps9To10 = object : Migration(9, 10) {
 
         // Step 3: Add categoryId column if it doesn't exist
         if (!columnExists) {
-            database.execSQL("ALTER TABLE expense ADD COLUMN categoryId INTEGER NOT NULL DEFAULT $miscellaneousCategoryId")
+            db.execSQL("ALTER TABLE expense ADD COLUMN categoryId INTEGER NOT NULL DEFAULT $miscellaneousCategoryId")
         }
 
         // Step 4: Update categoryId based on category name
-        database.execSQL(
+        db.execSQL(
             """
             UPDATE expense
             SET categoryId = COALESCE((
@@ -124,7 +148,7 @@ private val migrateTimestamps9To10 = object : Migration(9, 10) {
         )
 
         // Step 5: Ensure no NULL values remain in categoryId
-        database.execSQL(
+        db.execSQL(
             """
             UPDATE expense
             SET categoryId = $miscellaneousCategoryId
@@ -133,7 +157,7 @@ private val migrateTimestamps9To10 = object : Migration(9, 10) {
         )
 
         //Adding budget table
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS budget (
                 _budget_id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -150,11 +174,11 @@ private val migrateTimestamps9To10 = object : Migration(9, 10) {
         )
 
         // Create indexes for budget table on date,accountId and categoryId
-        database.execSQL("CREATE INDEX IF NOT EXISTS 'S_D' ON 'budget' ('startDate')")
-        database.execSQL("CREATE INDEX IF NOT EXISTS 'E_D' ON 'budget' ('endDate')")
+        db.execSQL("CREATE INDEX IF NOT EXISTS 'S_D' ON 'budget' ('startDate')")
+        db.execSQL("CREATE INDEX IF NOT EXISTS 'E_D' ON 'budget' ('endDate')")
 
         //Adding monthly budget table
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS monthlybudget(
                 '_budget_id' INTEGER,
@@ -170,7 +194,7 @@ private val migrateTimestamps9To10 = object : Migration(9, 10) {
         )
 
         //Category cross reference table for one to many (budget to categories)
-        database.execSQL(
+        db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS budget_category_cross_ref (
                 _budget_id INTEGER NOT NULL,
@@ -182,30 +206,29 @@ private val migrateTimestamps9To10 = object : Migration(9, 10) {
         )
 
         //Create indexes for budget_category_cross_ref table
-        database.execSQL("CREATE INDEX IF NOT EXISTS 'C_I' ON 'budget_category_cross_ref' ('_category_id')")
+        db.execSQL("CREATE INDEX IF NOT EXISTS 'C_I' ON 'budget_category_cross_ref' ('_category_id')")
     }
 }
 
-
 private val migrateTimestamps8To9 = object : Migration(8, 9) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         //Update default account table only the name SAVINGS to DEFAULT_ACCOUNT
-        database.execSQL("UPDATE account_type SET name = 'DEFAULT_ACCOUNT' WHERE _account_type_id = 1")
+        db.execSQL("UPDATE account_type SET name = 'DEFAULT_ACCOUNT' WHERE _account_type_id = 1")
     }
 }
 private val migrateTimestamps7To8 = object : Migration(7, 8) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
         // Adding accountType into expenses and categories
-        database.execSQL("ALTER TABLE expense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.DEFAULT_ACCOUNT + "'")
-        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.DEFAULT_ACCOUNT + "'")
+        db.execSQL("ALTER TABLE expense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.DEFAULT_ACCOUNT + "'")
+        db.execSQL("ALTER TABLE monthlyexpense ADD COLUMN accountId INTEGER not null DEFAULT '" + Accounts.DEFAULT_ACCOUNT + "'")
         //Add account type table
-        database.execSQL("CREATE TABLE IF NOT EXISTS account_type ('_account_type_id' INTEGER, 'name' text not null DEFAULT 'DEFAULT_ACCOUNT','isActive' INTEGER not null DEFAULT 1, PRIMARY KEY('_account_type_id'))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS account_type ('_account_type_id' INTEGER, 'name' text not null DEFAULT 'DEFAULT_ACCOUNT','isActive' INTEGER not null DEFAULT 1, PRIMARY KEY('_account_type_id'))")
     }
 }
 
 private val migrateTimestamps6To7 = object : Migration(6, 7) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        val cursor = database.query("SELECT _expense_id,date FROM expense")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        val cursor = db.query("SELECT _expense_id,date FROM expense")
         while (cursor.moveToNext()) {
             val id = cursor.getLong(cursor.getColumnIndexOrThrow("_expense_id"))
             val timestamp = cursor.getLong(cursor.getColumnIndexOrThrow("date"))
@@ -213,10 +236,10 @@ private val migrateTimestamps6To7 = object : Migration(6, 7) {
             val localDate = localDateFromTimestamp(timestamp)
             val newTimestamp = localDate.toEpochDay()
 
-            database.execSQL("UPDATE expense SET date = $newTimestamp WHERE _expense_id = $id")
+            db.execSQL("UPDATE expense SET date = $newTimestamp WHERE _expense_id = $id")
         }
 
-        val cursorRecurring = database.query("SELECT _expense_id,recurringDate FROM monthlyexpense")
+        val cursorRecurring = db.query("SELECT _expense_id,recurringDate FROM monthlyexpense")
         while (cursorRecurring.moveToNext()) {
             val id = cursorRecurring.getLong(cursorRecurring.getColumnIndexOrThrow("_expense_id"))
             val timestamp =
@@ -225,38 +248,38 @@ private val migrateTimestamps6To7 = object : Migration(6, 7) {
             val localDate = localDateFromTimestamp(timestamp)
             val newTimestamp = localDate.toEpochDay()
 
-            database.execSQL("UPDATE monthlyexpense SET recurringDate = $newTimestamp WHERE _expense_id = $id")
+            db.execSQL("UPDATE monthlyexpense SET recurringDate = $newTimestamp WHERE _expense_id = $id")
         }
     }
 }
 
 private val migrationFrom5To6 = object : Migration(5, 6) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("CREATE TABLE IF NOT EXISTS category ('_category_id' INTEGER, 'name' text not null DEFAULT 'MISCELLANEOUS', PRIMARY KEY('_category_id'))")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS category ('_category_id' INTEGER, 'name' text not null DEFAULT 'MISCELLANEOUS', PRIMARY KEY('_category_id'))")
     }
 }
 
 private val migrationFrom4To5 = object : Migration(4, 5) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE expense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS.name + "'")
-        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS.name + "'")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE expense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS.name + "'")
+        db.execSQL("ALTER TABLE monthlyexpense ADD COLUMN category text not null DEFAULT '" + ExpenseCategoryType.MISCELLANEOUS.name + "'")
     }
 }
 
 private val migrationToRoom = object : Migration(3, 4) {
-    override fun migrate(database: SupportSQLiteDatabase) {
+    override fun migrate(db: SupportSQLiteDatabase) {
     }
 }
 
 private val migrationFrom2To3 = object : Migration(2, 3) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE monthlyexpense ADD COLUMN type text not null DEFAULT '" + RecurringExpenseType.MONTHLY + "'")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE monthlyexpense ADD COLUMN type text not null DEFAULT '" + RecurringExpenseType.MONTHLY + "'")
     }
 }
 
 private val migrationFrom1To2 = object : Migration(1, 2) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("UPDATE expense SET amount = amount * 100")
-        database.execSQL("UPDATE monthlyexpense SET amount = amount * 100")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE expense SET amount = amount * 100")
+        db.execSQL("UPDATE monthlyexpense SET amount = amount * 100")
     }
 }

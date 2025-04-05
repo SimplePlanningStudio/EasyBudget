@@ -28,6 +28,7 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import com.google.firebase.analytics.FirebaseAnalytics.Event
 import com.simplebudget.R
 import com.simplebudget.databinding.DialogSecurityBinding
@@ -84,6 +85,19 @@ class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
         //Screen event
         analyticsManager.logEvent(Events.KEY_PASSWORD_PROTECTION_SCREEN)
 
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackPressed()
+            }
+        })
+    }
+
+    /**
+     * Handle back pressed
+     */
+    private fun handleBackPressed() {
+        onCancelFail()
     }
 
     /**
@@ -148,15 +162,6 @@ class SecurityActivity : BaseActivity<DialogSecurityBinding>(), HashListener {
                 binding.error.visibility = View.GONE
             }
         }.start()
-    }
-
-    /**
-     *
-     */
-    @SuppressLint("MissingSuperCall")
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        onCancelFail()
     }
 
     /**

@@ -19,6 +19,7 @@ import com.google.firebase.analytics.FirebaseAnalytics.Event
 
 object Events {
     //General
+    const val KEY_HOW_TO = "howTo"
     const val KEY_TELEGRAM = "telegram"
     const val KEY_WHATSAPP = "whatsapp"
     const val KEY_YOUTUBE = "youtube"

@@ -182,6 +182,7 @@ class BudgetDetailsFragment : BaseFragment<FragmentBudgetDetailsBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if(InternetUtils.isInternetAvailable(requireActivity()).not())return
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(), requireActivity().windowManager.defaultDisplay

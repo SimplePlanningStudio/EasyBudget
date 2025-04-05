@@ -59,13 +59,20 @@
             android:id="@+id/recyclerViewAccounts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/space"
             android:layout_below="@+id/divider"
             android:divider="@color/divider_grey"
             android:dividerHeight=".5dp"
             android:scrollbarSize=".5dp"
             android:scrollbars="vertical"
             tools:listitem="@layout/item_accounts_list" />
+
+        <com.simplebudget.helper.ads.TemplateView
+            android:id="@+id/nativeAdTemplate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="@dimen/_20sdp"
+            app:gnt_template_type="@layout/gnt_small_template_view" />
 
         <TextView
             android:id="@+id/space"

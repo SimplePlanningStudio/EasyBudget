@@ -303,6 +303,7 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if(InternetUtils.isInternetAvailable(this).not())return
             binding.adViewContainer.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 this, windowManager.defaultDisplay

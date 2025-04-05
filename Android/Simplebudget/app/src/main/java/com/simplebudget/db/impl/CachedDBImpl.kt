@@ -23,20 +23,17 @@ import com.simplebudget.db.impl.budgets.BudgetCategoryCrossRef
 import com.simplebudget.db.impl.budgets.BudgetEntity
 import com.simplebudget.db.impl.budgets.BudgetWithCategories
 import com.simplebudget.db.impl.categories.CategoryEntity
-import com.simplebudget.db.impl.expenses.ExpenseEntity
-import com.simplebudget.helper.DateHelper
 import com.simplebudget.helper.Logger
 import com.simplebudget.model.account.Account
 import com.simplebudget.model.budget.Budget
 import com.simplebudget.model.budget.RecurringBudget
 import com.simplebudget.model.category.Category
-import com.simplebudget.prefs.activeAccount
+import com.simplebudget.model.profile.Profile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.util.concurrent.Executor
 
-@Suppress("DeferredResultUnused")
 class CachedDBImpl(
     private val wrappedDB: DB,
     private val cacheStorage: CacheDBStorage,
@@ -55,6 +52,24 @@ class CachedDBImpl(
         wrappedDB.triggerForceWriteToDisk()
     }
 
+    /**
+     * Profile
+     */
+    override suspend fun persistProfile(profile: Profile) {
+        wrappedDB.persistProfile(profile)
+    }
+
+    override suspend fun getProfile(): Profile? {
+        return wrappedDB.getProfile()
+    }
+
+    override suspend fun deleteProfile() {
+        wrappedDB.deleteProfile()
+    }
+
+    /**
+     * Budgets
+     */
     override suspend fun persistBudget(budget: Budget): Long {
         return wrappedDB.persistBudget(budget)
     }
@@ -133,10 +148,9 @@ class CachedDBImpl(
         return wrappedDB.getExpensesForBudget(budgetId, startDate, endDate)
     }
 
-    override fun close() {
-        wrappedDB.close()
-    }
-
+    /**
+     * Categories
+     */
     override suspend fun persistCategory(category: Category): Category =
         wrappedDB.persistCategory(category)
 
@@ -277,8 +291,8 @@ class CachedDBImpl(
     override suspend fun getExpensesForMonthWithoutCheckingAccount(): List<Expense> =
         wrappedDB.getExpensesForMonthWithoutCheckingAccount()
 
-    override suspend fun searchExpenses(search_query: String): List<Expense> =
-        wrappedDB.searchExpenses(search_query)
+    override suspend fun searchExpenses(searchQuery: String): List<Expense> =
+        wrappedDB.searchExpenses(searchQuery)
 
     override suspend fun getAllExpenses(
         startDate: LocalDate, endDate: LocalDate,
@@ -477,6 +491,10 @@ class CachedDBImpl(
             cacheStorage.accountId = accountId
             Logger.debug("DBCache: Balance cached for month: $month")
         }
+    }
+
+    override fun close() {
+        wrappedDB.close()
     }
 }
 

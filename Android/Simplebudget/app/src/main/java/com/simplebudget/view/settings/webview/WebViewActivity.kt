@@ -16,25 +16,32 @@
 package com.simplebudget.view.settings.webview
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings.LOAD_NO_CACHE
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityWebViewBinding
 import com.simplebudget.helper.DialogUtil
+import com.simplebudget.helper.Logger
 import com.simplebudget.helper.Rate
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
 import org.koin.android.ext.android.inject
+import androidx.core.net.toUri
 
 class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
 
@@ -50,10 +57,17 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
     companion object {
         private const val REQUEST_URL = "URL"
         private const val REQUEST_SCREEN_TITLE = "ScreenTitle"
-        fun start(context: Context, url: String? = null, screenTitle: String? = null) {
+        private const val REQUEST_ENABLE_SHARE_REVIEW_BUTTON = "shareYourReviewButton"
+        fun start(
+            context: Context,
+            url: String? = null,
+            screenTitle: String? = null,
+            enableShareReview: Boolean = true,
+        ) {
             val intent = Intent(context, WebViewActivity::class.java)
             intent.putExtra(REQUEST_URL, url)
             intent.putExtra(REQUEST_SCREEN_TITLE, screenTitle)
+            intent.putExtra(REQUEST_ENABLE_SHARE_REVIEW_BUTTON, enableShareReview)
             context.startActivity(intent)
         }
     }
@@ -77,7 +91,10 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
         ) {
             val jsInterface = JavaScriptInterface(this)
             binding.webView.addJavascriptInterface(jsInterface, "Android")
-            binding.shareYourReview.visibility = View.VISIBLE
+            binding.shareYourReview.visibility = if (intent.getBooleanExtra(
+                    REQUEST_ENABLE_SHARE_REVIEW_BUTTON, true
+                )
+            ) View.VISIBLE else View.GONE
             binding.shareYourReview.setOnClickListener {
                 analyticsManager.logEvent(Events.KEY_REVIEW_APP_RATE)
                 Rate.onPlayStore(this)
@@ -85,6 +102,7 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
         }
         // Set a WebViewClient to handle page navigation within the WebView
         binding.webView.webViewClient = object : WebViewClient() {
+
             override fun onPageStarted(
                 view: WebView?, url: String?, favicon: android.graphics.Bitmap?,
             ) {
@@ -112,6 +130,38 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
                     },
                     negativeClickListener = {}).show()
             }
+
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest,
+            ): Boolean {
+                val url = request.url.toString()
+
+                return when {
+                    url.startsWith("mailto:") -> {
+                        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = url.toUri()
+                        }
+                        try {
+                            view?.context?.startActivity(emailIntent)
+                        } catch (e: ActivityNotFoundException) {
+                            Toast.makeText(view?.context, "No email app found", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                        true
+                    }
+
+                    url.startsWith("tel:") -> {
+                        val dialIntent = Intent(Intent.ACTION_DIAL).apply {
+                            data = url.toUri()
+                        }
+                        view?.context?.startActivity(dialIntent)
+                        true
+                    }
+
+                    else -> false // Let WebView load the URL normally
+                }
+            }
         }
 
         // Load a web page into the WebView
@@ -132,7 +182,23 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
             //Screen name event
             analyticsManager.logEvent(Events.KEY_USER_TESTIMONIAL_SCREEN)
         }
+
+        // Add custom back handler
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleWebViewBackPress()
+            }
+        })
     }
+
+    private fun handleWebViewBackPress() {
+        if (binding.webView.canGoBack()) {
+            binding.webView.goBack()
+        } else {
+            finish()
+        }
+    }
+
 
     /**
      *
@@ -140,19 +206,10 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == android.R.id.home) {
-            finish()
+            handleWebViewBackPress()
             return true
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (binding.webView.canGoBack()) {
-            binding.webView.goBack()
-        } else {
-            super.onBackPressed()
-        }
     }
 
     class JavaScriptInterface(private val context: Context) {

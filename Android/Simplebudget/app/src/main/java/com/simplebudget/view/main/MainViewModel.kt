@@ -1,5 +1,5 @@
 /*
- *   Copyright 2025 Benoit LETONDOR
+ *   Copyright 2025 Benoit LETONDOR, Waheed Nazir
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -15,18 +15,18 @@
  */
 package com.simplebudget.view.main
 
-import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkInfo
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.simplebudget.BuildConfig
 import com.simplebudget.iab.Iab
 import com.simplebudget.db.DB
+import com.simplebudget.helper.Logger
 import com.simplebudget.helper.SingleLiveEvent
-import com.simplebudget.job.budget.BUDGET_JOB_REQUEST_TAG
-import com.simplebudget.job.budget.getBudgetJobInfosLiveData
-import com.simplebudget.job.budget.scheduleBudgetJob
+import com.simplebudget.helper.formatLocalDateTime
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.AccountType
 import com.simplebudget.model.account.Accounts
 import com.simplebudget.model.category.ExpenseCategories
@@ -39,12 +39,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.time.LocalDateTime
+import kotlin.String
 
 class MainViewModel(
     private val db: DB,
     private val iab: Iab,
     private val appPreferences: AppPreferences,
-    private val appContext: Context,
 ) : ViewModel() {
     private var selectedDate: LocalDate = LocalDate.now()
 
@@ -64,15 +65,6 @@ class MainViewModel(
     val currentBalanceEditedEventStream = SingleLiveEvent<BalanceAdjustedData>()
     val currentBalanceRestoringEventStream = SingleLiveEvent<Unit>()
     val currentBalanceRestoringErrorEventStream = SingleLiveEvent<Exception>()
-
-    val budgetJobStateStream: MutableLiveData<WorkInfo.State> = MutableLiveData()
-    private val budgetJobObserver = Observer<List<WorkInfo>> {
-        it.forEach { info ->
-            if (info.tags.contains(BUDGET_JOB_REQUEST_TAG)) {
-                budgetJobStateStream.value = info.state
-            }
-        }
-    }
 
     sealed class RecurringExpenseDeleteProgressState {
         class Starting(val expense: Expense) : RecurringExpenseDeleteProgressState()
@@ -111,13 +103,7 @@ class MainViewModel(
         refreshDataForDate(selectedDate)
         refreshCategories()
         refreshAccountTypes()
-        getBudgetJobInfosLiveData(appContext).observeForever(budgetJobObserver)
-        scheduleBudgetJob(appContext)
-    }
-
-    override fun onCleared() {
-        getBudgetJobInfosLiveData(appContext).removeObserver(budgetJobObserver)
-        super.onCleared()
+        saveUserDataToFireStore()
     }
 
     /**
@@ -263,8 +249,7 @@ class MainViewModel(
 
                         try {
                             db.deleteAllExpenseForRecurringExpenseBeforeDate(
-                                associatedRecurringExpense,
-                                expense.date
+                                associatedRecurringExpense, expense.date
                             )
                         } catch (t: Throwable) {
                             return@withContext null
@@ -492,6 +477,88 @@ class MainViewModel(
 
     fun onWelcomeScreenFinished() {
         refreshDataForDate(selectedDate)
+    }
+
+    /**
+     * Save profile to Firebase
+     */
+    private fun saveUserDataToFireStore() {
+        viewModelScope.launch {
+            val firestoreTag = "FireStoreProfile"
+            try {
+                var profile = withContext(Dispatchers.IO) {
+                    db.getProfile()
+                }
+                profile?.let {
+                    profile = profile?.copy(
+                        fcmToken = appPreferences.getFCMToken(),
+                        isPremium = appPreferences.isUserPremium(),
+                        updateTime = LocalDateTime.now().formatLocalDateTime(),
+                        appVersion = BuildConfig.VERSION_NAME
+                    )
+                    withContext(Dispatchers.IO) {
+                        val collection = "profiles"
+                        val firestoreDb = FirebaseFirestore.getInstance()
+                        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+                        userId?.let {
+                            val userRef = firestoreDb.collection(collection).document(userId)
+                            userRef.get().addOnSuccessListener { document ->
+                                if (document.exists()) {
+                                    // Update only if FCM token or app version has changed
+                                    val currentToken = document.getString("fcmToken") ?: ""
+                                    val currentVersion = document.getString("appVersion") ?: ""
+                                    val isPremium = document.getBoolean("isPremium") ?: false
+                                    val premiumType = document.getString("premiumType") ?: ""
+
+                                    if (currentToken != profile?.fcmToken ||
+                                        currentVersion != profile?.appVersion ||
+                                        isPremium != profile?.isPremium ||
+                                        premiumType != profile?.premiumType
+                                    ) {
+                                        profile?.let {
+                                            userRef.set(profile!!).addOnSuccessListener {
+                                                Logger.debug(
+                                                    firestoreTag,
+                                                    "Profile updated successfully on firebase."
+                                                )
+                                            }.addOnFailureListener { e ->
+                                                Logger.error(
+                                                    firestoreTag,
+                                                    "Error updating profile:",
+                                                    e
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        Logger.debug(
+                                            firestoreTag,
+                                            "Skipping profile update"
+                                        )
+                                    }
+                                } else {
+                                    // Create new entry if document doesn't exist
+                                    profile?.let {
+                                        userRef.set(profile!!).addOnSuccessListener {
+                                            Logger.debug(
+                                                firestoreTag,
+                                                "Profile created successfully on firebase."
+                                            )
+                                        }.addOnFailureListener { e ->
+                                            Logger.error(firestoreTag, "Error create profile:", e)
+                                        }
+                                    }
+                                }
+                            }.addOnFailureListener { e ->
+                                Logger.error(firestoreTag, "Error fetching profile:", e)
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Logger.error(firestoreTag, "Error on profile", e)
+            }
+        }
     }
 }
 

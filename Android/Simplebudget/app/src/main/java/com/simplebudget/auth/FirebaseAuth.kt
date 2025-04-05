@@ -102,4 +102,7 @@ class FirebaseCurrentUser(private val user: FirebaseUser) : CurrentUser {
 
     override val id: String
         get() = user.uid
+
+    override val name: String
+        get() = user.displayName ?: ""
 }

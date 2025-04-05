@@ -9,11 +9,20 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.simplebudget.R
 import com.simplebudget.base.BaseDialogFragment
 import com.simplebudget.databinding.AccountsBottomSheetDialogFragmentBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.ads.AdSdkManager
+import com.simplebudget.helper.ads.NativeTemplateStyle
+import com.simplebudget.helper.extensions.beGone
+import com.simplebudget.helper.extensions.beVisible
 import com.simplebudget.helper.extensions.isDefault
 import com.simplebudget.helper.extensions.toAccount
 import com.simplebudget.helper.extensions.toAccounts
@@ -27,6 +36,8 @@ import com.simplebudget.view.accounts.adapter.AccountsAdapter
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import androidx.core.graphics.drawable.toDrawable
+
 
 class AccountsBottomSheetDialogFragment(
     private val onAccountSelected: (Account) -> Unit,
@@ -46,6 +57,8 @@ class AccountsBottomSheetDialogFragment(
     private lateinit var accountsAdapter: AccountsAdapter
 
     private var accounts: List<Account> = emptyList()
+
+    private var nativeAd: NativeAd? = null
 
     override fun onCreateBinding(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -100,6 +113,17 @@ class AccountsBottomSheetDialogFragment(
 
         binding?.addAccount?.setOnClickListener {
             handleAddAndEditAccount()
+        }
+        if (appPreferences.isUserPremium()
+                .not() && InternetUtils.isInternetAvailable(requireContext())
+        ) {
+            binding?.nativeAdTemplate?.beVisible()
+            AdSdkManager.initialize(requireContext()) {
+                //Load native ads
+                loadNativeAd()
+            }
+        } else {
+            binding?.nativeAdTemplate?.beGone()
         }
     }
 
@@ -214,7 +238,8 @@ class AccountsBottomSheetDialogFragment(
                 isPremiumUser = appPreferences.isUserPremium(),
                 dismissAccountBottomSheet = {
                     dismiss()
-                }, toastManager = toastManager
+                },
+                toastManager = toastManager
             )
         } catch (e: Exception) {
             Logger.error("AddEditAccountDialog: Error handling add edit account", e)
@@ -264,4 +289,52 @@ class AccountsBottomSheetDialogFragment(
         alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             ?.setTextColor(resources.getColor(R.color.budget_green))
     }
+
+
+    /**
+     * Load native ads
+     */
+    private fun loadNativeAd() {
+        try {
+            val builder = AdLoader.Builder(requireContext(), getString(R.string.native_ad_unit_id))
+            builder.forNativeAd { nativeAd ->
+                populateNativeAdView(nativeAd)
+            }
+            val adLoader = builder.withAdListener(object : AdListener() {
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    Logger.error("NativeAd", "Failed to load: ${loadAdError.message}")
+                    nativeAd = null
+                }
+            }).build()
+            adLoader.loadAd(AdRequest.Builder().build())
+        } catch (e: Exception) {
+            Logger.error("NativeAd", "Failed to load: ${e.localizedMessage}", e)
+        }
+    }
+
+    /**
+     *
+     */
+    private fun populateNativeAdView(nativeAd: NativeAd) {
+        try {
+            val styles = NativeTemplateStyle.Builder().withMainBackgroundColor(
+                resources.getColor(R.color.white).toDrawable()
+            ).build()
+            binding?.nativeAdTemplate?.setStyles(styles)
+            binding?.nativeAdTemplate?.setNativeAd(nativeAd)
+            this.nativeAd = nativeAd
+        } catch (e: Exception) {
+            Logger.error("NativeTemplateStyle", "Failed to populate: ${e.localizedMessage}", e)
+        }
+    }
+
+    /**
+     * Destroy native ads
+     */
+    override fun onDestroy() {
+        this.nativeAd?.destroy()
+        this.nativeAd = null
+        super.onDestroy()
+    }
+
 }

@@ -15,11 +15,11 @@
  */
 package com.simplebudget.view.moreApps
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.activity.OnBackPressedCallback
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityMoreAppsBinding
 import com.simplebudget.base.BaseActivity
@@ -55,6 +55,19 @@ class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
         fragmentTransaction.add(R.id.fragment_container, MoreAppsFragment.newInstance(1))
         fragmentTransaction.addToBackStack("MoreAppsFragment")
         fragmentTransaction.commit()
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackPressed()
+            }
+        })
+    }
+
+    /**
+     * Handle back pressed
+     */
+    private fun handleBackPressed() {
+        finish()
     }
 
     /**
@@ -62,9 +75,8 @@ class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
-
         if (id == android.R.id.home) {
-            finish()
+            handleBackPressed()
             return true
         }
 
@@ -97,11 +109,5 @@ class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
                 )
             )
         }
-    }
-
-    @SuppressLint("MissingSuperCall")
-    @Deprecated("Deprecated in Java", ReplaceWith("finish()"))
-    override fun onBackPressed() {
-        finish()
     }
 }

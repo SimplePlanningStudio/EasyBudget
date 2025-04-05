@@ -38,6 +38,7 @@ import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.DateHelper
 import com.simplebudget.helper.DialogUtil
 import com.simplebudget.helper.FREE_BUDGETS_LIMIT
+import com.simplebudget.helper.InternetUtils
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
@@ -275,6 +276,7 @@ class BudgetFragment : BaseFragment<FragmentBudgetBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if(InternetUtils.isInternetAvailable(requireActivity()).not())return
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(), requireActivity().windowManager.defaultDisplay

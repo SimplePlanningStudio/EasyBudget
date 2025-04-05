@@ -1,0 +1,33 @@
+<com.google.android.gms.ads.nativead.NativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/native_ad_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/ad_headline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/ad_body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#666666" />
+
+        <Button
+            android:id="@+id/ad_call_to_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/install" />
+    </LinearLayout>
+
+</com.google.android.gms.ads.nativead.NativeAdView>

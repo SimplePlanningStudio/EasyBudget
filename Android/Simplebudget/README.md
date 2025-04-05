@@ -23,6 +23,8 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - More apps / Privacy policy / Telegram Channel in settings.
 - Edit / Create own categories of expenses.
 - Category wise reports and total expensive for each category.
+- Added Budgets (One time and Monthly)
+- Added How to? under Help section to step by step explain Simple Budget features.
 
 ### Important (In order to run)
 

@@ -15,9 +15,9 @@
  */
 package com.simplebudget.view.premium
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySuccessPremiumBinding
 import com.simplebudget.base.BaseActivity
@@ -54,10 +54,6 @@ class PremiumSuccessActivity : BaseActivity<ActivitySuccessPremiumBinding>() {
             binding.btnLetsProceed.text =
                 String.format("%s", getString(R.string.proceed_with_adding_expenses))
         }
-
-        /**
-         *
-         */
         binding.btnLetsProceed.setOnClickListener {
             if (isBackEnabled) {
                 finish()
@@ -66,19 +62,17 @@ class PremiumSuccessActivity : BaseActivity<ActivitySuccessPremiumBinding>() {
                 startActivity(Intent(this, MainActivity::class.java))
             }
         }
+        // Handle back press
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (isBackEnabled) {
+                    finish()
+                } else {
+                    finishAffinity()
+                    startActivity(Intent(this@PremiumSuccessActivity, MainActivity::class.java))
+                }
+            }
+        })
     }
 
-    /**
-     *
-     */
-    @SuppressLint("MissingSuperCall")
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (isBackEnabled) {
-            finish()
-        } else {
-            finishAffinity()
-            startActivity(Intent(this, MainActivity::class.java))
-        }
-    }
 }

@@ -32,6 +32,7 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - Multiple accounts
 - Side navigation panel
 - Added Budgets (One time and Monthly)
+- Added How to? under Help to explain common features
 
 
 

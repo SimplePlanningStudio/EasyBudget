@@ -25,13 +25,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.ListenableWorker
 import androidx.work.WorkInfo
+import com.simplebudget.BuildConfig
 import com.simplebudget.auth.Auth
 import com.simplebudget.auth.AuthState
 import com.simplebudget.auth.CurrentUser
 import com.simplebudget.cloudstorage.CloudStorage
 import com.simplebudget.db.DB
 import com.simplebudget.helper.*
+import com.simplebudget.iab.getPremiumType
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.job.backup.*
+import com.simplebudget.model.profile.Profile
 import com.simplebudget.prefs.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,9 +45,10 @@ import org.koin.java.KoinJavaComponent.get
 import java.lang.RuntimeException
 
 class BackupSettingsViewModel(
+    private val db: DB,
     private val auth: Auth,
     private val appPreferences: AppPreferences,
-    private val appContext: Context
+    private val appContext: Context,
 ) : ViewModel() {
 
     val cloudBackupStateStream: MutableLiveData<BackupCloudStorageState> = MutableLiveData()
@@ -75,9 +80,7 @@ class BackupSettingsViewModel(
                         }
                     } catch (e: Throwable) {
                         Log.e(
-                            "BackupSettingsViewModel",
-                            "Error getting last backup date",
-                            e
+                            "BackupSettingsViewModel", "Error getting last backup date", e
                         )
                     }
 
@@ -131,6 +134,8 @@ class BackupSettingsViewModel(
             AuthState.NotAuthenticated -> BackupCloudStorageState.NotAuthenticated
             AuthState.Authenticating -> BackupCloudStorageState.Authenticating
             is AuthState.Authenticated -> {
+                //Save profile
+                saveProfile(currentUser = authState.currentUser)
                 if (backupInProgress) {
                     BackupCloudStorageState.BackupInProgress(authState.currentUser)
                 } else if (restorationInProgress) {
@@ -154,8 +159,8 @@ class BackupSettingsViewModel(
                         BackupCloudStorageState.NotActivated(authState.currentUser)
                     }
                 }
-
             }
+
             null -> BackupCloudStorageState.NotAuthenticated
         }
     }
@@ -281,10 +286,7 @@ class BackupSettingsViewModel(
             try {
                 withContext(Dispatchers.IO) {
                     restoreLatestDBBackup(
-                        appContext,
-                        auth,
-                        get(CloudStorage::class.java),
-                        appPreferences
+                        appContext, auth, get(CloudStorage::class.java), appPreferences
                     )
                 }
 
@@ -305,6 +307,27 @@ class BackupSettingsViewModel(
 
         return calendar.time.after(this)
     }
+
+    /**
+     * Save / Update user profile into local DB
+     */
+    private fun saveProfile(currentUser: CurrentUser) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val profile = Profile(
+                    1,
+                    currentUser.name,
+                    currentUser.email,
+                    appPreferences.getFCMToken(),
+                    currentUser.id,
+                    appPreferences.isUserPremium(),
+                    appPreferences.getPremiumType(),
+                    BuildConfig.VERSION_NAME
+                )
+                db.persistProfile(profile)
+            }
+        }
+    }
 }
 
 sealed class BackupCloudStorageState {
@@ -315,7 +338,7 @@ sealed class BackupCloudStorageState {
         val currentUser: CurrentUser,
         val lastBackupDate: Date?,
         val backupNowAvailable: Boolean,
-        val restoreAvailable: Boolean
+        val restoreAvailable: Boolean,
     ) : BackupCloudStorageState()
 
     data class BackupInProgress(val currentUser: CurrentUser) : BackupCloudStorageState()

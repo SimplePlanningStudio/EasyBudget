@@ -45,18 +45,20 @@ class BreakDownRecyclerViewAdapter(
 
     override fun onBindViewHolder(holder: BreakDownViewHolder, position: Int) {
         val obj = getExpense(position)
-        holder.headerTitle.text = String.format(
-            "%s (%s)",
-            obj.category,
-            CurrencyHelper.getFormattedCurrencyString(appPreferences, obj.amountSpend)
-        )
-        val percent = ((obj.amountSpend / totalExpenses) * 100)
-        holder.percentage.text = String.format(
-            "%s%s",
-            CurrencyHelper.getFormattedAmountValue(percent),
-            "%"
-        )
-        holder.progress.setProgress(percent.toInt(), true)
+        obj?.let {
+            holder.headerTitle.text = String.format(
+                "%s (%s)",
+                obj.category,
+                CurrencyHelper.getFormattedCurrencyString(appPreferences, obj.amountSpend)
+            )
+            val percent = ((obj.amountSpend / totalExpenses) * 100)
+            holder.percentage.text = String.format(
+                "%s%s",
+                CurrencyHelper.getFormattedAmountValue(percent),
+                "%"
+            )
+            holder.progress.setProgress(percent.toInt(), true)
+        }
     }
 
     override fun getItemCount() = allExpensesOfThisMonth.size
@@ -66,8 +68,8 @@ class BreakDownRecyclerViewAdapter(
      * @param position the position
      * @return the expense for that position
      */
-    private fun getExpense(position: Int): BreakDownViewModel.CategoryWiseExpense =
-        allExpensesOfThisMonth[position]
+    private fun getExpense(position: Int): BreakDownViewModel.CategoryWiseExpense? =
+        if (itemCount > position) allExpensesOfThisMonth[position] else null
 
     // --------------------------------------->
     class BreakDownViewHolder internal constructor(internal val view: View) :

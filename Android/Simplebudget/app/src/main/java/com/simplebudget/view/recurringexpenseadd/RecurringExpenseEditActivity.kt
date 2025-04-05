@@ -492,12 +492,12 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
      */
     private fun loadAndDisplayBannerAds() {
         try {
-            val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.VISIBLE
+            if(InternetUtils.isInternetAvailable(this).not())return
+            binding.adViewContainer.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)!!
             adView = AdView(this)
             adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            adContainerView.addView(adView)
+            binding.adViewContainer.addView(adView)
             val actualAdRequest = AdRequest.Builder().build()
             adView?.setAdSize(adSize)
             adView?.loadAd(actualAdRequest)

@@ -30,6 +30,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivitySettingsBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.InternetUtils
 import com.simplebudget.helper.SHOW_PIN
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
@@ -101,6 +102,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
      * loadInterstitial
      */
     fun loadInterstitial() {
+        if (InternetUtils.isInternetAvailable(this).not()) return
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             this,
@@ -187,4 +189,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             }
         }
 
+    override fun onDestroy() {
+        mInterstitialAd = null
+        super.onDestroy()
+    }
 }

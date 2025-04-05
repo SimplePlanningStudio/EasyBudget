@@ -22,7 +22,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.android.billingclient.api.*
 import com.simplebudget.helper.Logger
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.view.main.MainActivity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -40,6 +39,11 @@ const val SKU_SUBSCRIPTION = "simple_budget_membership"
  * Cache storage of the IAB status
  */
 const val PREMIUM_PARAMETER_KEY = "premium"
+
+/**
+ * Cache storage of the IAB status premium type
+ */
+const val PREMIUM_TYPE_PARAMETER_KEY = "premium_type"
 
 
 class IabImpl(
@@ -82,10 +86,17 @@ class IabImpl(
      */
     private fun setIabStatusAndNotify(status: PremiumCheckStatus) {
         iabStatus = status
-
         // Save status only on success
         if (status == PremiumCheckStatus.LEGACY_PREMIUM || status == PremiumCheckStatus.SUBSCRIBED || status == PremiumCheckStatus.NOT_PREMIUM) {
             appPreferences.setUserPremium((iabStatus == PremiumCheckStatus.LEGACY_PREMIUM) || (iabStatus == PremiumCheckStatus.SUBSCRIBED))
+            // Premium type
+            appPreferences.setPremiumType(
+                when (iabStatus) {
+                    PremiumCheckStatus.LEGACY_PREMIUM -> PremiumType.PREMIUM.name
+                    PremiumCheckStatus.SUBSCRIBED -> PremiumType.SUBSCRIBED.name
+                    else -> ""
+                }
+            )
         }
 
         val intent = Intent(INTENT_IAB_STATUS_CHANGED)
@@ -125,6 +136,7 @@ class IabImpl(
                 PremiumCheckStatus.LEGACY_PREMIUM, PremiumCheckStatus.SUBSCRIBED -> PremiumPurchaseFlowResult.Error(
                     "You already bought Premium with that Google account. Restart the app if you don't have access to premium features."
                 )
+
                 else -> PremiumPurchaseFlowResult.Error("Runtime error: $iabStatus")
             }
         }
@@ -146,7 +158,7 @@ class IabImpl(
             return PremiumPurchaseFlowResult.Error("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")
         }
 
-        if (skuDetailsList == null || skuDetailsList.isEmpty()) {
+        if (skuDetailsList.isNullOrEmpty()) {
             return PremiumPurchaseFlowResult.Error("Unable to fetch content from PlayStore (response code: skuDetailsList is empty). Please restart the app and try again")
         }
 
@@ -166,8 +178,7 @@ class IabImpl(
     }
 
     override suspend fun launchPremiumPurchaseSubscriptionFlow(
-        activity: Activity,
-        productId: String
+        activity: Activity, productId: String
     ): PremiumPurchaseFlowResult {
         if (iabStatus != PremiumCheckStatus.NOT_PREMIUM) {
             return when (iabStatus) {
@@ -175,6 +186,7 @@ class IabImpl(
                 PremiumCheckStatus.LEGACY_PREMIUM, PremiumCheckStatus.SUBSCRIBED -> PremiumPurchaseFlowResult.Error(
                     "You already bought Premium with that Google account. Restart the app if you don't have access to premium features."
                 )
+
                 else -> PremiumPurchaseFlowResult.Error("Runtime error: $iabStatus")
             }
         }
@@ -196,7 +208,7 @@ class IabImpl(
             return PremiumPurchaseFlowResult.Error("Unable to connect to reach PlayStore (response code: " + billingResult.responseCode + "). Please restart the app and try again")
         }
 
-        if (skuDetailsList == null || skuDetailsList.isEmpty()) {
+        if (skuDetailsList.isNullOrEmpty()) {
             return PremiumPurchaseFlowResult.Error("Unable to fetch content from PlayStore (response code: skuDetailsList is empty). Please restart the app and try again")
         }
 
@@ -280,10 +292,8 @@ class IabImpl(
 
     private fun getDetailsFlow(productIds: List<String>, type: String): Flow<List<ProductDetails>> {
         val productList = productIds.map { productId ->
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(productId)
-                .setProductType(type)
-                .build()
+            QueryProductDetailsParams.Product.newBuilder().setProductId(productId)
+                .setProductType(type).build()
         }
 
         val params = QueryProductDetailsParams.newBuilder().setProductList(productList).build()
@@ -329,6 +339,7 @@ class IabImpl(
                     BillingClient.BillingResponseCode.USER_CANCELED -> pendingPurchaseEventMutableFlow.emit(
                         PremiumPurchaseFlowResult.Cancelled
                     )
+
                     else -> pendingPurchaseEventMutableFlow.emit(PremiumPurchaseFlowResult.Error("An error occurred (status code: " + billingResult.responseCode + ")"))
                 }
 
@@ -378,6 +389,14 @@ fun AppPreferences.isUserPremium(): Boolean {
     return getBoolean(PREMIUM_PARAMETER_KEY, false)
 }
 
+private fun AppPreferences.setPremiumType(premiumType: String) {
+    putString(PREMIUM_TYPE_PARAMETER_KEY, premiumType)
+}
+
+fun AppPreferences.getPremiumType(): String {
+    return getString(PREMIUM_TYPE_PARAMETER_KEY) ?: ""
+}
+
 private enum class PremiumCheckStatus {
     INITIALIZING,
 
@@ -390,4 +409,8 @@ private enum class PremiumCheckStatus {
     LEGACY_PREMIUM,
 
     SUBSCRIBED,
+}
+
+private enum class PremiumType {
+    PREMIUM, SUBSCRIBED,
 }

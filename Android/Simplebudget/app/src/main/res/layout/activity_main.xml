@@ -11,7 +11,8 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -27,8 +28,7 @@
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:theme="@style/ToolbarTheme"
-                    app:logo="@drawable/ic_logo_white" />
+                    android:theme="@style/ToolbarTheme" />
 
             </com.google.android.material.appbar.AppBarLayout>
 
@@ -677,6 +677,7 @@
         android:layout_gravity="start"
         android:layout_marginEnd="@dimen/_30sdp"
         android:background="@color/white"
+        android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/navigation_menu" />
 

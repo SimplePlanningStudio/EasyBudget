@@ -271,6 +271,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
      */
     private fun loadAndDisplayBannerAds() {
         try {
+            if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
             binding?.adViewContainer?.visibility = View.VISIBLE
             val adSize: AdSize = AdSizeUtils.getAdSize(
                 requireContext(),
@@ -315,6 +316,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
     override fun onDestroy() {
         adView?.destroy()
+        mInterstitialAd = null
         super.onDestroy()
     }
 
@@ -336,6 +338,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
      * Load Interstitial
      */
     private fun loadInterstitial() {
+        if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             requireActivity(),
@@ -573,4 +576,5 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
             }
         builder.create().show()*/
     }
+
 }
