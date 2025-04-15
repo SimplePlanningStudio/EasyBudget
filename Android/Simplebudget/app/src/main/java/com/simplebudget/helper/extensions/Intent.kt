@@ -18,10 +18,6 @@ package com.simplebudget.helper.extensions
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
-import com.simplebudget.R
 import com.simplebudget.helper.toast.ToastManager
 
 

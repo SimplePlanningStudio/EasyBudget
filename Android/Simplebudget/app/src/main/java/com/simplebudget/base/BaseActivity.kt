@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
@@ -74,6 +75,13 @@ abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
         if (appPreferences.getAppInstallationDate().isEmpty()) {
             appPreferences.saveAppInstallationDate(DateHelper.today.getFormattedDate(this))
         }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        val configuration = Configuration(newBase.resources.configuration)
+        configuration.fontScale = 1.0f  // 👈 Lock the font size regardless of device settings
+        val context = newBase.createConfigurationContext(configuration)
+        super.attachBaseContext(context)
     }
 
     /**

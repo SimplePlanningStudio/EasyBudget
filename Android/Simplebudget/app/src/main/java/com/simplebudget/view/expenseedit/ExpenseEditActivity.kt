@@ -25,27 +25,28 @@ import android.os.CountDownTimer
 import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
-import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityExpenseEditBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
-import com.simplebudget.helper.extensions.isNotNull
+import com.simplebudget.helper.extensions.beGone
 import com.simplebudget.helper.extensions.showCaseView
 import com.simplebudget.helper.extensions.toAccount
 import com.simplebudget.helper.extensions.toAccounts
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.Account
 import com.simplebudget.model.category.Category
 import com.simplebudget.model.category.ExpenseCategoryType
@@ -117,10 +118,18 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
 
         viewModel.premiumStatusLiveData.observe(this) { isPremium ->
             if (isPremium) {
-                val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-                adContainerView.visibility = View.INVISIBLE
+                binding.adViewContainer.beGone()
             } else {
-                loadAndDisplayBannerAds()
+                /**
+                 * Banner ads
+                 */
+                loadBanner(
+                    appPreferences.isUserPremium(),
+                    binding.adViewContainer,
+                    onBannerAdRequested = { bannerAdView ->
+                        this.adView = bannerAdView
+                    }
+                )
             }
         }
 
@@ -409,35 +418,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
         return java.lang.Double.parseDouble(binding.amountEdittext.text.toString())
     }
 
-    /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if(InternetUtils.isInternetAvailable(this).not())return
-            val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
-            adView = AdView(this)
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            adContainerView.addView(adView)
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
-    }
-
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         super.onResume()
     }
 
@@ -445,7 +427,7 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -453,7 +435,8 @@ class ExpenseEditActivity : BaseActivity<ActivityExpenseEditBinding>() {
      *
      */
     override fun onDestroy() {
-        adView?.destroy()
+        destroyBanner(adView)
+        adView = null
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }

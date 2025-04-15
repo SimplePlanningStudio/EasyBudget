@@ -32,6 +32,7 @@ import com.simplebudget.prefs.activeAccount
 import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.prefs.setActiveAccount
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
+import com.simplebudget.view.budgets.ManageBudgetBottomSheet
 import com.simplebudget.view.search.SearchFragment
 import org.koin.android.ext.android.inject
 
@@ -70,53 +71,57 @@ class SearchBaseActivity : BaseActivity<ActivitySearchExpensesBinding>() {
             appPreferences.activeAccountLabel().appendAccount()
         )
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
-            val accountsBottomSheetDialogFragment =
-                AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
-                    binding.layoutSelectAccount.tvSelectedAccount.text =
-                        selectedAccount.name.appendAccount()
-                    binding.tvSearchingAccount.text =
-                        getString(
-                            R.string.you_are_searching_in,
-                            selectedAccount.name.appendAccount()
-                        )
-                    binding.monthlyReportProgressBar.visibility = View.VISIBLE
-                    // 2 Seconds delay and re-load will do the trick :)
-                    object : CountDownTimer(2000, 2000) {
-
-                        override fun onTick(millisUntilFinished: Long) {
-                        }
-
-                        override fun onFinish() {
-                            binding.monthlyReportProgressBar.visibility = View.GONE
-                            ActivityCompat.startActivity(
-                                this@SearchBaseActivity,
-                                Intent(this@SearchBaseActivity, SearchBaseActivity::class.java),
-                                null
-                            )
-                            finish()
-                        }
-                    }.start()
-                    //Log event
-                    analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
-                }, onAccountUpdated = { updatedAccount ->
-                    //Account id is same as active account id and now account name is edited we need to update label.
-                    if (appPreferences.activeAccount() == updatedAccount.id) {
+            val existingFragment =
+                supportFragmentManager.findFragmentByTag(AccountsBottomSheetDialogFragment.TAG) as? AccountsBottomSheetDialogFragment
+            if (existingFragment == null || existingFragment.isAdded.not()) {
+                val accountsBottomSheetDialogFragment =
+                    AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
                         binding.layoutSelectAccount.tvSelectedAccount.text =
-                            updatedAccount.name.appendAccount()
-                        appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
+                            selectedAccount.name.appendAccount()
                         binding.tvSearchingAccount.text =
                             getString(
                                 R.string.you_are_searching_in,
-                                updatedAccount.name.appendAccount()
+                                selectedAccount.name.appendAccount()
                             )
-                        editAccountNotifyBroadcast()
-                    }
-                    //Log event
-                    analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
-                })
-            accountsBottomSheetDialogFragment.show(
-                supportFragmentManager, accountsBottomSheetDialogFragment.tag
-            )
+                        binding.monthlyReportProgressBar.visibility = View.VISIBLE
+                        // 2 Seconds delay and re-load will do the trick :)
+                        object : CountDownTimer(2000, 2000) {
+
+                            override fun onTick(millisUntilFinished: Long) {
+                            }
+
+                            override fun onFinish() {
+                                binding.monthlyReportProgressBar.visibility = View.GONE
+                                ActivityCompat.startActivity(
+                                    this@SearchBaseActivity,
+                                    Intent(this@SearchBaseActivity, SearchBaseActivity::class.java),
+                                    null
+                                )
+                                finish()
+                            }
+                        }.start()
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
+                    }, onAccountUpdated = { updatedAccount ->
+                        //Account id is same as active account id and now account name is edited we need to update label.
+                        if (appPreferences.activeAccount() == updatedAccount.id) {
+                            binding.layoutSelectAccount.tvSelectedAccount.text =
+                                updatedAccount.name.appendAccount()
+                            appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
+                            binding.tvSearchingAccount.text =
+                                getString(
+                                    R.string.you_are_searching_in,
+                                    updatedAccount.name.appendAccount()
+                                )
+                            editAccountNotifyBroadcast()
+                        }
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
+                    })
+                accountsBottomSheetDialogFragment.show(
+                    supportFragmentManager, AccountsBottomSheetDialogFragment.TAG
+                )
+            }
         }
     }
 }

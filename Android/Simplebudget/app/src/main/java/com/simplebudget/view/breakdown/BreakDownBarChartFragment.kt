@@ -22,22 +22,19 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentBarchartBreakDownBinding
-import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.CurrencyHelper
-import com.simplebudget.helper.InternetUtils
-import com.simplebudget.helper.Logger
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
-import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.view.breakdown.base.BreakDownBaseActivity
 import com.simplebudget.view.expenseedit.ExpenseEditActivity
 import com.simplebudget.view.main.MainActivity
 import com.simplebudget.view.recurringexpenseadd.RecurringExpenseEditActivity
@@ -57,9 +54,8 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
     private val appPreferences: AppPreferences by inject()
     private val analyticsManager: AnalyticsManager by inject()
     private val viewModel: BreakDownViewModel by viewModel()
-    private var adView: AdView? = null
     private val lisOfExpenses: ArrayList<BreakDownViewModel.CategoryWiseExpense> = ArrayList()
-
+    private var adView: AdView? = null
 // ---------------------------------->
 
     override fun onCreateBinding(
@@ -148,10 +144,14 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
         /**
          * Banner ads
          */
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
-            binding?.adViewContainer?.visibility = View.GONE
-        } else {
-            loadAndDisplayBannerAds()
+        binding?.adViewContainer?.let {
+            loadBanner(
+                appPreferences.isUserPremium(),
+                binding?.adViewContainer!!,
+                onBannerAdRequested = { bannerAdView ->
+                    this.adView = bannerAdView
+                }
+            )
         }
 
         /**
@@ -230,38 +230,10 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
     }
 
     /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
-            binding?.adViewContainer?.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(
-                requireContext(), requireActivity().windowManager.defaultDisplay
-            )
-            adView = AdView(requireContext())
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            binding?.adViewContainer?.addView(adView)
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
-    }
-
-    /**
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -269,13 +241,14 @@ class BreakDownBarChartFragment : BaseFragment<FragmentBarchartBreakDownBinding>
      * Called when opening the activity
      */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         super.onResume()
     }
 
-    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
-    override fun onDestroy() {
-        adView?.destroy()
-        super.onDestroy()
+    override fun onDestroyView() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroyView()
     }
+
 }

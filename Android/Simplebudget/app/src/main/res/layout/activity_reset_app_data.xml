@@ -102,4 +102,12 @@
         android:indeterminate="true"
         android:visibility="gone" />
 
+
+    <FrameLayout
+        android:id="@+id/ad_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
 </RelativeLayout>

@@ -24,25 +24,21 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
 import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentBudgetBinding
 import com.simplebudget.helper.ARG_DATE
-import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.DateHelper
 import com.simplebudget.helper.DialogUtil
 import com.simplebudget.helper.FREE_BUDGETS_LIMIT
-import com.simplebudget.helper.InternetUtils
-import com.simplebudget.helper.Logger
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
-import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.budget.Budget
 import com.simplebudget.prefs.AppPreferences
@@ -63,13 +59,12 @@ class BudgetFragment : BaseFragment<FragmentBudgetBinding>() {
      * The first date of the month at 00:00:00
      */
     private var date: LocalDate? = null
-
     private val appPreferences: AppPreferences by inject()
     private val viewModel: BudgetViewModel by viewModel()
     private val analyticsManager: AnalyticsManager by inject()
-    private var adView: AdView? = null
     private var budgetsAdapter: BudgetsAdapter? = null
     private var budgets: ArrayList<Budget> = ArrayList<Budget>()
+    private var adView: AdView? = null
 // ---------------------------------->
 
     override fun onCreateBinding(
@@ -113,10 +108,14 @@ class BudgetFragment : BaseFragment<FragmentBudgetBinding>() {
         /**
          * Banner ads
          */
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
-            binding?.adViewContainer?.visibility = View.GONE
-        } else {
-            loadAndDisplayBannerAds()
+        binding?.adViewContainer?.let {
+            loadBanner(
+                appPreferences.isUserPremium(),
+                binding?.adViewContainer!!,
+                onBannerAdRequested = { bannerAdView ->
+                    this.adView = bannerAdView
+                }
+            )
         }
     }
 
@@ -152,54 +151,52 @@ class BudgetFragment : BaseFragment<FragmentBudgetBinding>() {
         binding?.emptyViews?.visibility = View.GONE
     }
 
+
     /**
-     * Show dialog with options Edit, Delete
+     * Show bottom sheet dialog with options Edit, Delete
      */
     private fun handleItemClick(budget: Budget, position: Int) {
-        val options = arrayOf("Transactions", "Edit", "Delete")
-        MaterialAlertDialogBuilder(requireContext()).setTitle(
-            String.format(
-                "%s", "Manage budget"
-            )
-        ).setItems(options) { dialog, which ->
-            when (options[which]) {
-                "Transactions" -> {
-                    startActivity(
-                        Intent(
-                            requireActivity(), BudgetDetailsActivity::class.java
-                        ).putExtra(REQUEST_CODE_BUDGET, budget)
-                    )
-                }
+        try {
+            val existingFragment =
+                parentFragmentManager.findFragmentByTag(ManageBudgetBottomSheet.TAG) as? ManageBudgetBottomSheet
+            if (existingFragment == null || existingFragment.isAdded.not()) {
 
-                "Edit" -> {
-                    editBudget(budget)
-                }
+                ManageBudgetBottomSheet(budget) { action ->
+                    when (action) {
+                        ManageBudgetBottomSheet.Action.TRANSACTIONS -> {
+                            startActivity(
+                                Intent(requireActivity(), BudgetDetailsActivity::class.java)
+                                    .putExtra(REQUEST_CODE_BUDGET, budget)
+                            )
+                        }
 
-                "Delete" -> {
-                    DialogUtil.createDialog(
-                        requireContext(),
-                        title = getString(R.string.delete_budget),
-                        message = getString(R.string.proceed_with_deletion),
-                        positiveBtn = getString(R.string.ok),
-                        negativeBtn = getString(R.string.cancel),
-                        isCancelable = true,
-                        positiveClickListener = {
-                            date?.let {
-                                budgetsAdapter?.delete(position)
-                                viewModel.deleteBudget(budget)
-                                viewModel.loadBudgets(it)
-                            }
-                        },
-                        negativeClickListener = {}).show()
-                }
+                        ManageBudgetBottomSheet.Action.EDIT -> {
+                            editBudget(budget)
+                        }
 
-                else -> {}
-
+                        ManageBudgetBottomSheet.Action.DELETE -> {
+                            DialogUtil.createDialog(
+                                requireContext(),
+                                title = getString(R.string.delete_budget),
+                                message = getString(R.string.proceed_with_deletion),
+                                positiveBtn = getString(R.string.ok),
+                                negativeBtn = getString(R.string.cancel),
+                                isCancelable = true,
+                                positiveClickListener = {
+                                    date?.let {
+                                        budgetsAdapter?.delete(position)
+                                        viewModel.deleteBudget(budget)
+                                        viewModel.loadBudgets(it)
+                                    }
+                                },
+                                negativeClickListener = {}
+                            )?.show()
+                        }
+                    }
+                }.show(parentFragmentManager, ManageBudgetBottomSheet.TAG)
             }
-            dialog.dismiss()
-        }.setPositiveButton(getString(R.string.cancel)) { dialog, _ ->
-            dialog.dismiss()
-        }.setCancelable(false).show()
+        } catch (_: Exception) {
+        }
     }
 
     /**
@@ -239,7 +236,7 @@ class BudgetFragment : BaseFragment<FragmentBudgetBinding>() {
                         )
                     )
                 },
-                negativeClickListener = {}).show()
+                negativeClickListener = {})?.show()
         } else {
             addBudgetActivityLauncher.launch(
                 Intent(
@@ -272,39 +269,10 @@ class BudgetFragment : BaseFragment<FragmentBudgetBinding>() {
     }
 
     /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if(InternetUtils.isInternetAvailable(requireActivity()).not())return
-            binding?.adViewContainer?.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(
-                requireContext(), requireActivity().windowManager.defaultDisplay
-            )
-            adView = AdView(requireContext())
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            binding?.adViewContainer?.addView(adView)
-
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
-    }
-
-    /**
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -312,16 +280,19 @@ class BudgetFragment : BaseFragment<FragmentBudgetBinding>() {
      * Called when opening the activity
      */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         date?.let {
             viewModel.loadBudgets(it)
         }
         super.onResume()
     }
 
-    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
-    override fun onDestroy() {
-        adView?.destroy()
-        super.onDestroy()
+    /**
+     * Destroy banner
+     */
+    override fun onDestroyView() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroyView()
     }
 }

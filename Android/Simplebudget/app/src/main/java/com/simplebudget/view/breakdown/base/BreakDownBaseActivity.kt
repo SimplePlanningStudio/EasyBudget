@@ -37,6 +37,7 @@ import com.simplebudget.prefs.*
 import com.simplebudget.view.accounts.AccountsBottomSheetDialogFragment
 import com.simplebudget.view.breakdown.BreakDownBarChartFragment
 import com.simplebudget.view.breakdown.BreakDownPieChartFragment
+import com.simplebudget.view.budgets.ManageBudgetBottomSheet
 import com.simplebudget.view.main.MainActivity
 import com.simplebudget.view.premium.PremiumSuccessActivity
 import org.koin.android.ext.android.inject
@@ -105,28 +106,33 @@ class BreakDownBaseActivity : BaseActivity<ActivityBreakdownExpensesBinding>(),
         binding.layoutSelectAccount.tvSelectedAccount.text =
             String.format("%s", appPreferences.activeAccountLabel().appendAccount())
         binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
-            val accountsBottomSheetDialogFragment =
-                AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
-                    binding.layoutSelectAccount.tvSelectedAccount.text =
-                        selectedAccount.name.appendAccount()
-                    updateAccountNotifyBroadcast()
-                    viewModel.loadData()
-                    //Log event
-                    analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
-                }, onAccountUpdated = { updatedAccount ->
-                    //Account id is same as active account id and now account name is edited we need to update label.
-                    if (appPreferences.activeAccount() == updatedAccount.id) {
+
+            val existingFragment =
+                supportFragmentManager.findFragmentByTag(AccountsBottomSheetDialogFragment.TAG) as? AccountsBottomSheetDialogFragment
+            if (existingFragment == null || existingFragment.isAdded.not()) {
+                val accountsBottomSheetDialogFragment =
+                    AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
                         binding.layoutSelectAccount.tvSelectedAccount.text =
-                            updatedAccount.name.appendAccount()
-                        appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
-                        editAccountNotifyBroadcast()
-                    }
-                    //Log event
-                    analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
-                })
-            accountsBottomSheetDialogFragment.show(
-                supportFragmentManager, accountsBottomSheetDialogFragment.tag
-            )
+                            selectedAccount.name.appendAccount()
+                        updateAccountNotifyBroadcast()
+                        viewModel.loadData()
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
+                    }, onAccountUpdated = { updatedAccount ->
+                        //Account id is same as active account id and now account name is edited we need to update label.
+                        if (appPreferences.activeAccount() == updatedAccount.id) {
+                            binding.layoutSelectAccount.tvSelectedAccount.text =
+                                updatedAccount.name.appendAccount()
+                            appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
+                            editAccountNotifyBroadcast()
+                        }
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
+                    })
+                accountsBottomSheetDialogFragment.show(
+                    supportFragmentManager, AccountsBottomSheetDialogFragment.TAG
+                )
+            }
         }
 
         // Handle back press

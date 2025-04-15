@@ -18,6 +18,7 @@ package com.simplebudget.prefs
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 /**
  * Name of the shared preferences file
@@ -61,7 +62,7 @@ class AppPreferences(context: Context) {
      * @param value
      */
     fun putLong(key: String, value: Long) {
-        preferences.edit().putLong(key, value).apply()
+        preferences.edit { putLong(key, value) }
     }
 
     /**
@@ -71,7 +72,7 @@ class AppPreferences(context: Context) {
      * @param value
      */
     fun putString(key: String, value: String) {
-        preferences.edit().putString(key, value).apply()
+        preferences.edit { putString(key, value) }
     }
 
     /**
@@ -139,6 +140,6 @@ class AppPreferences(context: Context) {
      * Clear All Preferences Data
      */
     suspend fun clearAllPreferencesData() {
-        preferences.edit().clear().apply()
+        preferences.edit { clear() }
     }
 }

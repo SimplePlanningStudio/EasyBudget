@@ -87,7 +87,7 @@ val viewModelModule = module {
     /**
      * Backup view model
      */
-    viewModel { BackupSettingsViewModel(get(),get(), get(), get()) }
+    viewModel { BackupSettingsViewModel(get(), get(), get(), get()) }
 
     /**
      * Reset app data view model
@@ -106,7 +106,7 @@ val viewModelModule = module {
     /**
      *  Budget base view model
      */
-    viewModel { BudgetBaseViewModel(get(), get()) }
+    viewModel { BudgetBaseViewModel(get()) }
     /**
      *  Budget view model
      */

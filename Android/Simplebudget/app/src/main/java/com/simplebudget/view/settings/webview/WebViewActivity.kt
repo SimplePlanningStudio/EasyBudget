@@ -19,13 +19,10 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.webkit.JavascriptInterface
-import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings.LOAD_NO_CACHE
 import android.webkit.WebView
@@ -36,7 +33,6 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityWebViewBinding
 import com.simplebudget.helper.DialogUtil
-import com.simplebudget.helper.Logger
 import com.simplebudget.helper.Rate
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
@@ -82,8 +78,12 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
 
 
 
-        binding.webView.settings.javaScriptEnabled = true
-        binding.webView.settings.cacheMode = LOAD_NO_CACHE
+        binding.webView.settings.apply {
+            javaScriptEnabled = true
+            cacheMode = LOAD_NO_CACHE
+            // This will make sure text size stays consistent regardless of system font scale
+            textZoom = 100
+        }
 
         // I'll handle javascript click in case I'm on reviews page
         if ((intent.getStringExtra(REQUEST_URL)
@@ -118,17 +118,20 @@ class WebViewActivity : BaseActivity<ActivityWebViewBinding>() {
                 view: WebView?, errorCode: Int, description: String?, failingUrl: String?,
             ) {
                 binding.progress.visibility = View.GONE
-                DialogUtil.createDialog(
-                    this@WebViewActivity,
-                    title = "Error",
-                    message = description ?: "Something went wrong, please try again. Thank you",
-                    positiveBtn = getString(R.string.ok),
-                    negativeBtn = "",
-                    isCancelable = true,
-                    positiveClickListener = {
-                        finish()
-                    },
-                    negativeClickListener = {}).show()
+                if (this@WebViewActivity.isFinishing.not() && this@WebViewActivity.isDestroyed.not()) {
+                    DialogUtil.createDialog(
+                        this@WebViewActivity,
+                        title = "Error",
+                        message = description
+                            ?: "Something went wrong, please try again. Thank you",
+                        positiveBtn = getString(R.string.ok),
+                        negativeBtn = "",
+                        isCancelable = true,
+                        positiveClickListener = {
+                            finish()
+                        },
+                        negativeClickListener = {})?.show()
+                }
             }
 
             override fun shouldOverrideUrlLoading(

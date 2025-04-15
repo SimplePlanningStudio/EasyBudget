@@ -18,8 +18,6 @@ package com.simplebudget.view.search
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
-import android.graphics.Color
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -53,12 +51,9 @@ import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
-import com.simplebudget.model.account.appendAccount
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.activeAccountLabel
 import com.simplebudget.view.report.DataModels
-import com.simplebudget.view.report.MonthlyReportFragment
 import com.simplebudget.view.report.PDFReportActivity
 import com.simplebudget.view.report.adapter.MainAdapter
 import org.koin.android.ext.android.inject
@@ -69,6 +64,11 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import androidx.core.graphics.toColorInt
 import androidx.core.net.toUri
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
+import com.simplebudget.iab.isUserPremium
 
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
@@ -78,7 +78,6 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private val viewModel: SearchViewModel by viewModel()
     private val toastManager: ToastManager by inject()
     private val analyticsManager: AnalyticsManager by inject()
-    private var adView: AdView? = null
     private val dayFormatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.getDefault())
 
     private var mInterstitialAd: InterstitialAd? = null
@@ -87,6 +86,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private val storagePermissions = arrayOf(
         WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
     )
+    private var adView: AdView? = null
 // ---------------------------------->
 
     override fun onCreateBinding(
@@ -192,10 +192,14 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         /**
          * Banner ads
          */
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
-            binding?.adViewContainer?.visibility = View.GONE
-        } else {
-            loadAndDisplayBannerAds()
+        binding?.adViewContainer?.let {
+            loadBanner(
+                appPreferences.isUserPremium(),
+                binding?.adViewContainer!!,
+                onBannerAdRequested = { bannerAdView ->
+                    this.adView = bannerAdView
+                }
+            )
         }
 
         /**
@@ -305,7 +309,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                 positiveBtn = getString(R.string.noted),
                 positiveClickListener = {},
                 negativeBtn = "",
-                negativeClickListener = {}).show()
+                negativeClickListener = {})?.show()
         }
     }
 
@@ -368,7 +372,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -376,15 +380,17 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      * Called when opening the activity
      */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         super.onResume()
     }
 
-    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
-    override fun onDestroy() {
-        adView?.destroy()
-        mInterstitialAd = null
-        super.onDestroy()
+    /**
+     * Destroyed banner
+     */
+    override fun onDestroyView() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroyView()
     }
 
     /**
@@ -785,33 +791,5 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      */
     companion object {
         fun newInstance(): SearchFragment = SearchFragment()
-    }
-
-    /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if (InternetUtils.isInternetAvailable(requireActivity()).not()) return
-            binding?.adViewContainer?.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(
-                requireContext(), requireActivity().windowManager.defaultDisplay
-            )!!
-            adView = AdView(requireContext())
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            binding?.adViewContainer?.addView(adView)
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
     }
 }

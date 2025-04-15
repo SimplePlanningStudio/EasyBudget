@@ -46,7 +46,7 @@ suspend fun backupDB(
     db: DB,
     cloudStorage: CloudStorage,
     auth: Auth,
-    appPreferences: AppPreferences
+    appPreferences: AppPreferences,
 ): ListenableWorker.Result {
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
     if (currentUser == null) {
@@ -125,7 +125,7 @@ suspend fun backupDB(
 
 suspend fun getBackupDBMetaData(
     cloudStorage: CloudStorage,
-    auth: Auth
+    auth: Auth,
 ): FileMetaData? {
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
         ?: throw IllegalStateException("Not authenticated")
@@ -137,7 +137,7 @@ suspend fun restoreLatestDBBackup(
     context: Context,
     auth: Auth,
     cloudStorage: CloudStorage,
-    appPreferences: AppPreferences
+    appPreferences: AppPreferences,
 ) {
 
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
@@ -175,7 +175,7 @@ suspend fun restoreLatestDBBackup(
 
 suspend fun deleteBackup(
     auth: Auth,
-    cloudStorage: CloudStorage
+    cloudStorage: CloudStorage,
 ): Boolean {
     val currentUser = (auth.state.value as? AuthState.Authenticated)?.currentUser
         ?: throw IllegalStateException("Not authenticated")
@@ -208,25 +208,37 @@ private fun getRemoteBackupPath(userId: String): String {
     return "user/$userId/backup.zip"
 }
 
+
+/**
+ * Backup scheduling changed to as per below:
+ * First run: after 1 day
+ * Then: every 2 days
+ * Only when device is charging and connected to internet
+ * Retries on failure using exponential backoff
+ * BackoffPolicy
+ * EXPONENTIAL: retry delay doubles each time (5 min → 10 min → 20 min → 40 min …)
+ * LINEAR: retry delay increases linearly (5 min → 10 min → 15 min → 20 min …)
+ * backoffDelay:
+ * Minimum delay between retries (e.g., 5 minutes)
+ */
 fun scheduleBackup(context: Context) {
-    unscheduleBackup(context)
+    unScheduleBackup(context)
 
     val constraints = Constraints.Builder()
         .setRequiresCharging(true)
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
 
-    val backupRequest = PeriodicWorkRequestBuilder<BackupJob>(7, TimeUnit.DAYS)
+    val backupRequest = PeriodicWorkRequestBuilder<BackupJob>(2, TimeUnit.DAYS)
         .setConstraints(constraints)
         .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 5, TimeUnit.MINUTES)
         .setInitialDelay(1, TimeUnit.DAYS)
         .addTag(BACKUP_JOB_REQUEST_TAG)
         .build()
-
     WorkManager.getInstance(context).enqueue(backupRequest)
 }
 
-fun unscheduleBackup(context: Context) {
+fun unScheduleBackup(context: Context) {
     WorkManager.getInstance(context).cancelAllWorkByTag(BACKUP_JOB_REQUEST_TAG)
 }
 

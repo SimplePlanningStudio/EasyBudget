@@ -30,6 +30,7 @@ import javax.inject.Inject
 
 class DatePickerDialogFragment(
     private val originalDate: LocalDate,
+    private val minDateOverride: LocalDate? = null,
     private val listener: DatePickerDialog.OnDateSetListener,
 ) : DialogFragment() {
 
@@ -44,10 +45,11 @@ class DatePickerDialogFragment(
             originalDate.monthValue - 1,
             originalDate.dayOfMonth
         )
+        val minDate = minDateOverride
+            ?: appPreferences.getInitDate()
+            ?: LocalDate.now()
 
-        dialog.datePicker.minDate =
-            (appPreferences.getInitDate() ?: LocalDate.now()).computeCalendarMinDateFromInitDate()
-                .toStartOfDayDate().time
+        dialog.datePicker.minDate = minDate.toStartOfDayDate().time
         return dialog
     }
 }

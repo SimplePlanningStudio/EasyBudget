@@ -27,11 +27,21 @@ import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
 import org.koin.android.ext.android.inject
 import androidx.core.net.toUri
+import com.google.android.gms.ads.AdView
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
+import com.simplebudget.iab.isUserPremium
+import com.simplebudget.prefs.AppPreferences
 
 class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
     MoreAppsFragment.OnListFragmentInteractionListener {
 
     private val analyticsManager: AnalyticsManager by inject()
+    private val appPreferences: AppPreferences by inject()
+    private var adView: AdView? = null
+
 
     override fun createBinding(): ActivityMoreAppsBinding {
         return ActivityMoreAppsBinding.inflate(layoutInflater)
@@ -61,6 +71,16 @@ class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
                 handleBackPressed()
             }
         })
+        /**
+         * Banner ads
+         */
+        loadBanner(
+            appPreferences.isUserPremium(),
+            binding.adViewContainer,
+            onBannerAdRequested = { bannerAdView ->
+                this.adView = bannerAdView
+            }
+        )
     }
 
     /**
@@ -109,5 +129,30 @@ class MoreAppsActivity : BaseActivity<ActivityMoreAppsBinding>(),
                 )
             )
         }
+    }
+
+    /**
+     * Leaving the activity
+     */
+    override fun onPause() {
+        pauseBanner(adView)
+        super.onPause()
+    }
+
+    /**
+     * Opening the activity
+     */
+    override fun onResume() {
+        resumeBanner(adView)
+        super.onResume()
+    }
+
+    /**
+     * Destroying the activity
+     */
+    override fun onDestroy() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroy()
     }
 }

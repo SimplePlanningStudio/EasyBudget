@@ -2,8 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="@dimen/_58sdp"
-    android:layout_marginTop="4dp"
-    android:layout_marginBottom="4dp"
+    android:layout_marginVertical="4dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
@@ -14,15 +13,14 @@
         android:layout_height="match_parent"
         android:background="@drawable/ic_item_background"
         android:orientation="horizontal"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp">
+        android:paddingHorizontal="@dimen/_6sdp">
 
         <ImageView
             android:id="@+id/positive_indicator"
             android:layout_width="@dimen/_20sdp"
             android:layout_height="@dimen/_20sdp"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="5dp"
+            android:layout_marginLeft="2dp"
             android:contentDescription="@string/content_description"
             android:padding="4dp" />
 
@@ -30,8 +28,8 @@
             android:layout_width="0dip"
             android:layout_height="match_parent"
             android:layout_marginVertical="@dimen/_2sdp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="15dp"
+            android:layout_marginLeft="@dimen/_8sdp"
+            android:layout_marginRight="@dimen/_2sdp"
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="vertical">
@@ -43,7 +41,8 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:minLines="1"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textSize="@dimen/_11ssp" />
 
             <TextView
                 android:id="@+id/category_type"
@@ -60,6 +59,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:minLines="1"
+                android:textSize="@dimen/_12ssp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -83,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="1dp"
                 android:textColor="@color/caldroid_lighter_gray"
-                android:textSize="9sp" />
+                android:textSize="@dimen/_8ssp" />
 
         </LinearLayout>
 

@@ -87,7 +87,7 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_56sdp"
+                    android:layout_height="@dimen/_54sdp"
                     android:background="@color/white"
                     android:gravity="center">
 
@@ -112,7 +112,9 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textColor="@color/budget_green"
-                                android:textSize="@dimen/_12ssp"
+                                android:textSize="@dimen/_11ssp"
+                                android:maxLines="1"
+                                android:maxLength="30"
                                 tools:ignore="RelativeOverlap" />
 
                             <TextView
@@ -121,7 +123,10 @@
                                 android:layout_height="wrap_content"
                                 android:textColor="@color/colorBlack"
                                 android:textSize="@dimen/_10ssp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:maxLength="24"
+                                android:ellipsize="end"
+                                android:maxLines="1" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -162,7 +167,9 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:textColor="@color/budget_red"
-                                android:textSize="@dimen/_12ssp"
+                                android:textSize="@dimen/_11ssp"
+                                android:maxLength="30"
+                                android:maxLines="1"
                                 tools:ignore="RelativeOverlap" />
 
                             <TextView
@@ -171,7 +178,10 @@
                                 android:layout_height="wrap_content"
                                 android:textColor="@color/colorBlack"
                                 android:textSize="@dimen/_10ssp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:maxLength="24"
+                                android:ellipsize="end"
+                                android:maxLines="1" />
                         </LinearLayout>
 
                     </LinearLayout>

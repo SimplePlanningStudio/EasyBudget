@@ -21,15 +21,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.Configuration
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.WindowManager
-import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -39,24 +35,25 @@ import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityManageCategoriesBinding
 import com.simplebudget.helper.*
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
+import com.simplebudget.helper.extensions.beGone
 import com.simplebudget.helper.extensions.toCategories
 import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.iab.INTENT_IAB_STATUS_CHANGED
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.category.Category
-import com.simplebudget.model.category.ExpenseCategories
 import com.simplebudget.prefs.*
-import com.simplebudget.view.premium.PremiumActivity
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -115,10 +112,18 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
 
         viewModelCategory.premiumStatusLiveData.observe(this) { isPremium ->
             if (isPremium) {
-                val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-                adContainerView.visibility = View.INVISIBLE
+                binding.adViewContainer.beGone()
             } else {
-                loadAndDisplayBannerAds()
+                /**
+                 * Banner ads
+                 */
+                loadBanner(
+                    appPreferences.isUserPremium(),
+                    binding.adViewContainer,
+                    onBannerAdRequested = { bannerAdView ->
+                        this.adView = bannerAdView
+                    }
+                )
             }
         }
 
@@ -384,7 +389,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
                 negativeBtn = "",
                 isCancelable = true,
                 positiveClickListener = {},
-                negativeClickListener = {}).show()
+                negativeClickListener = {})?.show()
             return
         }
         val options = arrayOf(
@@ -474,35 +479,8 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
         finish()
     }
 
-    /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if(InternetUtils.isInternetAvailable(this).not())return
-            val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
-            adView = AdView(this)
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            adContainerView.addView(adView)
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
-    }
-
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         super.onResume()
     }
 
@@ -510,7 +488,7 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -518,6 +496,8 @@ class ManageCategoriesActivity : BaseActivity<ActivityManageCategoriesBinding>()
      *
      */
     override fun onDestroy() {
+        destroyBanner(adView)
+        adView = null
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }

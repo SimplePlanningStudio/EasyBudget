@@ -19,7 +19,7 @@ import android.os.Parcel
 import android.os.Parcelable
 
 data class Category(
-    val id: Long?, val name: String
+    val id: Long?, var name: String = ExpenseCategoryType.MISCELLANEOUS.name,
 ) : Parcelable {
 
     constructor(
@@ -30,12 +30,6 @@ data class Category(
         parcel.readValue(Long::class.java.classLoader) as? Long,
         parcel.readString() ?: ""
     )
-
-    init {
-        if (name.isEmpty()) {
-            throw IllegalArgumentException("Category name is empty")
-        }
-    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeValue(id)

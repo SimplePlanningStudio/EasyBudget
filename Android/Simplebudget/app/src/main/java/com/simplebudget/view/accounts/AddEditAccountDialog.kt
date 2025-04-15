@@ -53,7 +53,7 @@ object AddEditAccountDialog {
                     startActivity(context, intent, null)
                     dismissAccountBottomSheet.invoke()
                 },
-                negativeClickListener = {}).show()
+                negativeClickListener = {})?.show()
             return
         }
 

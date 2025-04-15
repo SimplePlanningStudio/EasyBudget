@@ -47,6 +47,8 @@ const val ARG_BUDGET_DETAILS = "budget_details"
 
 //Notifications key
 const val KEY_MONTHLY = "monthly"
+const val KEY_HOW_TO = "how_to"
+const val KEY_PREMIUM = "premium"
 const val KEY_BUDGET = "budget"
 const val KEY_BUDGET_INTRO = "budget_intro"
 

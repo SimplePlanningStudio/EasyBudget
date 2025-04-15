@@ -60,6 +60,10 @@ class AccountsBottomSheetDialogFragment(
 
     private var nativeAd: NativeAd? = null
 
+    companion object {
+        const val TAG = "AccountsBottomSheetDialogFragment"
+    }
+
     override fun onCreateBinding(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): AccountsBottomSheetDialogFragmentBinding =
@@ -296,13 +300,13 @@ class AccountsBottomSheetDialogFragment(
      */
     private fun loadNativeAd() {
         try {
-            val builder = AdLoader.Builder(requireContext(), getString(R.string.native_ad_unit_id))
+            val builder = AdLoader.Builder(requireActivity(), getString(R.string.native_ad_unit_id))
             builder.forNativeAd { nativeAd ->
                 populateNativeAdView(nativeAd)
             }
             val adLoader = builder.withAdListener(object : AdListener() {
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    Logger.error("NativeAd", "Failed to load: ${loadAdError.message}")
+                    Logger.warning("NativeAd", "Failed to load: ${loadAdError.message}")
                     nativeAd = null
                 }
             }).build()
@@ -317,9 +321,9 @@ class AccountsBottomSheetDialogFragment(
      */
     private fun populateNativeAdView(nativeAd: NativeAd) {
         try {
-            val styles = NativeTemplateStyle.Builder().withMainBackgroundColor(
-                resources.getColor(R.color.white).toDrawable()
-            ).build()
+            val styles = NativeTemplateStyle.Builder()
+                .withMainBackgroundColor(requireActivity().getColor(R.color.white).toDrawable())
+                .build()
             binding?.nativeAdTemplate?.setStyles(styles)
             binding?.nativeAdTemplate?.setNativeAd(nativeAd)
             this.nativeAd = nativeAd
@@ -331,10 +335,9 @@ class AccountsBottomSheetDialogFragment(
     /**
      * Destroy native ads
      */
-    override fun onDestroy() {
+    override fun onDestroyView() {
         this.nativeAd?.destroy()
         this.nativeAd = null
-        super.onDestroy()
+        super.onDestroyView()
     }
-
 }

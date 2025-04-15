@@ -398,6 +398,7 @@
     <string name="setting_privacy_policy_key" translatable="false">privacy_policy</string>
     <string name="setting_privacy_policy_title" translatable="false">Privacy Policy</string>
     <string name="setting_privacy_policy_summary" translatable="false">SimpleBudget takes your privacy seriously, Click here for more details.</string>
+    <string name="simple_budget_privacy_policy" translatable="false">Simple Budget Privacy Policy</string>
 
 
     <string name="setting_more_apps_key" translatable="false">more_apps</string>
@@ -522,7 +523,7 @@
     <string name="save">Save</string>
     <string name="todayWithColon">Today:</string>
     <string name="today_expense">Today\'s\nExpense</string>
-    <string name="privacy_policy">https://simplebudget.online/policysimplebudget/</string>
+    <string name="privacy_policy_url">https://simplebudget.online/policysimplebudget/</string>
     <string name="enter_category">Enter category</string>
     <string name="content_description">Simple Budget Content Description</string>
     <string name="search_hint">Search Expenses</string>
@@ -753,4 +754,8 @@
     <string name="install">Install</string>
     <string name="check_how_to_use_features">Check \'How to?\' use features</string>
     <string name="no_internet_connection">Opps! No internet connection</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="view_transactions">View Transactions</string>
+    <string name="budget_name">Budget: %1$s</string>
 </resources>

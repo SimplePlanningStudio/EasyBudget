@@ -26,9 +26,11 @@ import com.simplebudget.R
 import com.simplebudget.base.BaseFragment
 import com.simplebudget.databinding.FragmentBudgetDetailsBinding
 import com.simplebudget.helper.*
-import com.simplebudget.helper.analytics.AnalyticsManager
-import com.simplebudget.helper.analytics.Events
-import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.budget.Budget
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.report.DataModels
@@ -41,9 +43,8 @@ class BudgetDetailsFragment : BaseFragment<FragmentBudgetDetailsBinding>() {
 
     private val appPreferences: AppPreferences by inject()
     private val viewModel: BudgetDetailsViewModel by viewModel()
-    private var adView: AdView? = null
     private var budget: Budget? = null
-
+    private var adView: AdView? = null
 // ---------------------------------->
 
     override fun onCreateBinding(
@@ -117,16 +118,18 @@ class BudgetDetailsFragment : BaseFragment<FragmentBudgetDetailsBinding>() {
             binding?.searchExpensesProgressBar?.visibility =
                 if (loading) View.VISIBLE else View.GONE
         }
-
         /**
          * Banner ads
          */
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
-            binding?.adViewContainer?.visibility = View.GONE
-        } else {
-            loadAndDisplayBannerAds()
+        binding?.adViewContainer?.let {
+            loadBanner(
+                appPreferences.isUserPremium(),
+                binding?.adViewContainer!!,
+                onBannerAdRequested = { bannerAdView ->
+                    this.adView = bannerAdView
+                }
+            )
         }
-
     }
 
     /**
@@ -144,7 +147,7 @@ class BudgetDetailsFragment : BaseFragment<FragmentBudgetDetailsBinding>() {
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -152,7 +155,7 @@ class BudgetDetailsFragment : BaseFragment<FragmentBudgetDetailsBinding>() {
      * Called when opening the activity
      */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         // Load expenses here
         budget?.let {
             viewModel.loadExpenses(it.id!!, it.startDate, it.endDate)
@@ -160,10 +163,13 @@ class BudgetDetailsFragment : BaseFragment<FragmentBudgetDetailsBinding>() {
         super.onResume()
     }
 
-    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
-    override fun onDestroy() {
-        adView?.destroy()
-        super.onDestroy()
+    /**
+     *
+     */
+    override fun onDestroyView() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroyView()
     }
 
     /**
@@ -174,34 +180,6 @@ class BudgetDetailsFragment : BaseFragment<FragmentBudgetDetailsBinding>() {
             arguments = Bundle().apply {
                 putParcelable(ARG_BUDGET_DETAILS, budget)
             }
-        }
-    }
-
-    /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if(InternetUtils.isInternetAvailable(requireActivity()).not())return
-            binding?.adViewContainer?.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(
-                requireContext(), requireActivity().windowManager.defaultDisplay
-            )!!
-            adView = AdView(requireContext())
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            binding?.adViewContainer?.addView(adView)
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 }

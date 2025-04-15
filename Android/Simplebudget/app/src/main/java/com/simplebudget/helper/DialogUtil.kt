@@ -15,10 +15,12 @@
  */
 package com.simplebudget.helper
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.text.TextUtils
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.FragmentActivity
 
 /**
  * The type Dialog util.
@@ -33,12 +35,20 @@ object DialogUtil {
         negativeBtn: String,
         isCancelable: Boolean,
         positiveClickListener: () -> Unit,
-        negativeClickListener: () -> Unit
-    ): Dialog {
+        negativeClickListener: () -> Unit,
+    ): Dialog? {
+        // ❗ Check if context is an Activity and is finishing or destroyed
+        if ((context is Activity && (context.isFinishing || context.isDestroyed)) ||
+            (context is FragmentActivity && context.supportFragmentManager.isDestroyed)
+        ) {
+            return null
+        }
+
         val builder = AlertDialog.Builder(context)
-        if (title != null) builder.setTitle(title)
-        builder.setMessage(message)
-        builder.setPositiveButton(positiveBtn) { dialog, _ ->
+        if (!title.isNullOrEmpty()) {
+            builder.setTitle(title)
+        }
+        builder.setMessage(message).setPositiveButton(positiveBtn) { dialog, _ ->
             dialog.dismiss()
             positiveClickListener()
         }

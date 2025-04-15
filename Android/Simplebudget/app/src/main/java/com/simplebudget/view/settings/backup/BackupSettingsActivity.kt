@@ -21,19 +21,17 @@ import android.text.format.DateUtils
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityBackupSettingsBinding
-import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.base.BaseActivity
-import com.simplebudget.helper.InternetUtils
-import com.simplebudget.helper.Logger
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
-import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.prefs.AppPreferences
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -63,11 +61,17 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
-            binding.adViewContainer.visibility = View.GONE
-        } else {
-            loadAndDisplayBannerAds()
-        }
+
+        /**
+         * Banner ads
+         */
+        loadBanner(
+            appPreferences.isUserPremium(),
+            binding.adViewContainer,
+            onBannerAdRequested = { bannerAdView ->
+                this.adView = bannerAdView
+            }
+        )
 
         viewModel.cloudBackupStateStream.observe(this) { cloudBackupState ->
             when (cloudBackupState) {
@@ -131,12 +135,6 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
                     binding.backupSettingsCloudStorageActivatedDescription.visibility = View.VISIBLE
                     showLastUpdateDate(cloudBackupState.lastBackupDate)
                     binding.backupSettingsCloudLastUpdate.visibility = View.VISIBLE
-
-                    if (cloudBackupState.backupNowAvailable) {
-                        binding.backupSettingsCloudBackupCta.visibility = View.VISIBLE
-                    } else {
-                        binding.backupSettingsCloudBackupCta.visibility = View.GONE
-                    }
 
                     if (cloudBackupState.restoreAvailable) {
                         binding.backupSettingsCloudStorageRestoreDescription.visibility =
@@ -412,40 +410,10 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
 
 
     /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if (InternetUtils.isInternetAvailable(this).not()) return
-            binding.adViewContainer.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(
-                this,
-                windowManager.defaultDisplay
-            )!!
-            adView = AdView(this)
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            binding.adViewContainer.addView(adView)
-            val actualAdRequest = AdRequest.Builder()
-                .build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
-    }
-
-    /**
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -453,13 +421,16 @@ class BackupSettingsActivity : BaseActivity<ActivityBackupSettingsBinding>() {
      * Called when opening the activity
      */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         super.onResume()
     }
 
-    // Called when the fragment is no longer in use. This is called after onStop() and before onDetach().
+    /**
+     *
+     */
     override fun onDestroy() {
-        adView?.destroy()
+        destroyBanner(adView)
+        adView = null
         super.onDestroy()
     }
 }

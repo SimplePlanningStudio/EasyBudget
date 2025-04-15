@@ -15,22 +15,17 @@
  */
 package com.simplebudget.view.budgets.base
 
-import androidx.core.util.Pair
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplebudget.db.DB
-import com.simplebudget.helper.DateHelper
 import com.simplebudget.helper.getListOfMonthsAvailableForUser
 import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.getInitDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.util.ArrayList
 
-class BudgetBaseViewModel(private val appPreferences: AppPreferences, private val db: DB) :
+class BudgetBaseViewModel(private val appPreferences: AppPreferences) :
     ViewModel() {
     /**
      * The current selected position
@@ -42,21 +37,7 @@ class BudgetBaseViewModel(private val appPreferences: AppPreferences, private va
     fun loadData() {
         viewModelScope.launch {
             val pair = withContext(Dispatchers.IO) {
-                var currentMonthPosition = 0
-                val today = DateHelper.today
-                val initDate = db.getOldestBudgetStartDate() ?: today
-                val months = ArrayList<LocalDate>()
-                var currentDate = LocalDate.of(initDate.year, initDate.month, 1)
-                while (currentDate.isBefore(today) || currentDate == today) {
-                    months.add(currentDate)
-                    currentDate = currentDate.plusMonths(1)
-                }
-                months.forEachIndexed { index, localDate ->
-                    if (localDate.month == today.month && localDate.year == today.year) {
-                        currentMonthPosition = index
-                    }
-                }
-                Pair(months, currentMonthPosition)
+                appPreferences.getListOfMonthsAvailableForUser()
             }
             if (pair.first.isNotEmpty()) {
                 datesLiveData.value = pair.first

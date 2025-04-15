@@ -1,15 +1,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/_70sdp"
+    android:layout_height="@dimen/_72sdp"
     android:background="#CCFFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp">
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/date_tv"
@@ -17,18 +15,18 @@
             android:layout_height="@dimen/_34sdp"
             android:layout_gravity="center_vertical"
             android:background="@drawable/ic_date"
-            android:backgroundTint="@color/monthly_report_date_color"
+            android:backgroundTint="@color/colorBlackLight"
             android:gravity="center_horizontal"
             android:paddingTop="12dp"
-            android:textColor="@color/monthly_report_date_color"
-            android:textSize="12sp"
+            android:textColor="@color/colorBlackLight"
+            android:textSize="@dimen/_11ssp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="0dip"
             android:layout_height="match_parent"
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="15dp"
+            android:layout_marginLeft="@dimen/_4sdp"
+            android:layout_marginRight="@dimen/_2sdp"
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="vertical">
@@ -41,7 +39,8 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:minLines="1"
-                android:textColor="@color/caldroid_black" />
+                android:textColor="@color/caldroid_black"
+                android:textSize="@dimen/_11ssp" />
 
             <TextView
                 android:id="@+id/category_type"

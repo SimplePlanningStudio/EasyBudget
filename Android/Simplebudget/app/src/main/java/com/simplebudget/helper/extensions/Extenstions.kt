@@ -30,6 +30,7 @@ import android.text.format.DateFormat
 import android.util.TypedValue
 import android.view.*
 import android.widget.EditText
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
@@ -56,7 +57,7 @@ import java.util.*
  */
 @ColorInt
 fun Context.themeColor(
-    @AttrRes themeAttrId: Int
+    @AttrRes themeAttrId: Int,
 ): Int {
     return obtainStyledAttributes(
         intArrayOf(themeAttrId)
@@ -202,7 +203,15 @@ fun TextView.setDrawableTint(color: Int) {
 }
 
 fun NestedScrollView.scrollToBottom() {
-    smoothScrollBy(0, this.getChildAt(0).height)
+    post {
+        fullScroll(View.FOCUS_DOWN)
+    }
+}
+
+fun ScrollView.scrollToBottom() {
+    post {
+        fullScroll(View.FOCUS_DOWN)
+    }
 }
 
 val ViewBinding.context: Context
@@ -215,7 +224,7 @@ val Fragment.applicationContext: Context
 fun BroadcastReceiver.goAsync(
     coroutineScope: CoroutineScope = GlobalScope,
     coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    block: suspend () -> Unit
+    block: suspend () -> Unit,
 ) {
     val result = goAsync()
     coroutineScope.launch(coroutineDispatcher) {

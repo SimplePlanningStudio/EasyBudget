@@ -19,14 +19,20 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplebudget.db.DB
+import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
+import com.simplebudget.iab.isUserPremium
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.getFCMToken
+import com.simplebudget.prefs.getNumberOfOpen
+import com.simplebudget.prefs.saveFCMToken
+import com.simplebudget.prefs.setNumberOfOpen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 
 class ResetAppDataViewModel(
-    private val db: DB, private val appPreferences: AppPreferences
+    private val db: DB, private val appPreferences: AppPreferences,
 ) : ViewModel() {
     /**
      * Clear all app data stream
@@ -43,10 +49,26 @@ class ResetAppDataViewModel(
         progress.value = true
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                db.clearAllTables()
-                appPreferences.clearAllPreferencesData()
-                clearDataEventStream.postValue(true)
-                progress.postValue(false)
+                try {
+                    db.clearAllTables()
+                    //Save important values
+                    val isPremium = appPreferences.isUserPremium()
+                    val fcmToken = appPreferences.getFCMToken()
+                    val noOfOpen = appPreferences.getNumberOfOpen()
+
+                    //Reset all preferences
+                    appPreferences.clearAllPreferencesData()
+
+                    //Save important values
+                    appPreferences.putBoolean(PREMIUM_PARAMETER_KEY, isPremium)
+                    appPreferences.saveFCMToken(fcmToken)
+                    appPreferences.setNumberOfOpen(noOfOpen)
+
+                    //Data clearing done
+                    progress.postValue(false)
+                    clearDataEventStream.postValue(true)
+                } catch (_: Exception) {
+                }
             }
         }
     }

@@ -154,7 +154,7 @@ fun TextInputEditText.afterTextChanged(afterTextChanged: (String) -> Unit) {
             charSequence: CharSequence?,
             start: Int,
             count: Int,
-            after: Int
+            after: Int,
         ) {
         }
 
@@ -162,7 +162,7 @@ fun TextInputEditText.afterTextChanged(afterTextChanged: (String) -> Unit) {
             charSequence: CharSequence?,
             start: Int,
             before: Int,
-            count: Int
+            count: Int,
         ) {
         }
 

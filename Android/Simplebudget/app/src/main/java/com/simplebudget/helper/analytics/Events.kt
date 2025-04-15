@@ -15,8 +15,6 @@
  */
 package com.simplebudget.helper.analytics
 
-import com.google.firebase.analytics.FirebaseAnalytics.Event
-
 object Events {
     //General
     const val KEY_HOW_TO = "howTo"
@@ -31,6 +29,7 @@ object Events {
     const val KEY_RESULT = "result"
     const val KEY_VALUE = "value"
     const val KEY_STATUS = "status"
+    const val KEY_PRIVACY_POLICY = "privacy_policy"
     const val KEY_PERMISSION_GRANTED = "permission_granted"
     const val KEY_PERMISSION_NOT_GRANTED = "permission_not_granted"
 

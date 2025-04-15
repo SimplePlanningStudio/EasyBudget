@@ -12,6 +12,7 @@
         android:id="@+id/appBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
 
         <androidx.appcompat.widget.Toolbar
@@ -27,6 +28,7 @@
         android:id="@+id/vertical_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@+id/ad_view_container"
         android:layout_below="@+id/appBar"
         app:isSticky="true"
         app:layout_constraintEnd_toEndOf="parent"
@@ -38,6 +40,14 @@
         app:timeLineDotStrokeSize="2dp"
         app:timeLineMode="vertical"
         app:timeLineWidth="4dp" />
+
+
+    <FrameLayout
+        android:id="@+id/ad_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>

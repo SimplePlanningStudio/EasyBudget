@@ -21,10 +21,17 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.simplebudget.BuildConfig
 import com.simplebudget.R
+import com.simplebudget.helper.InternetUtils
+import com.simplebudget.helper.analytics.AnalyticsManager
+import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.intentOpenWebsite
+import com.simplebudget.helper.toast.ToastManager
 import com.simplebudget.view.moreApps.MoreAppsActivity
 import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
 import com.simplebudget.view.settings.releaseHistory.ReleaseHistoryTimelineActivity
+import com.simplebudget.view.settings.webview.WebViewActivity
+import org.koin.android.ext.android.inject
+import kotlin.getValue
 
 /**
  * Fragment to display About Us preferences
@@ -33,6 +40,10 @@ import com.simplebudget.view.settings.releaseHistory.ReleaseHistoryTimelineActiv
  */
 class AboutUsFragment : PreferenceFragmentCompat() {
 
+
+    private val toastManager: ToastManager by inject()
+
+    private val analyticsManager: AnalyticsManager by inject()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.about_us_preferences, rootKey)
@@ -57,7 +68,17 @@ class AboutUsFragment : PreferenceFragmentCompat() {
         */
         findPreference<Preference>(resources.getString(R.string.setting_privacy_policy_key))?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                intentOpenWebsite(requireActivity(), getString(R.string.privacy_policy))
+                if (InternetUtils.isInternetAvailable(requireActivity())) {
+                    analyticsManager.logEvent(Events.KEY_PRIVACY_POLICY)
+                    WebViewActivity.start(
+                        requireActivity(),
+                        getString(R.string.privacy_policy_url),
+                        getString(R.string.simple_budget_privacy_policy),
+                        false
+                    )
+                } else {
+                    toastManager.showShort(getString(R.string.no_internet_connection))
+                }
                 false
             }
 

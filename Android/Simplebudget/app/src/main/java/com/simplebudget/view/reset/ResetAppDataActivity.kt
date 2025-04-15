@@ -20,11 +20,18 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityResetAppDataBinding
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
+import com.simplebudget.iab.isUserPremium
+import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.main.MainActivity
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -38,7 +45,8 @@ class ResetAppDataActivity : BaseActivity<ActivityResetAppDataBinding>() {
 
     private val viewModel: ResetAppDataViewModel by viewModel()
     private val analyticsManager: AnalyticsManager by inject()
-
+    private val appPreferences: AppPreferences by inject()
+    private var adView: AdView? = null
 
     override fun createBinding(): ActivityResetAppDataBinding =
         ActivityResetAppDataBinding.inflate(layoutInflater)
@@ -73,6 +81,15 @@ class ResetAppDataActivity : BaseActivity<ActivityResetAppDataBinding>() {
             startActivity(Intent(this, MainActivity::class.java))
             finishAffinity()
         }
+
+        //Show Banner Ad
+        loadBanner(
+            appPreferences.isUserPremium(),
+            binding.adViewContainer,
+            onBannerAdRequested = { bannerAdView ->
+                this.adView = bannerAdView
+            }
+        )
     }
 
 
@@ -109,8 +126,31 @@ class ResetAppDataActivity : BaseActivity<ActivityResetAppDataBinding>() {
                 return true
             }
         }
-
         return super.onOptionsItemSelected(item)
     }
 
+    /**
+     * Leaving the activity
+     */
+    override fun onPause() {
+        pauseBanner(adView)
+        super.onPause()
+    }
+
+    /**
+     * Opening the activity
+     */
+    override fun onResume() {
+        resumeBanner(adView)
+        super.onResume()
+    }
+
+    /**
+     * Destroying the activity
+     */
+    override fun onDestroy() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroy()
+    }
 }

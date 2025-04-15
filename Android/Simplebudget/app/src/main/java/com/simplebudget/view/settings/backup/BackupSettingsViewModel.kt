@@ -42,7 +42,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 import org.koin.java.KoinJavaComponent.get
-import java.lang.RuntimeException
 
 class BackupSettingsViewModel(
     private val db: DB,
@@ -124,8 +123,7 @@ class BackupSettingsViewModel(
     fun onLogoutButtonPressed() {
         appPreferences.saveLastBackupDate(null)
         appPreferences.setBackupEnabled(false)
-        unscheduleBackup(appContext)
-
+        unScheduleBackup(appContext)
         auth.logout()
     }
 
@@ -145,8 +143,7 @@ class BackupSettingsViewModel(
                 } else {
                     if (appPreferences.isBackupEnabled()) {
                         val lastBackupDate = appPreferences.getLastBackupDate()
-                        val backupNowAvailable =
-                            lastBackupDate == null || lastBackupDate.isOlderThanADay()
+                        val backupNowAvailable = true // Always available if enabled.
                         val restoreAvailable = lastBackupDate != null
 
                         BackupCloudStorageState.Activated(
@@ -174,7 +171,7 @@ class BackupSettingsViewModel(
             if (newBackupState is BackupCloudStorageState.Activated) {
                 val lastBackupDate = newBackupState.lastBackupDate
                 if (lastBackupDate != null) {
-                    previousBackupAvailableEvent.value = lastBackupDate!!
+                    previousBackupAvailableEvent.value = lastBackupDate
                 }
             }
 
@@ -186,8 +183,7 @@ class BackupSettingsViewModel(
         if (appPreferences.isBackupEnabled()) {
             appPreferences.setBackupEnabled(false)
             cloudBackupStateStream.value = computeBackupCloudStorageState(auth.state.value)
-
-            unscheduleBackup(appContext)
+            unScheduleBackup(appContext)
         }
     }
 
@@ -206,7 +202,7 @@ class BackupSettingsViewModel(
                         appPreferences
                     )
 
-                    if (result !is ListenableWorker.Result.Success) {
+                    if (result != ListenableWorker.Result.success()) {
                         throw RuntimeException(result.toString())
                     }
                 }
@@ -275,7 +271,7 @@ class BackupSettingsViewModel(
             Logger.error("Starting restore with no last backup date")
             return
         }
-        restoreConfirmationDisplayEvent.value = lastBackupDate!!
+        restoreConfirmationDisplayEvent.value = lastBackupDate
     }
 
     private fun restoreData() {
@@ -284,12 +280,23 @@ class BackupSettingsViewModel(
             cloudBackupStateStream.value = computeBackupCloudStorageState(auth.state.value)
 
             try {
+                // ✅ Check Internet connectivity before proceeding
+                if (InternetUtils.isInternetAvailable(appContext).not()) {
+                    Logger.error(
+                        "BackupSettingsViewModel",
+                        "No internet connection",
+                        Throwable("No internet connection. Please try again.")
+                    )
+                    restorationErrorEvent.value =
+                        Throwable("No internet connection. Please try again.")
+                    restorationInProgress = false
+                    return@launch
+                }
                 withContext(Dispatchers.IO) {
                     restoreLatestDBBackup(
                         appContext, auth, get(CloudStorage::class.java), appPreferences
                     )
                 }
-
                 appRestartEvent.postValue(Unit)
             } catch (error: Throwable) {
                 Logger.error("BackupSettingsViewModel", "Error while restoring", error)

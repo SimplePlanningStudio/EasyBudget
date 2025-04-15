@@ -238,7 +238,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_storage_restore_description" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/backup_settings_cloud_restore_cta"
+                    android:id="@+id/backupSettingsCloudRestoreCta"
                     style="@style/GreenButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -259,7 +259,7 @@
                     android:textStyle="bold"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_restore_cta" />
+                    app:layout_constraintTop_toBottomOf="@+id/backupSettingsCloudRestoreCta" />
 
                 <TextView
                     android:id="@+id/backup_settings_cloud_storage_delete_explanation"
@@ -292,7 +292,7 @@
                     android:indeterminate="true"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/backup_settings_cloud_restore_cta" />
+                    app:layout_constraintTop_toBottomOf="@+id/backupSettingsCloudRestoreCta" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

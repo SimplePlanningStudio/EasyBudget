@@ -28,11 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.firebase.analytics.FirebaseAnalytics.Event
 import com.simplebudget.R
 import com.simplebudget.base.BaseActivity
 import com.simplebudget.databinding.ActivityAccountDetailsBinding
@@ -42,7 +38,6 @@ import com.simplebudget.helper.analytics.Events
 import com.simplebudget.helper.extensions.isVisible
 import com.simplebudget.helper.extensions.toAccounts
 import com.simplebudget.helper.toast.ToastManager
-import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.iab.isUserPremium
 import com.simplebudget.model.account.Account
 import com.simplebudget.prefs.AppPreferences
@@ -53,6 +48,10 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import androidx.core.net.toUri
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 
 /**
  *
@@ -131,12 +130,13 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
         /**
          * Banner ads
          */
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
-            binding.adViewContainer.visibility = View.GONE
-        } else {
-            loadAndDisplayBannerAds()
-        }
-
+        loadBanner(
+            appPreferences.isUserPremium(),
+            binding.adViewContainer,
+            onBannerAdRequested = { bannerAdView ->
+                this.adView = bannerAdView
+            }
+        )
         showAppBanner()
     }
 
@@ -297,57 +297,19 @@ class AccountDetailsActivity : BaseActivity<ActivityAccountDetailsBinding>() {
         }
     }
 
-// ------------------------------------------>
-    /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if(InternetUtils.isInternetAvailable(this).not())return
-            binding.adViewContainer.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(
-                this, windowManager.defaultDisplay
-            )
-            adView = AdView(this)
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            binding.adViewContainer.addView(adView)
-
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
-    }
-
-    /**
-     * Called when leaving the activity
-     */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
-    /**
-     * Called when opening the activity
-     */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         super.onResume()
     }
 
-    /**
-     *
-     */
     override fun onDestroy() {
-        adView?.destroy()
+        destroyBanner(adView)
+        adView = null
         super.onDestroy()
     }
 }

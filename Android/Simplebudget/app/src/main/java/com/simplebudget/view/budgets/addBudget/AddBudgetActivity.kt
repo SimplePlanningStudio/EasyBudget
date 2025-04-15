@@ -28,15 +28,11 @@ import android.text.Spanned
 import android.text.style.ImageSpan
 import android.view.MenuItem
 import android.view.View
-import android.widget.FrameLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -68,6 +64,12 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.time.LocalDate
 import kotlin.math.abs
 import androidx.core.graphics.createBitmap
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
+import com.simplebudget.helper.extensions.beGone
+import com.simplebudget.iab.isUserPremium
 
 /**
  * Activity to add budget
@@ -126,10 +128,18 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
 
         chooseCategoryViewModel.premiumStatusLiveData.observe(this) { isPremium ->
             if (isPremium) {
-                val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-                adContainerView.visibility = View.INVISIBLE
+                binding.adViewContainer.beGone()
             } else {
-                loadAndDisplayBannerAds()
+                /**
+                 * Banner ads
+                 */
+                loadBanner(
+                    appPreferences.isUserPremium(),
+                    binding.adViewContainer,
+                    onBannerAdRequested = { bannerAdView ->
+                        this.adView = bannerAdView
+                    }
+                )
             }
         }
         // In case of editing budget we'll receive it's associated category,account
@@ -315,7 +325,8 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
         binding.lastInstance.setText(endDate.getFormattedDate(this))
         binding.lastInstance.setOnClickListener {
             val fragment = DatePickerDialogFragment(
-                originalDate = endDate
+                originalDate = endDate,
+                minDateOverride = startDate.plusDays(1)
             ) { _, year, monthOfYear, dayOfMonth ->
                 addBudgetViewModel.onUpdateLastInstance(
                     LocalDate.of(
@@ -441,7 +452,7 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
                         isCancelable = true,
                         positiveClickListener = {},
                         negativeClickListener = {},
-                    ).show()
+                    )?.show()
                 }
             } else {
                 binding.intervalTextInputLayout.endIconMode = TextInputLayout.END_ICON_NONE
@@ -460,35 +471,8 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
     /**
      *
      */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if(InternetUtils.isInternetAvailable(this).not())return
-            val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
-            adContainerView.visibility = View.VISIBLE
-            val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
-            adView = AdView(this)
-            adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-            adContainerView.addView(adView)
-            val actualAdRequest = AdRequest.Builder().build()
-            adView?.setAdSize(adSize)
-            adView?.loadAd(actualAdRequest)
-            adView?.adListener = object : AdListener() {
-                override fun onAdLoaded() {}
-                override fun onAdOpened() {}
-                override fun onAdClosed() {
-                    loadAndDisplayBannerAds()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
-        }
-    }
-
-    /**
-     *
-     */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         super.onResume()
     }
 
@@ -496,7 +480,7 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -504,7 +488,8 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
      *
      */
     override fun onDestroy() {
-        adView?.destroy()
+        destroyBanner(adView)
+        adView = null
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }
@@ -521,7 +506,7 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
             addChipsToCategories()
             binding.scrollViewAddBudget.post {
                 binding.scrollViewAddBudget.smoothScrollTo(
-                    0, binding.scrollViewAddBudget.bottom
+                    0, binding.saveBudget.bottom + 50 //50px extra buffer for the scroll.
                 )
             }
         }
@@ -600,7 +585,7 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
 
         binding.scrollViewAddBudget.post {
             binding.scrollViewAddBudget.smoothScrollTo(
-                0, binding.scrollViewAddBudget.bottom
+                0, binding.saveBudget.bottom + 50 //50px extra buffer for the scroll.
             )
         }
 

@@ -178,7 +178,7 @@ class IabImpl(
     }
 
     override suspend fun launchPremiumPurchaseSubscriptionFlow(
-        activity: Activity, productId: String
+        activity: Activity, productId: String,
     ): PremiumPurchaseFlowResult {
         if (iabStatus != PremiumCheckStatus.NOT_PREMIUM) {
             return when (iabStatus) {

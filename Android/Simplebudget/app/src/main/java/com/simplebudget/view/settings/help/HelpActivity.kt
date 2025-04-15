@@ -17,9 +17,18 @@ package com.simplebudget.view.settings.help
 
 import android.os.Bundle
 import android.view.MenuItem
+import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityHelpBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
+import com.simplebudget.iab.isUserPremium
+import com.simplebudget.prefs.AppPreferences
+import org.koin.android.ext.android.inject
+import kotlin.getValue
 
 /**
  * Activity that displays settings using the [HelpFragment]
@@ -29,9 +38,9 @@ import com.simplebudget.base.BaseActivity
 class HelpActivity : BaseActivity<ActivityHelpBinding>() {
 
     private lateinit var helpFragment: HelpFragment
-
-
+    private val appPreferences: AppPreferences by inject()
     override fun createBinding(): ActivityHelpBinding = ActivityHelpBinding.inflate(layoutInflater)
+    private var adView: AdView? = null
 
     /**
      *
@@ -44,6 +53,14 @@ class HelpActivity : BaseActivity<ActivityHelpBinding>() {
 
         helpFragment =
             supportFragmentManager.findFragmentById(R.id.helpFragment) as HelpFragment
+
+        //Show Banner Ad
+        loadBanner(
+            appPreferences.isUserPremium(),
+            binding.adViewContainer,
+            onBannerAdRequested = { bannerAdView ->
+                this.adView = bannerAdView
+            })
     }
 
     /**
@@ -56,5 +73,31 @@ class HelpActivity : BaseActivity<ActivityHelpBinding>() {
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+
+    /**
+     * Leaving the activity
+     */
+    override fun onPause() {
+        pauseBanner(adView)
+        super.onPause()
+    }
+
+    /**
+     * Opening the activity
+     */
+    override fun onResume() {
+        resumeBanner(adView)
+        super.onResume()
+    }
+
+    /**
+     * Destroying the activity
+     */
+    override fun onDestroy() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroy()
     }
 }

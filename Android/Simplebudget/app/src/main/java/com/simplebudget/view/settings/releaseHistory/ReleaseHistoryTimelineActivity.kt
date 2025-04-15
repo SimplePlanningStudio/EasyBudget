@@ -19,20 +19,34 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.simplebudget.R
 import com.simplebudget.databinding.ActivityReleaseHistoryTimelineBinding
 import com.simplebudget.base.BaseActivity
+import com.simplebudget.helper.AdSizeUtils
+import com.simplebudget.helper.Logger
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
+import com.simplebudget.helper.extensions.beVisible
 import com.simplebudget.helper.stickytimelineview.callback.SectionCallback
 import com.simplebudget.helper.stickytimelineview.model.SectionInfo
-import com.simplebudget.view.settings.openSource.OpenSourceDisclaimerActivity
+import com.simplebudget.iab.isUserPremium
+import com.simplebudget.prefs.AppPreferences
 import org.koin.android.ext.android.inject
 
 class ReleaseHistoryTimelineActivity : BaseActivity<ActivityReleaseHistoryTimelineBinding>() {
 
 
     private val analyticsManager: AnalyticsManager by inject()
+    private val appPreferences: AppPreferences by inject()
+    private var adView: AdView? = null
 
     /**
      *
@@ -54,6 +68,16 @@ class ReleaseHistoryTimelineActivity : BaseActivity<ActivityReleaseHistoryTimeli
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         initVerticalRecyclerView()
+
+        /**
+         * Banner ads
+         */
+        loadBanner(
+            appPreferences.isUserPremium(),
+            binding.adViewContainer,
+            onBannerAdRequested = { bannerAdView ->
+                this.adView = bannerAdView
+            })
     }
 
     /**
@@ -76,15 +100,11 @@ class ReleaseHistoryTimelineActivity : BaseActivity<ActivityReleaseHistoryTimeli
     private fun initVerticalRecyclerView() {
         val singerList = getSingerList()
         binding.verticalRecyclerView.adapter = ReleaseHistoryAdapter(
-            layoutInflater,
-            singerList,
-            R.layout.recycler_release_history_row
+            layoutInflater, singerList, R.layout.recycler_release_history_row
         )
         //Currently only LinearLayoutManager is supported.
         binding.verticalRecyclerView.layoutManager = LinearLayoutManager(
-            this,
-            RecyclerView.VERTICAL,
-            false
+            this, RecyclerView.VERTICAL, false
         )
         binding.verticalRecyclerView.addItemDecoration(getSectionCallback(singerList))
     }
@@ -107,5 +127,30 @@ class ReleaseHistoryTimelineActivity : BaseActivity<ActivityReleaseHistoryTimeli
             }
 
         }
+    }
+
+    /**
+     * Leaving the activity
+     */
+    override fun onPause() {
+        pauseBanner(adView)
+        super.onPause()
+    }
+
+    /**
+     * Opening the activity
+     */
+    override fun onResume() {
+        resumeBanner(adView)
+        super.onResume()
+    }
+
+    /**
+     * Destroying the activity
+     */
+    override fun onDestroy() {
+        destroyBanner(adView)
+        adView = null
+        super.onDestroy()
     }
 }

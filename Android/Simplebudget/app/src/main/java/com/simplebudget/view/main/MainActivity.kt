@@ -25,8 +25,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -41,16 +39,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
@@ -111,6 +104,10 @@ import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.simplebudget.helper.ads.AdSdkManager
+import com.simplebudget.helper.ads.destroyBanner
+import com.simplebudget.helper.ads.loadBanner
+import com.simplebudget.helper.ads.pauseBanner
+import com.simplebudget.helper.ads.resumeBanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -141,7 +138,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var adView: AdView? = null
     private var googleMobileAdsConsentManager: GoogleMobileAdsConsentManager? = null
     private var appUpdateManager: AppUpdateManager? = null
-
 // ------------------------------------------>
 
     /**
@@ -333,6 +329,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             openSettingsForBackupIfNeeded(intent)
             openBudgetIntroIfNeeded(intent)
             openBudgetsIfNeeded(intent)
+            openHowToIfNeeded(intent)
+            openBuyPremiumIfNeeded(intent)
         }
 
         viewModel.expenseDeletionSuccessEventStream.observe(
@@ -573,7 +571,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isUserPremium = isPremium
             binding.ivPremiumIcon.setBackgroundResource(if (isPremium) R.drawable.ic_premium_icon_gold else R.drawable.ic_premium_icon_grey)
             invalidateOptionsMenu()
-
             if (isPremium) {
                 val adContainerView = findViewById<FrameLayout>(R.id.ad_view_container)
                 adContainerView.visibility = View.GONE
@@ -653,9 +650,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         } catch (e: Exception) {
             Logger.error(
-                "PromotionBanner",
-                "Error loading promotion banner: ${e.localizedMessage}",
-                e
+                "PromotionBanner", "Error loading promotion banner: ${e.localizedMessage}", e
             )
         } finally {
             appPreferences.saveBanner(null)
@@ -898,26 +893,32 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.layoutSelectAccount.tvSelectedAccount.text =
                 String.format("%s", appPreferences.activeAccountLabel().appendAccount())
             binding.layoutSelectAccount.llSelectAccount.setOnClickListener {
-                val accountsBottomSheetDialogFragment =
-                    AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
-                        binding.layoutSelectAccount.tvSelectedAccount.text =
-                            selectedAccount.name.appendAccount()
-                        updateAccountNotifyBroadcast()
-                        //Log event
-                        analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
-                    }, onAccountUpdated = { updatedAccount ->
-                        if (appPreferences.activeAccount() == updatedAccount.id) {
+                val existingFragment =
+                    supportFragmentManager.findFragmentByTag(AccountsBottomSheetDialogFragment.TAG) as? AccountsBottomSheetDialogFragment
+                if (existingFragment == null || existingFragment.isAdded.not()) {
+                    val accountsBottomSheetDialogFragment =
+                        AccountsBottomSheetDialogFragment(onAccountSelected = { selectedAccount ->
                             binding.layoutSelectAccount.tvSelectedAccount.text =
-                                updatedAccount.name.appendAccount()
-                            appPreferences.setActiveAccount(updatedAccount.id, updatedAccount.name)
-                            editAccountNotifyBroadcast()
-                        }
-                        //Log event
-                        analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
-                    })
-                accountsBottomSheetDialogFragment.show(
-                    supportFragmentManager, accountsBottomSheetDialogFragment.tag
-                )
+                                selectedAccount.name.appendAccount()
+                            updateAccountNotifyBroadcast()
+                            //Log event
+                            analyticsManager.logEvent(Events.KEY_ACCOUNT_SWITCHED)
+                        }, onAccountUpdated = { updatedAccount ->
+                            if (appPreferences.activeAccount() == updatedAccount.id) {
+                                binding.layoutSelectAccount.tvSelectedAccount.text =
+                                    updatedAccount.name.appendAccount()
+                                appPreferences.setActiveAccount(
+                                    updatedAccount.id, updatedAccount.name
+                                )
+                                editAccountNotifyBroadcast()
+                            }
+                            //Log event
+                            analyticsManager.logEvent(Events.KEY_ACCOUNT_UPDATED)
+                        })
+                    accountsBottomSheetDialogFragment.show(
+                        supportFragmentManager, AccountsBottomSheetDialogFragment.TAG
+                    )
+                }
             }
         } catch (e: Exception) {
             Log.i("", "${e.message}")
@@ -972,7 +973,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      *
      */
     override fun onDestroy() {
-        adView?.destroy()
+        destroyBanner(adView)
+        adView = null
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }
@@ -1011,6 +1013,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         openSettingsForBackupIfNeeded(intent)
         openBudgetIntroIfNeeded(intent)
         openBudgetsIfNeeded(intent)
+        openHowToIfNeeded(intent)
+        openBuyPremiumIfNeeded(intent)
     }
 
 // ------------------------------------------>
@@ -1200,8 +1204,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 if (show) {
                     // Privacy settings hint
                     showPrivacyHint()
-                } else {
-                    showBudgetIntroDialog()
                 }
             }
         }.start()
@@ -1213,7 +1215,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.privacyHintButton.setOnClickListener {
                 appPreferences.setUserSawPrivacyHint()
                 binding.privacyHint.visibility = View.GONE
-                showBudgetIntroDialog()
             }
         }
     }
@@ -1459,6 +1460,50 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         } catch (e: Exception) {
             Logger.error(getString(R.string.error_while_opening_report_activity_from_intent), e)
+        }
+    }
+
+    /**
+     * Open how to
+     * @param intent
+     */
+    private fun openHowToIfNeeded(intent: Intent?) {
+        try {
+            intent?.let {
+                val data = intent.data
+                if (data != null && "true" == data.getQueryParameter(KEY_HOW_TO)) {
+                    if (InternetUtils.isInternetAvailable(this)) {
+                        analyticsManager.logEvent(Events.KEY_HOW_TO)
+                        WebViewActivity.start(
+                            this,
+                            getString(R.string.simple_budget_how_to_url),
+                            getString(R.string.setting_how_to_title),
+                            false
+                        )
+                    } else {
+                        toastManager.showShort(getString(R.string.no_internet_connection))
+                    }
+                }
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    /**
+     * Open premium screen
+     * @param intent
+     */
+    private fun openBuyPremiumIfNeeded(intent: Intent?) {
+        try {
+            intent?.let {
+                val data = intent.data
+                if (data != null && "true" == data.getQueryParameter(KEY_PREMIUM)) {
+                    if (appPreferences.isUserPremium().not()) {
+                        becomePremium()
+                    }
+                }
+            }
+        } catch (_: Exception) {
         }
     }
 
@@ -1800,49 +1845,37 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 initializeMobileAdsSdk()
             }
             if (googleMobileAdsConsentManager?.canRequestAds != false) {
-                loadAndDisplayBannerAds()
+                loadBanner(
+                    appPreferences.isUserPremium(),
+                    binding.adViewContainer,
+                    onBannerAdRequested = { bannerAdView ->
+                        this.adView = bannerAdView
+                    }
+                )
             }
         }
     }
 
     private fun initializeMobileAdsSdk() {
         // Initialize the Mobile Ads SDK.
-        if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false).not()) {
+        if (appPreferences.isUserPremium().not()) {
             if (isMobileAdsInitializeCalled.getAndSet(true)) {
                 AdSdkManager.initialize(this) {
-                    loadAndDisplayBannerAds()
+                    loadBanner(
+                        appPreferences.isUserPremium(),
+                        binding.adViewContainer,
+                        onBannerAdRequested = { bannerAdView ->
+                            this.adView = bannerAdView
+                        })
                 }
             } else {
-                loadAndDisplayBannerAds()
+                loadBanner(
+                    appPreferences.isUserPremium(),
+                    binding.adViewContainer,
+                    onBannerAdRequested = { bannerAdView ->
+                        this.adView = bannerAdView
+                    })
             }
-        }
-    }
-
-    /**
-     *
-     */
-    private fun loadAndDisplayBannerAds() {
-        try {
-            if (InternetUtils.isInternetAvailable(this).not()) return
-            if (googleMobileAdsConsentManager?.canRequestAds != false) {
-                binding.adViewContainer.visibility = View.VISIBLE
-                val adSize: AdSize = AdSizeUtils.getAdSize(this, windowManager.defaultDisplay)
-                adView = AdView(this)
-                adView?.adUnitId = getString(R.string.banner_ad_unit_id)
-                binding.adViewContainer.addView(adView)
-                val actualAdRequest = AdRequest.Builder().build()
-                adView?.setAdSize(adSize)
-                adView?.loadAd(actualAdRequest)
-                adView?.adListener = object : AdListener() {
-                    override fun onAdLoaded() {}
-                    override fun onAdOpened() {}
-                    override fun onAdClosed() {
-                        loadAndDisplayBannerAds()
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_displaying_banner_ad), e)
         }
     }
 
@@ -1850,7 +1883,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Called when leaving the activity
      */
     override fun onPause() {
-        adView?.pause()
+        pauseBanner(adView)
         super.onPause()
     }
 
@@ -1858,7 +1891,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Called when leaving the activity
      */
     override fun onResume() {
-        adView?.resume()
+        resumeBanner(adView)
         try {
             appUpdateManager?.appUpdateInfo?.addOnSuccessListener { appUpdateInfo ->
                 if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
@@ -1885,29 +1918,32 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * Budget intro dialog
      */
     private fun showBudgetIntroDialog() {
-        if (appPreferences.isDoneDisplayingBudgetIntroDialog().not()) {
-            DialogUtil.createDialog(
-                this,
-                title = getString(R.string.budget_intro_title),
-                message = String.format(
-                    Locale.getDefault(),
-                    "%s%s%s",
-                    getString(R.string.budget_intro_message),
-                    "\n\n\n",
-                    getString(R.string.you_can_access_it_from_the_side_menu)
-                ),
-                positiveBtn = getString(R.string.try_now),
-                negativeBtn = getString(R.string.later),
-                isCancelable = false,
-                positiveClickListener = {
-                    // Perform action for trying the feature
-                    analyticsManager.logEvent(Events.KEY_BUDGETS_FROM_INTRO)
-                    openBudgetScreen()
-                },
-                negativeClickListener = {}).show()
+        try {
+            if (appPreferences.isDoneDisplayingBudgetIntroDialog().not()) {
+                DialogUtil.createDialog(
+                    this,
+                    title = getString(R.string.budget_intro_title),
+                    message = String.format(
+                        Locale.getDefault(),
+                        "%s%s%s",
+                        getString(R.string.budget_intro_message),
+                        "\n\n\n",
+                        getString(R.string.you_can_access_it_from_the_side_menu)
+                    ),
+                    positiveBtn = getString(R.string.try_now),
+                    negativeBtn = getString(R.string.later),
+                    isCancelable = false,
+                    positiveClickListener = {
+                        // Perform action for trying the feature
+                        analyticsManager.logEvent(Events.KEY_BUDGETS_FROM_INTRO)
+                        openBudgetScreen()
+                    },
+                    negativeClickListener = {})?.show()
 
-            //Done displaying intro dialog
-            appPreferences.setDoneDisplayingBudgetIntroDialog()
+                //Done displaying intro dialog
+                appPreferences.setDoneDisplayingBudgetIntroDialog()
+            }
+        } catch (_: Exception) {
         }
     }
 
