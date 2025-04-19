@@ -15,6 +15,7 @@
  */
 package com.simplebudget.base
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -35,6 +36,7 @@ import com.simplebudget.helper.Logger
 import com.simplebudget.helper.Rate
 import com.simplebudget.helper.getFormattedDate
 import com.simplebudget.prefs.AppPreferences
+import com.simplebudget.prefs.allowFontsScaling
 import com.simplebudget.prefs.getAppInstallationDate
 import com.simplebudget.prefs.getShowBannerCount
 import com.simplebudget.prefs.getShowBannerDate
@@ -43,6 +45,7 @@ import com.simplebudget.prefs.saveShowBannerCount
 import com.simplebudget.prefs.saveShowBannerDate
 import com.simplebudget.push.MyFirebaseMessagingService.Companion.ACTION_TRIGGER_DOWNLOAD
 import com.simplebudget.push.MyFirebaseMessagingService.Companion.NOTIFICATION_ID_NEW_FEATURES
+import com.simplebudget.view.main.MainActivity
 import org.koin.android.ext.android.inject
 
 abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
@@ -78,10 +81,20 @@ abstract class BaseActivity<V : ViewBinding> : AppCompatActivity() {
     }
 
     override fun attachBaseContext(newBase: Context) {
-        val configuration = Configuration(newBase.resources.configuration)
-        configuration.fontScale = 1.0f  // 👈 Lock the font size regardless of device settings
-        val context = newBase.createConfigurationContext(configuration)
-        super.attachBaseContext(context)
+        try {
+            if (appPreferences.allowFontsScaling()) {
+                super.attachBaseContext(newBase)
+            } else {
+                //Lock the fonts scaling
+                val configuration = Configuration(newBase.resources.configuration)
+                configuration.fontScale =
+                    1.0f  // 👈 Lock the font size regardless of device settings
+                val context = newBase.createConfigurationContext(configuration)
+                super.attachBaseContext(context)
+            }
+        } catch (_: Exception) {
+            super.attachBaseContext(newBase)
+        }
     }
 
     /**

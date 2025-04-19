@@ -36,13 +36,14 @@ object AddEditAccountDialog {
         addUpdateAccount: (accountDetails: Triple<String, Boolean, Account?>) -> Unit,
         isPremiumUser: Boolean,
         dismissAccountBottomSheet: () -> Unit,
-        toastManager: ToastManager
+        toastManager: ToastManager,
     ) {
         // Only premium users can add / edit accounts or Normal users can edit default account
         val isEditing = (account != null)
         val defaultAccount = if (isEditing) account!!.isDefault() else false
         if (isPremiumUser.not() && defaultAccount.not() && BuildConfig.DEBUG.not()) {
-            DialogUtil.createDialog(context,
+            DialogUtil.createDialog(
+                context,
                 title = context.getString(R.string.become_premium),
                 message = context.getString(R.string.to_add_more_accounts_you_need_to_upgrade_to_premium),
                 positiveBtn = context.getString(R.string.sure),
@@ -53,7 +54,8 @@ object AddEditAccountDialog {
                     startActivity(context, intent, null)
                     dismissAccountBottomSheet.invoke()
                 },
-                negativeClickListener = {})?.show()
+                negativeClickListener = {}
+            )?.show()
             return
         }
 

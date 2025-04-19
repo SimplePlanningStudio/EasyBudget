@@ -15,8 +15,10 @@
  */
 package com.simplebudget.helper.extensions
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -25,6 +27,7 @@ import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.net.Uri
 import android.os.Build
 import android.text.format.DateFormat
 import android.util.TypedValue
@@ -47,6 +50,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.textfield.TextInputLayout
+import com.simplebudget.R
+import com.simplebudget.helper.DialogUtil
+import com.simplebudget.helper.Logger
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -235,4 +241,71 @@ fun BroadcastReceiver.goAsync(
             result.finish()
         }
     }
+}
+
+fun String.truncateWithEllipsis(maxLength: Int = 40): String {
+    if (this.length <= maxLength) return this
+    val truncated = this.take(maxLength)
+    return truncated.substringBeforeLast(" ") + "..."  // Truncate at last space
+}
+
+
+/**
+ * Open PDF report
+ */
+fun Activity.openPDfReport(uri: Uri?, noExpensesFound: Boolean) {
+    try {
+        if (uri == null) {
+            DialogUtil.errorDialog(
+                this,
+                getString(if (noExpensesFound) R.string.please_add_expenses_for_this_month_to_generate_report else R.string.error_report_generation)
+            )?.show()
+            return
+        }
+        DialogUtil.createDialog(
+            this,
+            message = getString(R.string.what_would_you_like_to_do_with_this_pdf_report),
+            title = getString(R.string.report_generated_successfully),
+            isCancelable = false,
+            positiveBtn = getString(R.string.share),
+            positiveClickListener = {
+                try {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = getString(R.string.application_pdf)
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    }
+                    this.startActivity(
+                        Intent.createChooser(
+                            shareIntent, getString(R.string.share_your_report)
+                        )
+                    )
+                } catch (_: Exception) {
+                    DialogUtil.errorDialog(
+                        this, getString(R.string.error_sharing_report)
+                    )
+                }
+            },
+            negativeBtn = getString(R.string.open),
+            negativeClickListener = {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, getString(R.string.application_pdf))
+                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    }
+                    this.startActivity(intent)
+                } catch (_: Exception) {
+                    DialogUtil.errorDialog(
+                        this, getString(R.string.error_opening_report)
+                    )
+                }
+            },
+            neutralButton = getString(R.string.cancel),
+            neutralClickListener = {
+                // Dismiss only
+            })?.show()
+    } catch (e: Exception) {
+        Logger.debug("openPDfReport", e.message ?: "")
+    }
+
 }

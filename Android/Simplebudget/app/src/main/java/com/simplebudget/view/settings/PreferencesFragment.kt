@@ -42,6 +42,7 @@ import com.simplebudget.R
 import com.simplebudget.helper.*
 import com.simplebudget.helper.analytics.AnalyticsManager
 import com.simplebudget.helper.analytics.Events
+import com.simplebudget.helper.extensions.restartApp
 import com.simplebudget.iab.Iab
 import com.simplebudget.prefs.*
 import com.simplebudget.view.RatingPopup
@@ -217,7 +218,10 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         val enableAppPasswordProtection =
             findPreference<Preference>(getString(R.string.setting_enable_app_protection_key))
         enableAppPasswordProtection?.summary =
-            String.format("%s", if (appPreferences.isAppPasswordProtectionOn()) "ON" else "OFF")
+            String.format(
+                "%s",
+                if (appPreferences.isAppPasswordProtectionOn()) FontsScaling.ON.name else FontsScaling.OFF.name
+            )
         enableAppPasswordProtection?.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
                 analyticsManager.logEvent(Events.KEY_SETTINGS_APP_PASSWORD_PROTECTION)
@@ -225,6 +229,69 @@ class PreferencesFragment : PreferenceFragmentCompat() {
                 (activity as SettingsActivity).handleAppPasswordProtection()
                 true
             }
+        /*
+         * Scale fonts
+         */
+        val scaleFontsPreferences =
+            findPreference<Preference>(getString(R.string.setting_enable_fonts_scaling_key))
+        scaleFontsPreferences?.summary =
+            String.format(
+                "%s",
+                if (appPreferences.allowFontsScaling()) FontsScaling.ON.name else FontsScaling.OFF.name
+            )
+        scaleFontsPreferences?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            analyticsManager.logEvent(Events.KEY_SETTINGS_ALLOW_FONTS_SCALING)
+
+            val enableMessage = getString(R.string.enabling_font_scaling_message)
+            val onMessage = "(Currently ${FontsScaling.ON.name})"
+            val offMessage = "(Currently ${FontsScaling.OFF.name})"
+
+            val currentOnOffMessage =
+                if (appPreferences.allowFontsScaling()) onMessage else offMessage
+            val disableMessage = getString(R.string.disabling_font_scaling_message)
+
+            val currentSettingWithMessage =
+                if (appPreferences.allowFontsScaling()) String.format(
+                    enableMessage,
+                    currentOnOffMessage
+                ) else String.format(disableMessage, currentOnOffMessage)
+            CustomSingleChoiceDialog.show(
+                manager = childFragmentManager,
+                title = getString(R.string.follow_system_font_size),
+                message = currentSettingWithMessage,
+                options = listOf(FontsScaling.ON.name, FontsScaling.OFF.name),
+                onMessageUpdate = { position, selectedItem ->
+                    if (selectedItem.equals("ON", ignoreCase = true))
+                        String.format(enableMessage, currentOnOffMessage)
+                    else
+                        String.format(disableMessage, currentOnOffMessage)
+                },
+                selectedIndex = if (appPreferences.allowFontsScaling()) 0 else 1,
+                onSave = { position, selectedOption ->
+                    scaleFontsPreferences.summary = selectedOption
+                    if (selectedOption != if (appPreferences.allowFontsScaling()) FontsScaling.ON.name else FontsScaling.OFF.name) {
+                        appPreferences.setAllowFontsScaling(selectedOption == FontsScaling.ON.name)
+                        DialogUtil.createDialog(
+                            requireContext(),
+                            title = getString(R.string.font_preferences_updated_successfully),
+                            message = getString(R.string.restart_and_apply),
+                            positiveBtn = getString(R.string.apply_now),
+                            negativeBtn = getString(R.string.later),
+                            isCancelable = true,
+                            positiveClickListener = {
+                                restartApp(requireActivity())
+                            },
+                            negativeClickListener = {}
+                        )?.show()
+                    }
+                },
+                onCancel = {
+
+                }
+            )
+
+            true
+        }
         /*
          * Monthly Reports
          */
@@ -622,6 +689,9 @@ class PreferencesFragment : PreferenceFragmentCompat() {
         val enableAppPasswordProtection =
             findPreference<Preference>(getString(R.string.setting_enable_app_protection_key))
         enableAppPasswordProtection?.summary =
-            String.format("%s", if (appPreferences.isAppPasswordProtectionOn()) "ON" else "OFF")
+            String.format(
+                "%s",
+                if (appPreferences.isAppPasswordProtectionOn()) FontsScaling.ON.name else FontsScaling.OFF.name
+            )
     }
 }

@@ -24,6 +24,11 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 3.3.9
+            releaseList.add(ReleaseHistory("Version", "3.3.9", "Added new option to control font scaling under settings."))
+            releaseList.add(ReleaseHistory("Version", "3.3.9", "Revamped PDF reports with improved layout and readability."))
+            releaseList.add(ReleaseHistory("Version", "3.3.9", "Fixed an issue that prevented adding or editing expenses with past dates."))
+            releaseList.add(ReleaseHistory("Version", "3.3.9", "General performance enhancements and bug fixes."))
 
             // 3.3.8
             releaseList.add(ReleaseHistory("Version", "3.3.8", "You can add Past / Future Budgets."))

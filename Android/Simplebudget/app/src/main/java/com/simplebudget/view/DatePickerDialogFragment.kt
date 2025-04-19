@@ -19,37 +19,47 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
-import com.simplebudget.helper.computeCalendarMinDateFromInitDate
 import com.simplebudget.helper.toStartOfDayDate
-import com.simplebudget.prefs.AppPreferences
-import com.simplebudget.prefs.getInitDate
-import org.koin.android.ext.android.inject
 import java.time.LocalDate
-import javax.inject.Inject
 
+class DatePickerDialogFragment : DialogFragment() {
+    companion object {
+        private const val ARG_DATE = "arg_date"
+        private const val ARG_MIN_DATE = "arg_min_date"
 
-class DatePickerDialogFragment(
-    private val originalDate: LocalDate,
-    private val minDateOverride: LocalDate? = null,
-    private val listener: DatePickerDialog.OnDateSetListener,
-) : DialogFragment() {
+        fun newInstance(
+            originalDate: LocalDate,
+            minDateOverride: LocalDate? = null,
+        ): DatePickerDialogFragment {
+            val fragment = DatePickerDialogFragment()
+            val args = Bundle()
+            args.putString(ARG_DATE, originalDate.toString())
+            minDateOverride?.let { args.putString(ARG_MIN_DATE, it.toString()) }
+            fragment.arguments = args
+            return fragment
+        }
+    }
 
-    private val appPreferences: AppPreferences by inject()
+    lateinit var listener: DatePickerDialog.OnDateSetListener
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        // Create a new instance of DatePickerDialog and return it
+        val date = LocalDate.parse(requireArguments().getString(ARG_DATE))
+        val minDate: LocalDate? =
+            if (requireArguments().containsKey(ARG_MIN_DATE))
+                requireArguments().getString(ARG_MIN_DATE)?.let { LocalDate.parse(it) }
+            else
+                null
+
         val dialog = DatePickerDialog(
             requireContext(),
             listener,
-            originalDate.year,
-            originalDate.monthValue - 1,
-            originalDate.dayOfMonth
+            date.year,
+            date.monthValue - 1,
+            date.dayOfMonth
         )
-        val minDate = minDateOverride
-            ?: appPreferences.getInitDate()
-            ?: LocalDate.now()
-
-        dialog.datePicker.minDate = minDate.toStartOfDayDate().time
+        if (minDate != null) {
+            dialog.datePicker.minDate = minDate.toStartOfDayDate().time
+        }
         return dialog
     }
 }

@@ -21,6 +21,8 @@ import android.content.Context
 import android.text.TextUtils
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
+import com.simplebudget.R
+import kotlin.String
 
 /**
  * The type Dialog util.
@@ -33,10 +35,13 @@ object DialogUtil {
         message: String,
         positiveBtn: String,
         negativeBtn: String,
+        neutralButton: String = "",
         isCancelable: Boolean,
         positiveClickListener: () -> Unit,
         negativeClickListener: () -> Unit,
-    ): Dialog? {
+        neutralClickListener: (() -> Unit)? = null,
+
+        ): Dialog? {
         // ❗ Check if context is an Activity and is finishing or destroyed
         if ((context is Activity && (context.isFinishing || context.isDestroyed)) ||
             (context is FragmentActivity && context.supportFragmentManager.isDestroyed)
@@ -50,15 +55,38 @@ object DialogUtil {
         }
         builder.setMessage(message).setPositiveButton(positiveBtn) { dialog, _ ->
             dialog.dismiss()
-            positiveClickListener()
+            positiveClickListener.invoke()
         }
         if (!TextUtils.isEmpty(negativeBtn)) {
             builder.setNegativeButton(negativeBtn) { dialog, _ ->
                 dialog.dismiss()
-                negativeClickListener()
+                negativeClickListener.invoke()
+            }
+        }
+        if (!TextUtils.isEmpty(neutralButton)) {
+            builder.setNeutralButton(neutralButton) { dialog, _ ->
+                dialog.dismiss()
+                neutralClickListener?.invoke()
             }
         }
         builder.setCancelable(isCancelable)
         return builder.create()
+    }
+
+    /**
+     * Simplified dialog for the message only
+     */
+    fun errorDialog(
+        context: Context, message: String,
+    ): Dialog? {
+        return createDialog(
+            context = context,
+            message = message,
+            positiveBtn = context.getString(R.string.ok),
+            negativeBtn = "",
+            isCancelable = false,
+            positiveClickListener = {},
+            negativeClickListener = {},
+        )
     }
 }

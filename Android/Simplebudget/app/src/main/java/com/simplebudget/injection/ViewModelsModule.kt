@@ -30,6 +30,7 @@ import com.simplebudget.view.budgets.BudgetViewModel
 import com.simplebudget.view.budgets.base.BudgetBaseViewModel
 import com.simplebudget.view.budgets.budgetDetails.BudgetDetailsViewModel
 import com.simplebudget.view.category.manage.ManageCategoriesViewModel
+import com.simplebudget.view.report.PDFViewModel
 import com.simplebudget.view.reset.ResetAppDataViewModel
 import com.simplebudget.view.search.SearchViewModel
 import com.simplebudget.view.selectcurrency.SelectCurrencyViewModel
@@ -59,8 +60,13 @@ val viewModelModule = module {
     /**
      * Monthly report
      */
-    viewModel { MonthlyReportViewModel(get(), get()) }
+    viewModel { MonthlyReportViewModel(get()) }
     viewModel { MonthlyReportBaseViewModel(get()) }
+
+    /**
+     * PDF report
+     */
+    viewModel { PDFViewModel(get()) }
 
     /**
      * Monthly break down

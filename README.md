@@ -12,13 +12,13 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 
 ### Some of the implementations that are different from EasyBudget
 
-- Revised design, Day theme only
+- Revised design with dark blue theme only
 - Firebase push notifications, In app messaging, Analytics, Crashlytics
 - App security password feature
 - Balance privacy on dashboard
 - Currency searching / UI Enhancements 
 - Starting weeks from any weekday
-- App open, Banner and Interstitial Ads
+- Native, Banner and Interstitial Ads
 - Version history timelines in settings
 - More apps / Privacy policy / Telegram Channel in settings. 
 - Edit / Create own categories of expenses.
@@ -26,13 +26,14 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - Exporting/Downloading a PDF / Excel reports
 - In app reviews
 - Monthly Breakdown and PiChart
-- Future Payements 
+- Future Payements / Reports / Budgets
 - Category search new design added while adding/editing expenses
 - Voice search added for category
 - Multiple accounts
 - Side navigation panel
 - Added Budgets (One time and Monthly)
 - Added How to? under Help to explain common features
+- Export PDF  Excel sheet 
 
 
 

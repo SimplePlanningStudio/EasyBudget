@@ -27,6 +27,7 @@ import com.simplebudget.helper.AdSizeUtils
 import com.simplebudget.helper.InternetUtils
 import com.simplebudget.helper.Logger
 import com.simplebudget.helper.extensions.beGone
+import com.simplebudget.helper.extensions.beInvisible
 import com.simplebudget.helper.extensions.beVisible
 
 /**
@@ -79,7 +80,7 @@ object AdViewHelper {
                     adView.loadAd(AdRequest.Builder().build())
                 }
             } else {
-                container.beGone()
+                container.beInvisible()
             }
         } catch (e: Exception) {
             Logger.error(context.getString(R.string.error_while_displaying_banner_ad), e)

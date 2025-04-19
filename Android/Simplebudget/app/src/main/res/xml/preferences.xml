@@ -31,6 +31,11 @@
             app:icon="@drawable/ic_password_protection_black"
             app:key="@string/setting_enable_app_protection_key"
             app:title="@string/setting_enable_app_protection_general" />
+
+        <Preference
+            app:icon="@drawable/ic_fonts_scaling_black"
+            app:key="@string/setting_enable_fonts_scaling_key"
+            app:title="@string/follow_system_font_size" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/setting_category_reports_title">

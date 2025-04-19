@@ -15,6 +15,10 @@
  */
 package com.simplebudget.helper.extensions
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import androidx.fragment.app.Fragment
 import com.simplebudget.BuildConfig
 import com.simplebudget.db.DB
 import com.simplebudget.db.impl.accounts.AccountTypeEntity
@@ -34,6 +38,7 @@ import com.simplebudget.model.category.Category
 import com.simplebudget.model.expense.Expense
 import com.simplebudget.model.profile.Profile
 import com.simplebudget.model.recurringexpense.RecurringExpense
+import com.simplebudget.view.main.MainActivity
 import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -240,3 +245,21 @@ fun Double.getDBValue(): Long {
 }
 
 fun Long?.getRealValueFromDB(): Double = if (this != null) this / 100.0 else 0.0
+
+
+/**
+ * @param context Must be an activity context
+ */
+fun Fragment.restartApp(context: Context) {
+    try {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        context.startActivity(intent)
+        if (context is Activity) {
+            context.finish()
+        }
+        Runtime.getRuntime().exit(0)
+    } catch (_: Exception) {
+    }
+}

@@ -54,7 +54,6 @@ import com.simplebudget.iab.PREMIUM_PARAMETER_KEY
 import com.simplebudget.model.category.ExpenseCategoryType
 import com.simplebudget.prefs.AppPreferences
 import com.simplebudget.view.report.DataModels
-import com.simplebudget.view.report.PDFReportActivity
 import com.simplebudget.view.report.adapter.MainAdapter
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -68,7 +67,9 @@ import com.simplebudget.helper.ads.destroyBanner
 import com.simplebudget.helper.ads.loadBanner
 import com.simplebudget.helper.ads.pauseBanner
 import com.simplebudget.helper.ads.resumeBanner
+import com.simplebudget.helper.extensions.openPDfReport
 import com.simplebudget.iab.isUserPremium
+import com.simplebudget.view.report.PDFViewModel
 
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
@@ -76,12 +77,13 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private lateinit var date: LocalDate
     private val appPreferences: AppPreferences by inject()
     private val viewModel: SearchViewModel by viewModel()
+    private val pdfViewModel: PDFViewModel by viewModel()
     private val toastManager: ToastManager by inject()
     private val analyticsManager: AnalyticsManager by inject()
     private val dayFormatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.getDefault())
-
     private var mInterstitialAd: InterstitialAd? = null
     private var mAdIsLoading = false
+    private var monthlyReportData: DataModels.MonthlyReportData.Data? = null
 
     private val storagePermissions = arrayOf(
         WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
@@ -150,6 +152,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                 }
 
                 is DataModels.MonthlyReportData.Data -> {
+                    monthlyReportData = result
                     if (result.allExpensesOfThisMonth.isNotEmpty()) {
                         binding?.revenueDetails?.visibility = View.VISIBLE
                         binding?.recyclerViewSearch?.visibility = View.VISIBLE
@@ -166,7 +169,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                                      logAnalyticEvent("banner_clicked", bundle)*/
                                     if (banner.redirectUrl != null) {
                                         val intent =
-                                            Intent(Intent.ACTION_VIEW, banner.redirectUrl!!.toUri())
+                                            Intent(Intent.ACTION_VIEW, banner.redirectUrl.toUri())
                                         startActivity(intent)
                                     }
                                 })/*MonthlyReportRecyclerViewAdapter(
@@ -267,30 +270,21 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         /*
          Observe HTML/PDF report generation
         */
-        viewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { htmlReport ->
-            htmlReport?.let {
-                if (htmlReport.html.isEmpty() || htmlReport.isEmpty) {
-                    toastManager.showShort(getString(R.string.please_add_expenses_for_this_month_to_generate_report))
-                } else {
-                    startActivity(
-                        Intent(requireActivity(), PDFReportActivity::class.java).putExtra(
-                            PDFReportActivity.INTENT_CODE_PDF_CONTENTS,
-                            htmlReport.html
-                        )
-                    )
-                }
-            }
+        pdfViewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { uri ->
+            requireActivity().openPDfReport(
+                uri,
+                monthlyReportData?.expenses?.isEmpty() != false
+            )
         }
 
         /*
           Observe export status
          */
-        viewModel.observeExportStatus.observe(viewLifecycleOwner) { result ->
+        pdfViewModel.observeExportStatus.observe(viewLifecycleOwner) { result ->
             //Get data list update it to UI, notify scroll down
             result?.let {
                 if (it.message.isNotEmpty()) toastManager.showShort(it.message)
                 if (!it.status) return@let
-
                 it.file?.let { file ->
                     shareCsvFile(file)
                 }
@@ -541,32 +535,35 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
      */
     private fun exportSelectionDialog() {
         val weeks = arrayOf(
-            "Download or print pdf", "Share spreadsheet"
+            "Open or share pdf",
+            "Share spreadsheet"
         )
-        val monthFormat = DateTimeFormatter.ofPattern(
-            "MMM yyyy", Locale.getDefault()
-        )
-        MaterialAlertDialogBuilder(requireContext()).setTitle(
-            String.format(
-                "Budget report of %s",
-                monthFormat.format(date)
-            )
-        ).setItems(weeks) { dialog, which ->
-            if (which == 0) {
-                viewModel.generateHtml(appPreferences.getUserCurrency(), date)
-                //Log event
-                analyticsManager.logEvent(
-                    Events.KEY_PRINT_PDF_REPORT
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(
+                String.format(
+                    getString(R.string.budget_report_of),
+                    date.formatLocalDate("MMM yyyy")
                 )
-            } else {
-                exportExcel()
-                //Log event
-                analyticsManager.logEvent(Events.KEY_PRINT_EXCEL_REPORT)
-            }
-            dialog.dismiss()
-        }.setPositiveButton("Not now") { dialog, p1 ->
-            dialog.dismiss()
-        }.setCancelable(false).show()
+            ).setItems(weeks) { dialog, which ->
+                dialog.dismiss()
+                if (monthlyReportData != null) {
+                    if (which == 0) {
+                        pdfViewModel.generatePdfReport(requireActivity(), date, monthlyReportData!!)
+                        //Log event
+                        analyticsManager.logEvent(
+                            Events.KEY_PRINT_PDF_REPORT
+                        )
+                    } else {
+                        exportExcel()
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_PRINT_EXCEL_REPORT)
+                    }
+                } else {
+                    toastManager.showLong(getString(R.string.error_report_generation))
+                }
+            }.setPositiveButton(getString(R.string.cancel)) { dialog, p1 ->
+                dialog.dismiss()
+            }.setCancelable(false).show()
         //Log event
         analyticsManager.logEvent(Events.KEY_REPORT_EXPORT)
     }
@@ -596,7 +593,12 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
                         "${String.format("%s", fileNameDateFormat.format(date))}_SimpleBudget.csv"
                     )
                 }
-                viewModel.exportCSV(appPreferences.getUserCurrency(), date, file)
+                pdfViewModel.exportCSV(
+                    appPreferences.getUserCurrency(),
+                    date,
+                    file,
+                    monthlyReportData!!
+                )
             }
 
             else -> {

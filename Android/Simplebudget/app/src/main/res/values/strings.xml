@@ -359,6 +359,7 @@
     <string name="setting_category_dev_show_premium_key" translatable="false">show_premium</string>
     <string name="setting_category_start_day_of_week_key" translatable="false">start_day_of_week</string>
     <string name="setting_enable_app_protection_key" translatable="false">enable_app_protection</string>
+    <string name="setting_enable_fonts_scaling_key" translatable="false">enable_fonts_scaling</string>
     <string name="setting_enable_multiple_account_key" translatable="false">enable_multiple_account</string>
     <string name="setting_enable_app_notifications_key" translatable="false">enable_app_notification</string>
 
@@ -758,4 +759,20 @@
     <string name="edit">Edit</string>
     <string name="view_transactions">View Transactions</string>
     <string name="budget_name">Budget: %1$s</string>
+    <string name="font_preferences_updated_successfully">Font preferences updated successfully</string>
+    <string name="follow_system_font_size">Follow System Font Size</string>
+    <string name="disabling_font_scaling_message">If you disable font scaling it would lock the app\'s font size, ignoring your phone\'s font settings.\n\n%s</string>
+    <string name="enabling_font_scaling_message">If you Enable font scaling it would allow the app\'s font size to follow your phone\'s font settings.\n\n%s</string>
+    <string name="restart_and_apply">Would you like to restart the app and apply new fonts settings?</string>
+    <string name="apply_now">Apply now</string>
+    <string name="open">Open</string>
+    <string name="error_report_generation">Oops..An error occurred while generating report. Please retry later!</string>
+    <string name="generated_with_simple_budget">Generated with Simple Budget</string>
+    <string name="what_would_you_like_to_do_with_this_pdf_report">What would you like to do with this PDF report?</string>
+    <string name="report_generated_successfully">Report Generated Successfully</string>
+    <string name="share_your_report">Share your report</string>
+    <string name="application_pdf">application/pdf</string>
+    <string name="error_sharing_report">Uh-oh! There was a problem sharing your report. Let’s give it another go.</string>
+    <string name="error_opening_report">Uh-oh! We didn\'t find any app to open PDFs. Please install a PDF reader and try again.</string>
+    <string name="budget_report_of">Budget report of %s</string>
 </resources>

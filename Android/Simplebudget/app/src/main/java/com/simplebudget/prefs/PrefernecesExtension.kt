@@ -220,9 +220,9 @@ private const val APP_BANNER_SHOW_DATE = "app_banner_show_date"
 private const val APP_INSTALLATION_DATE = "app_installation_date"
 
 /**
- * Done displaying budget intro dialog
+ * Allow fonts scaling
  */
-private const val KEY_INTRO_BUDGET_DIALOG = "intro_budget_dialog"
+private const val KEY_ALLOW_FONTS_SCALING = "allow_fonts_scaling"
 
 /**
  * FCM Token Key
@@ -725,15 +725,15 @@ fun AppPreferences.saveAppInstallationDate(date: String) {
 /**
  *
  */
-fun AppPreferences.isDoneDisplayingBudgetIntroDialog(): Boolean {
-    return getBoolean(KEY_INTRO_BUDGET_DIALOG, false)
+fun AppPreferences.allowFontsScaling(): Boolean {
+    return getBoolean(KEY_ALLOW_FONTS_SCALING, true)
 }
 
 /**
  *
  */
-fun AppPreferences.setDoneDisplayingBudgetIntroDialog() {
-    putBoolean(KEY_INTRO_BUDGET_DIALOG, true)
+fun AppPreferences.setAllowFontsScaling(fontsScaling: Boolean) {
+    putBoolean(KEY_ALLOW_FONTS_SCALING, fontsScaling)
 }
 
 

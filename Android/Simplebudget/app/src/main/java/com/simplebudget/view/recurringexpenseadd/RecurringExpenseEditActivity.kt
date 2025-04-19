@@ -16,6 +16,7 @@
 package com.simplebudget.view.recurringexpenseadd
 
 import android.app.Activity
+import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -481,10 +482,11 @@ class RecurringExpenseEditActivity : BaseActivity<ActivityRecurringExpenseAddBin
         binding.dateButton.text = formatter.format(date)
 
         binding.dateButton.setOnClickListener {
-            val fragment = DatePickerDialogFragment(date) { _, year, monthOfYear, dayOfMonth ->
-                viewModel.onDateChanged(LocalDate.of(year, monthOfYear + 1, dayOfMonth))
-            }
-
+            val fragment = DatePickerDialogFragment.newInstance(originalDate = date)
+            fragment.listener =
+                DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
+                    viewModel.onDateChanged(LocalDate.of(year, monthOfYear + 1, dayOfMonth))
+                }
             fragment.show(supportFragmentManager, "datePicker")
         }
     }

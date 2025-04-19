@@ -148,6 +148,7 @@ object Events {
     const val KEY_SETTINGS_LOW_BALANCE_THRESHOLD = "settings_low_balance_threshold"
     const val KEY_SETTINGS_CHANGE_START_DAY_OF_WEEK = "settings_change_start_day_of_week"
     const val KEY_SETTINGS_APP_PASSWORD_PROTECTION = "settings_app_password_protection"
+    const val KEY_SETTINGS_ALLOW_FONTS_SCALING = "settings_allow_fonts_scaling"
     const val KEY_SETTINGS_MONTHLY_REPORT = "settings_monthly_report"
     const val KEY_SETTINGS_BREAKDOWN = "settings_expenses_breakdown"
     const val KEY_SETTINGS_PIE_CHART = "settings_pie_chart"

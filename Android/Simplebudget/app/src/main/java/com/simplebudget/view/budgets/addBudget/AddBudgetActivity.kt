@@ -16,6 +16,7 @@
 package com.simplebudget.view.budgets.addBudget
 
 import android.app.Activity
+import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -305,15 +306,15 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
     private fun setUpStartDateButton(startDate: LocalDate) {
         binding.firstInstance.setText(startDate.getFormattedDate(this))
         binding.firstInstance.setOnClickListener {
-            val fragment = DatePickerDialogFragment(
-                originalDate = startDate
-            ) { _, year, monthOfYear, dayOfMonth ->
-                addBudgetViewModel.onUpdateFirstInstance(
-                    LocalDate.of(
-                        year, monthOfYear + 1, dayOfMonth
+            val fragment = DatePickerDialogFragment.newInstance(originalDate = startDate)
+            fragment.listener =
+                DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
+                    addBudgetViewModel.onUpdateFirstInstance(
+                        LocalDate.of(
+                            year, monthOfYear + 1, dayOfMonth
+                        )
                     )
-                )
-            }
+                }
             fragment.show(supportFragmentManager, "datePicker")
         }
     }
@@ -324,16 +325,18 @@ class AddBudgetActivity : BaseActivity<ActivityAddEditBudgetBinding>() {
     private fun setUpEndDateButton(endDate: LocalDate) {
         binding.lastInstance.setText(endDate.getFormattedDate(this))
         binding.lastInstance.setOnClickListener {
-            val fragment = DatePickerDialogFragment(
+            val fragment = DatePickerDialogFragment.newInstance(
                 originalDate = endDate,
                 minDateOverride = startDate.plusDays(1)
-            ) { _, year, monthOfYear, dayOfMonth ->
-                addBudgetViewModel.onUpdateLastInstance(
-                    LocalDate.of(
-                        year, monthOfYear + 1, dayOfMonth
+            )
+            fragment.listener =
+                DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
+                    addBudgetViewModel.onUpdateLastInstance(
+                        LocalDate.of(
+                            year, monthOfYear + 1, dayOfMonth
+                        )
                     )
-                )
-            }
+                }
             fragment.show(supportFragmentManager, "datePicker")
         }
     }

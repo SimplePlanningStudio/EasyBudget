@@ -53,3 +53,5 @@ const val KEY_BUDGET = "budget"
 const val KEY_BUDGET_INTRO = "budget_intro"
 
 fun isOnMainThread() = Looper.myLooper() == Looper.getMainLooper()
+
+enum class FontsScaling { ON, OFF }

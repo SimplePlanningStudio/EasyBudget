@@ -166,6 +166,15 @@ fun LocalDateTime.formatLocalDateTime(pattern: String = "MMMM dd, yyyy hh:mm a")
     this.format(DateTimeFormatter.ofPattern(pattern))
 
 /**
+ *  MMMM dd, yyyy  for "January 18, 2025"
+ *  dd MMM yyyy for "18 Mar 2025"
+ * yyyy-MM-dd HH:mm:ss for "2025-01-18"
+ * dd/MM/yyyy HH:mm:ss for "18/01/2025"
+ */
+fun LocalDate.formatLocalDate(pattern: String = "MMMM dd, yyyy"): String =
+    this.format(DateTimeFormatter.ofPattern(pattern))
+
+/**
  * Single Material date picker
  * Your app or activity theme must be material in order to use this date picker
  */

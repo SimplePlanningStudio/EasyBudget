@@ -180,12 +180,6 @@
             android:theme="@style/Theme.MaterialComponents"
             android:windowSoftInputMode="adjustNothing" />
         <activity
-            android:name=".view.report.PDFReportActivity"
-            android:configChanges="locale|keyboardHidden|orientation|screenSize"
-            android:exported="false"
-            android:label="@string/title_budget_report"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".view.expenseedit.ExpenseEditActivity"
             android:configChanges="locale|keyboardHidden|orientation|screenSize"
             android:exported="false"

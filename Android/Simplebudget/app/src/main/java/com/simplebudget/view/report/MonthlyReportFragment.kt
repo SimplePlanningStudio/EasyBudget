@@ -58,6 +58,7 @@ import com.simplebudget.helper.ads.destroyBanner
 import com.simplebudget.helper.ads.loadBanner
 import com.simplebudget.helper.ads.pauseBanner
 import com.simplebudget.helper.ads.resumeBanner
+import com.simplebudget.helper.extensions.openPDfReport
 import com.simplebudget.iab.isUserPremium
 
 
@@ -75,9 +76,12 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
     private val appPreferences: AppPreferences by inject()
     private val analyticsManager: AnalyticsManager by inject()
     private val viewModel: MonthlyReportViewModel by viewModel()
+    private val pdfViewModel: PDFViewModel by viewModel()
     private val toastManager: ToastManager by inject()
     private var mInterstitialAd: InterstitialAd? = null
     private var mAdIsLoading = false
+    private var monthlyReportData: DataModels.MonthlyReportData.Data? = null
+    private val expensesList: ArrayList<DataModels.SuperParent> = ArrayList()
 
     private val storagePermissions = arrayOf(
         WRITE_EXTERNAL_STORAGE,
@@ -118,7 +122,8 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                     }
 
                     is DataModels.MonthlyReportData.Data -> {
-                        val expensesList: ArrayList<DataModels.SuperParent> = ArrayList()
+                        monthlyReportData = result
+                        expensesList.clear()
                         expensesList.addAll(result.allExpensesParentList)
 
                         if (expensesList.isEmpty()) {
@@ -178,7 +183,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
         /**
          * Export for this month
          */
-        binding?.icExport?.setOnClickListener {
+        binding?.relativeLayoutExport?.setOnClickListener {
             if (appPreferences.getBoolean(PREMIUM_PARAMETER_KEY, false)) {
                 exportSelectionDialog()
             } else {
@@ -189,7 +194,7 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
         /*
           Observe export status
          */
-        viewModel.observeExportStatus.observe(viewLifecycleOwner) { result ->
+        pdfViewModel.observeExportStatus.observe(viewLifecycleOwner) { result ->
             //Get data list update it to UI, notify scroll down
             result?.let {
                 if (it.message.isNotEmpty())
@@ -205,17 +210,8 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
         /*
           Observe HTML/PDF report generation
          */
-        viewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { htmlReport ->
-            htmlReport?.let {
-                if (htmlReport.html.isEmpty() || htmlReport.isEmpty) {
-                    toastManager.showShort(getString(R.string.please_add_expenses_for_this_month_to_generate_report))
-                } else {
-                    startActivity(
-                        Intent(requireActivity(), PDFReportActivity::class.java)
-                            .putExtra(PDFReportActivity.INTENT_CODE_PDF_CONTENTS, htmlReport.html)
-                    )
-                }
-            }
+        pdfViewModel.observeGeneratePDFReport.observe(viewLifecycleOwner) { uri ->
+            requireActivity().openPDfReport(uri, expensesList.isEmpty())
         }
         /**
          * Banner ads
@@ -441,28 +437,42 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
      */
     private fun exportSelectionDialog() {
         val weeks = arrayOf(
-            "Download or print pdf",
+            "Open or share pdf",
             "Share spreadsheet"
         )
-        val monthFormat = DateTimeFormatter.ofPattern(
-            "MMM yyyy",
-            Locale.getDefault()
-        )
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(String.format("Budget report of %s", monthFormat.format(date)))
+            .setTitle(
+                String.format(
+                    getString(R.string.budget_report_of),
+                    date.formatLocalDate("MMM yyyy")
+                )
+            )
             .setItems(weeks) { dialog, which ->
-                if (which == 0) {
-                    viewModel.generateHtml(appPreferences.getUserCurrency(), date)
-                    //Log event
-                    analyticsManager.logEvent(Events.KEY_PRINT_PDF_REPORT)
-                } else {
-                    exportExcel()
-                    //Log event
-                    analyticsManager.logEvent(Events.KEY_PRINT_EXCEL_REPORT)
-                }
                 dialog.dismiss()
+                if (monthlyReportData != null) {
+                    if (which == 0) {
+                        pdfViewModel.generatePdfReport(requireActivity(), date, monthlyReportData!!)
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_PRINT_PDF_REPORT)
+
+                    } else {
+                        exportExcel()
+                        //Log event
+                        analyticsManager.logEvent(Events.KEY_PRINT_EXCEL_REPORT)
+                    }
+                } else {
+                    if (expensesList.isEmpty()) {
+                        toastManager.showLong(getString(R.string.no_expenses_found))
+                    } else {
+
+                        DialogUtil.errorDialog(
+                            requireContext(),
+                            getString(R.string.error_report_generation)
+                        )?.show()
+                    }
+                }
             }
-            .setPositiveButton("Not now") { dialog, p1 ->
+            .setPositiveButton(getString(R.string.cancel)) { dialog, p1 ->
                 dialog.dismiss()
             }.setCancelable(false)
             .show()
@@ -496,7 +506,12 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
                         "${String.format("%s", fileNameDateFormat.format(date))}_SimpleBudget.csv"
                     )
                 }
-                viewModel.exportCSV(appPreferences.getUserCurrency(), date, file)
+                pdfViewModel.exportCSV(
+                    appPreferences.getUserCurrency(),
+                    date,
+                    file,
+                    monthlyReportData!!
+                )
             }
 
             else -> {
@@ -533,22 +548,17 @@ class MonthlyReportFragment : BaseFragment<FragmentMonthlyReportBinding>() {
      *
      */
     private fun shareCsvFile(file: File) {
-        val fileUri = FileProvider.getUriForFile(
-            requireContext(),
-            BuildConfig.APPLICATION_ID + ".fileprovider", file
-        )
-        intentShareCSV(requireActivity(), fileUri)
-
-        /*val builder = android.app.AlertDialog.Builder(requireContext())
-        builder.setCancelable(false)
-        builder.setTitle("Share Spreadsheet")
-            .setNegativeButton("No") { dialog, _ ->
-                dialog.cancel()
-            }.setPositiveButton("Yes") { dialog, _ ->
-                intentShareCSV(requireActivity(), fileUri)
-                dialog.cancel()
-            }
-        builder.create().show()*/
+        try {
+            val fileUri = FileProvider.getUriForFile(
+                requireContext(),
+                BuildConfig.APPLICATION_ID + ".fileprovider", file
+            )
+            intentShareCSV(requireActivity(), fileUri)
+        } catch (_: Exception) {
+            DialogUtil.errorDialog(
+                context = requireActivity(),
+                message = getString(R.string.error_sharing_report)
+            )
+        }
     }
-
 }

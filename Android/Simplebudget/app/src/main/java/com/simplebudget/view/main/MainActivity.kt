@@ -33,6 +33,8 @@ import android.view.*
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -170,14 +172,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     /**
      * Start activity for result for app update
      */
-    private var appUpdateLauncher =
-        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                // ✅ Update completed
-            } else {
-                // ❌ Update canceled or failed
-            }
-        }
+
+    private lateinit var appUpdateLauncher: ActivityResultLauncher<IntentSenderRequest>
 
     /**
      * Create binding
@@ -195,6 +191,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             finish()
         }
         setSupportActionBar(binding.toolbar)
+
+        appUpdateLauncher =
+            registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    // ✅ Update completed
+                } else {
+                    // ❌ Update canceled or failed
+                }
+            }
+        /**/
         try {
             binding.toolbar.apply {
                 logo = ContextCompat.getDrawable(context, R.drawable.ic_logo_white)
@@ -327,7 +333,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             openAddExpenseIfNeeded(intent)
             openAddRecurringExpenseIfNeeded(intent)
             openSettingsForBackupIfNeeded(intent)
-            openBudgetIntroIfNeeded(intent)
             openBudgetsIfNeeded(intent)
             openHowToIfNeeded(intent)
             openBuyPremiumIfNeeded(intent)
@@ -973,9 +978,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      *
      */
     override fun onDestroy() {
+        LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         destroyBanner(adView)
         adView = null
-        LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(receiver)
         super.onDestroy()
     }
 
@@ -1011,7 +1016,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         openAddExpenseIfNeeded(intent)
         openAddRecurringExpenseIfNeeded(intent)
         openSettingsForBackupIfNeeded(intent)
-        openBudgetIntroIfNeeded(intent)
         openBudgetsIfNeeded(intent)
         openHowToIfNeeded(intent)
         openBuyPremiumIfNeeded(intent)
@@ -1526,23 +1530,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     /**
-     * Open the budget intro dialog if the given intent contains the budget_intro uri part.
-     * @param intent
-     */
-    private fun openBudgetIntroIfNeeded(intent: Intent?) {
-        try {
-            intent?.let {
-                val data = intent.data
-                if (data != null && "true" == data.getQueryParameter(KEY_BUDGET_INTRO)) {
-                    showBudgetIntroDialog()
-                }
-            }
-        } catch (e: Exception) {
-            Logger.error(getString(R.string.error_while_opening_budgte_intro_from_notification), e)
-        }
-    }
-
-    /**
      * Open the add expense screen if the given intent contains the [.INTENT_SHOW_ADD_EXPENSE]
      * extra.
      *
@@ -1915,39 +1902,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     /**
-     * Budget intro dialog
-     */
-    private fun showBudgetIntroDialog() {
-        try {
-            if (appPreferences.isDoneDisplayingBudgetIntroDialog().not()) {
-                DialogUtil.createDialog(
-                    this,
-                    title = getString(R.string.budget_intro_title),
-                    message = String.format(
-                        Locale.getDefault(),
-                        "%s%s%s",
-                        getString(R.string.budget_intro_message),
-                        "\n\n\n",
-                        getString(R.string.you_can_access_it_from_the_side_menu)
-                    ),
-                    positiveBtn = getString(R.string.try_now),
-                    negativeBtn = getString(R.string.later),
-                    isCancelable = false,
-                    positiveClickListener = {
-                        // Perform action for trying the feature
-                        analyticsManager.logEvent(Events.KEY_BUDGETS_FROM_INTRO)
-                        openBudgetScreen()
-                    },
-                    negativeClickListener = {})?.show()
-
-                //Done displaying intro dialog
-                appPreferences.setDoneDisplayingBudgetIntroDialog()
-            }
-        } catch (_: Exception) {
-        }
-    }
-
-    /**
      * Check for app updates
      */
     private fun checkForAppUpdate() {
@@ -1971,6 +1925,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             Logger.error("AppUpdate", "Error app update: ${e.localizedMessage}", e)
         }
     }
+
 
     companion object {
         const val ADD_EXPENSE_ACTIVITY_CODE = 101

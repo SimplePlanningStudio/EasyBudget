@@ -22,7 +22,7 @@
         android:visibility="visible">
 
         <RelativeLayout
-            android:id="@+id/ic_export"
+            android:id="@+id/relativeLayoutExport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_8sdp"
@@ -46,6 +46,7 @@
                 tools:ignore="RelativeOverlap" />
 
             <ImageView
+                android:id="@+id/ivExport"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
