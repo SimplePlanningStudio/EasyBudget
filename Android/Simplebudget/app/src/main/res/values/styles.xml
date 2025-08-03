@@ -9,8 +9,11 @@
         <item name="android:actionBarStyle">@style/ToolBarStyle</item>
         <item name="alertDialogTheme">@style/AlertDialogTheme</item>
         <item name="android:statusBarColor">@color/status_bar_color</item>
+        <item name="android:navigationBarColor">@color/status_bar_color</item>
         <item name="colorBackgroundFloating">@color/window_background</item>
         <item name="android:logo">@mipmap/ic_launcher_foreground</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
     </style>
 
     <style name="Base.LoadingTheme" parent="android:Theme.Material">
@@ -19,6 +22,8 @@
         <item name="android:colorAccent">@color/easy_budget_green_night</item>
         <item name="android:colorPrimary">@color/easy_budget_dark_status_bar</item>
         <item name="android:colorPrimaryDark">@color/easy_budget_dark_status_bar</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">true</item>
     </style>
 
     <style name="Base.LoadingActionBarTheme" parent="android:Widget.Material.ActionBar.Solid">

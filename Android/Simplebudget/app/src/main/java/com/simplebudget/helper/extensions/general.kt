@@ -177,11 +177,11 @@ suspend fun List<Category>.toCategoriesId(): List<Long> {
 fun List<Category>.namesAsCommaSeparatedString(): String {
     return if (this.size > 3) {
         this.take(3).joinToString(", ") {
-            it.name.toLowerCase(Locale.getDefault()).replaceFirstChar { char -> char.uppercase() }
+            it.name.lowercase(Locale.getDefault()).replaceFirstChar { char -> char.uppercase() }
         } + ", etc."
     } else {
         this.joinToString(", ") {
-            it.name.toLowerCase(Locale.getDefault()).replaceFirstChar { char -> char.uppercase() }
+            it.name.lowercase(Locale.getDefault()).replaceFirstChar { char -> char.uppercase() }
         }
     }
 }

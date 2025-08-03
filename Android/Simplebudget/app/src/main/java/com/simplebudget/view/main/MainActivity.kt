@@ -619,7 +619,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
-            finish()
+            AlertDialog.Builder(this)
+                .setTitle("Exit App")
+                .setMessage("Are you sure you want to exit?")
+                .setPositiveButton("Yes") { _, _ ->
+                    finishAffinity() // Closes all activities
+                }
+                .setNegativeButton("No", null) // Dismisses dialog
+                .setCancelable(true)
+                .show()
         }
     }
 

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/accounts_background"
+    android:fitsSystemWindows="true"
     android:orientation="vertical"
     tools:context=".view.budgets.budgetDetails.BudgetDetailsActivity">
 
@@ -25,7 +25,8 @@
         android:id="@+id/frameLayoutSearchExpenses"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/appbar" />
+        android:layout_below="@+id/appbar"
+        android:background="@color/white" />
 
     <ProgressBar
         android:id="@+id/monthly_report_progress_bar"

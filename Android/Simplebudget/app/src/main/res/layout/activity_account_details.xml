@@ -1,21 +1,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/relativeLayoutMonthlyReports"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/accounts_background"
     android:fitsSystemWindows="true"
+    android:orientation="vertical"
     tools:context=".view.accounts.AccountDetailsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:elevation="0dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_alignParentTop="true">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -25,45 +21,49 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <ProgressBar
-        android:id="@+id/progress_bar_account_details"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:indeterminate="true" />
-
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/appbar"
-        android:layout_marginVertical="@dimen/_4sdp"
-        android:layout_marginStart="@dimen/_8sdp"
-        android:text="@string/account_details_until_today"
-        android:textColor="@color/colorBlack"
-        android:textSize="@dimen/_14ssp" />
-
-    <include
-        android:id="@+id/bannerLayout"
-        layout="@layout/item_banner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/title"
-        android:layout_marginVertical="@dimen/_5sdp" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/monthly_report_fragment_recycler_view"
+    <!-- Content Layout -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/ad_view_container"
-        android:layout_below="@+id/bannerLayout"
-        android:scrollbars="vertical" />
+        android:layout_below="@+id/appbar"
+        android:background="@color/white"
+        android:orientation="vertical"
+        android:padding="@dimen/_8sdp">
+
+        <ProgressBar
+            android:id="@+id/progress_bar_account_details"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:indeterminate="true" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/account_details_until_today"
+            android:textColor="@color/colorBlack"
+            android:textSize="@dimen/_14ssp" />
+
+        <include
+            android:id="@+id/bannerLayout"
+            layout="@layout/item_banner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/monthly_report_fragment_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scrollbars="vertical" />
+    </LinearLayout>
 
     <FrameLayout
         android:id="@+id/ad_view_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
-
+        android:background="@color/white"/>
 </RelativeLayout>

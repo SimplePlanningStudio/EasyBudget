@@ -4,7 +4,7 @@ object BudgetStatus {
     fun get(budgetAmount: Double, spentAmount: Double): String {
         return try {
             when {
-                spentAmount == 0.0 -> "No Started ⏳"
+                spentAmount == 0.0 -> "Not Started ⏳"
                 spentAmount == budgetAmount * 0.5 -> "Reached 50% of Budget \uD83D\uDCCA"
                 spentAmount < budgetAmount * 0.75 -> "On Track ✅"
                 spentAmount in (budgetAmount * 0.75)..<budgetAmount -> "Near Limit ⚠\uFE0F"

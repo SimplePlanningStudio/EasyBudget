@@ -33,7 +33,8 @@ You can download Simple Budget on the PlayStore: [https://play.google.com/store/
 - Side navigation panel
 - Added Budgets (One time and Monthly)
 - Added How to? under Help to explain common features
-- Export PDF  Excel sheet 
+- Export PDF  Excel sheet
+- Android 15 support
 
 
 

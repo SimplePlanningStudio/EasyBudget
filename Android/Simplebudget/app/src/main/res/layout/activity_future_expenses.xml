@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:fitsSystemWindows="true"
     tools:context=".view.report.base.MonthlyReportBaseActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -23,6 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/appbar"
+        android:background="@color/white"
         android:layout_marginTop="@dimen/_8sdp"
         android:orientation="horizontal"
         android:paddingHorizontal="@dimen/_2sdp">
@@ -103,6 +105,7 @@
         android:id="@+id/ad_view_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/white"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 

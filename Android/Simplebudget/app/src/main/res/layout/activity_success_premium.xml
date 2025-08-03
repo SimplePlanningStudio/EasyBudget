@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/premium_background"
     android:clipChildren="false"
+    android:fitsSystemWindows="true"
     tools:context=".view.premium.PremiumSuccessActivity">
 
     <TextView

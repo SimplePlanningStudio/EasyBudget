@@ -24,6 +24,10 @@ class ReleaseHistoryRepo {
         get() {
             val releaseList = ArrayList<ReleaseHistory>()
 
+            // 4.0.0
+            releaseList.add(ReleaseHistory("Version", "4.0.0", "Added Android 15 support."))
+            releaseList.add(ReleaseHistory("Version", "4.0.0", "General performance enhancements and bug fixes."))
+
             // 3.3.9
             releaseList.add(ReleaseHistory("Version", "3.3.9", "Added new option to control font scaling under settings."))
             releaseList.add(ReleaseHistory("Version", "3.3.9", "Revamped PDF reports with improved layout and readability."))

@@ -114,12 +114,12 @@ class SelectCurrencyRecyclerViewAdapter(
                 } else {
                     val resultList = ArrayList<Currency>()
                     for (row in currencyList) {
-                        if (row.currencyCode.toLowerCase(Locale.ROOT)
-                                .contains(charSearch.toLowerCase(Locale.ROOT))
-                            || row.displayName.toLowerCase(Locale.ROOT)
-                                .contains(charSearch.toLowerCase(Locale.ROOT))
-                            || row.symbol.toLowerCase(Locale.ROOT)
-                                .contains(charSearch.toLowerCase(Locale.ROOT))
+                        if (row.currencyCode.lowercase(Locale.ROOT)
+                                .contains(charSearch.lowercase(Locale.ROOT))
+                            || row.displayName.lowercase(Locale.ROOT)
+                                .contains(charSearch.lowercase(Locale.ROOT))
+                            || row.symbol.lowercase(Locale.ROOT)
+                                .contains(charSearch.lowercase(Locale.ROOT))
                         ) {
                             resultList.add(row)
                         }
